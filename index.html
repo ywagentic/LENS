@@ -1,0 +1,2610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LENS — Library of Experienceable Landscape Spaces</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      /* D1 Quiet palette — pure white base, near-black ink, single cyan accent */
+      --bg: #ffffff;
+      --bg2: #fafafa;             /* faint panel */
+      --bg3: #f3f3f3;             /* hover / inset */
+      --bg-dark: oklch(15% 0.01 240);  /* video / VR viewer surface */
+      --fg: #0f0f0f;              /* primary ink */
+      --fg2: #2a2a2a;             /* body */
+      --fg3: #666666;             /* secondary / caps labels */
+      --fg4: #999999;             /* muted */
+      --accent: #1F8A5B;                    /* deep green */
+      --accent-dim: rgba(31, 138, 91, 0.10);
+      --accent-bright: #176B47;               /* hover deeper */
+      --border: #e5e5e5;
+      --border-bright: #d4d4d4;
+      --card-bg: #ffffff;
+      --glass: rgba(255, 255, 255, 0.92);
+    }
+    html { font-size: 16px; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-variant-numeric: tabular-nums;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+    #root { min-height: 100vh; position: relative; z-index: 1; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 0; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--fg4); }
+    ::selection { background: var(--accent-dim); color: var(--fg); }
+
+    /* Mono used only for numerics & coords */
+    .mono { font-family: 'JetBrains Mono', monospace; font-feature-settings: 'tnum'; }
+    /* CAPS label — Inter, not mono, per D1 system */
+    .label {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--fg3);
+      font-weight: 500;
+    }
+    /* Editorial italic accent (used in About) */
+    .italic-accent {
+      font-style: italic;
+      font-weight: 300;
+      color: var(--accent);
+    }
+    /* Display weight 200 for big editorial type */
+    .display { font-family: 'Inter', sans-serif; font-weight: 200; letter-spacing: -0.045em; line-height: 0.95; }
+    .display-tight { font-family: 'Inter', sans-serif; font-weight: 200; letter-spacing: -0.04em; line-height: 0.98; }
+    .blink { animation: blink 1.4s steps(2, start) infinite; }
+    @keyframes blink { to { visibility: hidden; } }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="atlas.jsx"></script>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTstt0D318arNWhKhdUAUrxqAgKBClnFyzuwuCHWzTEQIX_uiPGlAEqdigcOdQsBA3ZTCT408dmWa-H/pub?output=csv";
+const CACHE_KEY = "lens_projects_cache";
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+const FALLBACK_PROJECTS = [
+  { id:1, title:"Paley Park", subtitle:"Pocket park with immersive waterfall wall", location:"New York, USA", year:2021, designer:"Zion & Breen Associates", type:"Urban Park", tags:["Urban","Water","Hardscape"], vrType:"360° Video", vrId:"dQw4w9WgXcQ", description:"A seminal vest-pocket park in midtown Manhattan, featuring a cascading waterfall wall that masks urban noise. The gravel floor, honey locust canopy, and moveable seating create an intimate respite within the dense city grid.", area:"390 m²", color:"oklch(72% 0.08 140)" },
+  { id:2, title:"Gardens by the Bay", subtitle:"Supertree Grove & Cloud Forest", location:"Singapore", year:2022, designer:"Grant Associates", type:"Botanical Garden", tags:["Tropical","Infrastructure","Ecological"], vrType:"360° Photo", vrId:"LXb3EKWsInQ", description:"An iconic 101-hectare nature park bridging Singapore's Marina Bay waterfront. The Supertrees are vertical gardens that perform functions including planting, shading, and harvesting of rainwater and solar energy.", area:"101 ha", color:"oklch(68% 0.1 168)" },
+  { id:3, title:"Cheonggyecheon Stream", subtitle:"Urban stream restoration and linear park", location:"Seoul, South Korea", year:2023, designer:"SeoAhn Total Landscape", type:"Urban Restoration", tags:["Water","Urban","Restoration"], vrType:"360° Video", vrId:"J---aiyznGQ", description:"A 5.8 km urban stream restored beneath a former elevated highway. The project transformed a concrete culvert into a rich ecological corridor, dramatically reducing urban heat island effect.", area:"58,000 m²", color:"oklch(62% 0.12 222)" },
+  { id:4, title:"High Line", subtitle:"Elevated linear park on disused railway", location:"New York, USA", year:2022, designer:"James Corner Field Operations", type:"Linear Park", tags:["Urban","Adaptive Reuse","Planting"], vrType:"360° Video", vrId:"oHg5SJYRHA0", description:"A 2.3 km elevated linear park built on a disused freight rail line, threading through Manhattan's West Side. The planting design references the self-seeded vegetation that colonized the tracks during abandonment.", area:"8.7 ha", color:"oklch(58% 0.09 98)" },
+  { id:5, title:"Tanner Springs Park", subtitle:"Urban wetland in the Pearl District", location:"Portland, USA", year:2020, designer:"Atelier Dreiseitl", type:"Urban Wetland", tags:["Water","Ecological","Urban"], vrType:"360° Photo", vrId:"dQw4w9WgXcQ", description:"A constructed urban wetland referencing the historic Tanner Creek that once ran through the site. The park incorporates stormwater management with a naturalistic planting palette.", area:"3,440 m²", color:"oklch(55% 0.13 190)" },
+  { id:6, title:"Zaryadye Park", subtitle:"Nature reserve adjacent to the Kremlin", location:"Moscow, Russia", year:2023, designer:"Diller Scofidio + Renfro", type:"Urban Park", tags:["Ecological","Infrastructure","Hardscape"], vrType:"360° Video", vrId:"LXb3EKWsInQ", description:"A 13-hectare urban nature park in central Moscow, occupying the former site of the Rossiya Hotel. Four Russian landscapes are compressed and layered under a dramatic floating bridge.", area:"13 ha", color:"oklch(52% 0.07 268)" },
+  { id:7, title:"BIG Campus", subtitle:"Living laboratory landscape", location:"Copenhagen, Denmark", year:2024, designer:"Henning Larsen + Tredje Natur", type:"Campus Landscape", tags:["Ecological","Urban","Planting"], vrType:"360° Photo", vrId:"J---aiyznGQ", description:"A demonstrative campus landscape that layers food production, stormwater retention, and biodiversity corridors within a dense urban block, serving as a living laboratory for climate-adaptive design strategies.", area:"4,200 m²", color:"oklch(65% 0.08 55)" },
+  { id:8, title:"Lurie Garden", subtitle:"Prairie-inspired garden in Millennium Park", location:"Chicago, USA", year:2021, designer:"Gustafson Guthrie Nichol", type:"Designed Garden", tags:["Planting","Urban","Prairie"], vrType:"360° Video", vrId:"oHg5SJYRHA0", description:"A 1-hectare garden within Millennium Park celebrating the wild and cultivated landscapes of the Midwest. A dark plate steel hedge contains the garden, opening to a luminous sea of perennials and grasses.", area:"1 ha", color:"oklch(70% 0.11 88)" },
+];
+
+// Parse a CSV string into an array of objects using the first row as headers
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  return lines.slice(1).map(line => {
+    // Handle quoted fields containing commas
+    const fields = [];
+    let cur = '', inQuote = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQuote = !inQuote; }
+      else if (ch === ',' && !inQuote) { fields.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    fields.push(cur.trim());
+    const obj = {};
+    headers.forEach((h, i) => { obj[h] = (fields[i] || '').replace(/^"|"$/g, ''); });
+    // Coerce types
+    obj.id = parseInt(obj.id) || 0;
+    obj.year = parseInt(obj.year) || 0;
+    // Support both old comma-separated tags column and new per-tag boolean columns
+    if (obj.tags) {
+      obj.tags = obj.tags.split(',').map(t => t.trim()).filter(Boolean);
+    } else {
+      // Reconstruct from tag_* columns (e.g. tag_Urban, tag_Adaptive_Reuse)
+      obj.tags = headers
+        .filter(h => h.startsWith('tag_'))
+        .filter(h => obj[h] === 'TRUE' || obj[h] === '1' || obj[h] === true)
+        .map(h => h.replace(/^tag_/, '').replace(/_/g, ' '));
+    }
+    obj.featured = obj.featured === '1' || obj.featured === 'TRUE';
+    // Parse links: "Label::URL|Label::URL"
+    obj.links = obj.links ? obj.links.split('|').map(l => {
+      const [label, url] = l.split('::');
+      return (label && url) ? { label: label.trim(), url: url.trim() } : null;
+    }).filter(Boolean) : [];
+    // Parse vrTypes: "360° Video|360° Photo" — fallback to legacy single vrType
+    obj.vrTypes = obj.vrTypes
+      ? obj.vrTypes.split('|').map(t => t.trim()).filter(Boolean)
+      : (obj.vrType ? [obj.vrType] : []);
+    // Parse captures: "label::vrId::description::height" pipe-separated
+    // Fallback: legacy single vrId/vrType becomes one capture
+    if (obj.captures) {
+      obj.captures = obj.captures.split('|').map(c => {
+        const [label, vrId, description, height] = c.split('::').map(s => (s || '').trim());
+        return vrId ? { label: label || 'View', vrId, description: description || '', height: height || '' } : null;
+      }).filter(Boolean);
+    } else if (obj.vrId) {
+      obj.captures = [{ label: 'Main view', vrId: obj.vrId, description: '', height: '' }];
+    } else {
+      obj.captures = [];
+    }
+    return obj;
+  }).filter(p => p.id && p.title);
+}
+
+async function fetchProjects() {
+  // Check cache first
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    if (cached && Date.now() - cached.ts < CACHE_TTL) return normalizeProjects(cached.data);
+  } catch(e) {}
+  // Fetch fresh
+  try {
+    const res = await fetch(SHEET_CSV_URL);
+    if (!res.ok) throw new Error('fetch failed');
+    const text = await res.text();
+    const data = parseCSV(text);
+    if (data.length === 0) throw new Error('empty sheet');
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+    return normalizeProjects(data);
+  } catch(e) {
+    console.warn('LENS: Could not fetch sheet, using fallback data.', e.message);
+    return normalizeProjects(FALLBACK_PROJECTS);
+  }
+}
+
+// Ensure every project has captures[] and vrTypes[] (back-compat for legacy data)
+function normalizeProjects(data) {
+  return data.map(p => {
+    if (!p.captures) {
+      p.captures = p.vrId ? [{ label: 'Main view', vrId: p.vrId, description: '', height: '' }] : [];
+    }
+    if (!p.vrTypes) {
+      p.vrTypes = p.vrType ? [p.vrType] : [];
+    }
+    return p;
+  });
+}
+
+// Convert "lat,lng" string to a Google Maps satellite embed URL and open link
+function coordsToEmbed(coords) {
+  if (!coords) return null;
+  const [lat, lng] = coords.split(',').map(s => s.trim());
+  if (!lat || !lng) return null;
+  return `https://www.google.com/maps?q=${lat},${lng}&t=k&z=17&output=embed`;
+}
+function coordsToLink(coords) {
+  if (!coords) return null;
+  const [lat, lng] = coords.split(',').map(s => s.trim());
+  if (!lat || !lng) return null;
+  return `https://www.google.com/maps?q=${lat},${lng}&t=k`;
+}
+
+// Derived dynamically from loaded projects
+function getTagsFromProjects(projects) {
+  const set = new Set();
+  projects.forEach(p => (p.tags || []).forEach(t => set.add(t)));
+  return ["All", ...Array.from(set).sort()];
+}
+function getTypesFromProjects(projects) {
+  const set = new Set(projects.map(p => p.type).filter(Boolean));
+  return ["All Types", ...Array.from(set).sort()];
+}
+
+// ─── UPVOTE COPY — edit this to change the tooltip explanation ───────────────
+const UPVOTE_TOOLTIP = "Upvoting a project signals that it's valuable to the LENS community. Votes are shared across all visitors and help surface the most educationally significant spaces — informing future collection priorities and curation decisions.";
+
+// ─── TWEAK DEFAULTS ──────────────────────────────────────────────────────────
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accentHue": 196,
+  "cardStyle": "grid",
+  "showTags": true,
+  "heroLayout": "split",
+  "typographyScale": 1
+}/*EDITMODE-END*/;
+
+// ─── VOTES API ───────────────────────────────────────────────────────────────
+const VOTES_API = "https://script.google.com/macros/s/AKfycbyR_byTc2nWP1ZUkE4KAe7GznPlSfluYMui8lVbLbM38hKBPF75H4FcIXTYpx20KGO5/exec";
+const VOTES_TOKEN = "lens-vt7Qx4mR"; // shared secret — must match Apps Script
+const VOTES_KEY = 'lens_votes';        // localStorage: tracks which projects THIS user has voted on
+const VOTES_CACHE_KEY = 'lens_votes_counts'; // localStorage: cached global counts
+const VOTES_CACHE_TTL = 60 * 1000;    // 1 minute
+
+function loadLocalVoted() {
+  try { return JSON.parse(localStorage.getItem(VOTES_KEY) || '{}'); } catch(e) { return {}; }
+}
+function saveLocalVoted(v) {
+  try { localStorage.setItem(VOTES_KEY, JSON.stringify(v)); } catch(e) {}
+}
+function loadCachedCounts() {
+  try {
+    const c = JSON.parse(localStorage.getItem(VOTES_CACHE_KEY) || 'null');
+    if (c && Date.now() - c.ts < VOTES_CACHE_TTL) return c.data;
+  } catch(e) {}
+  return null;
+}
+function saveCachedCounts(data) {
+  try { localStorage.setItem(VOTES_CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); } catch(e) {}
+}
+
+async function fetchVoteCounts() {
+  const cached = loadCachedCounts();
+  if (cached) return cached;
+  try {
+    const res = await fetch(`${VOTES_API}?action=get&token=${VOTES_TOKEN}`);
+    const data = await res.json();
+    saveCachedCounts(data);
+    return data;
+  } catch(e) {
+    return {};
+  }
+}
+
+async function sendVote(projectId, action) {
+  // Invalidate cache
+  try { localStorage.removeItem(VOTES_CACHE_KEY); } catch(e) {}
+  try {
+    const res = await fetch(`${VOTES_API}?action=${action}&id=${projectId}&token=${VOTES_TOKEN}`);
+    const data = await res.json();
+    return data.votes ?? null;
+  } catch(e) {
+    return null;
+  }
+}
+
+function useVotes() {
+  const [voted, setVoted] = useState(loadLocalVoted);   // which projects this user has upvoted
+  const [counts, setCounts] = useState({});              // global counts from sheet
+
+  // Load global counts on mount
+  useEffect(() => {
+    fetchVoteCounts().then(data => setCounts(data));
+  }, []);
+
+  const toggle = useCallback(async (id) => {
+    const hasVoted = !!voted[id];
+    const action = hasVoted ? 'downvote' : 'upvote';
+
+    // Optimistic UI update
+    setVoted(prev => {
+      const next = { ...prev };
+      if (hasVoted) delete next[id]; else next[id] = true;
+      saveLocalVoted(next);
+      return next;
+    });
+    setCounts(prev => ({
+      ...prev,
+      [id]: Math.max(0, (parseInt(prev[id]) || 0) + (hasVoted ? -1 : 1))
+    }));
+
+    // Write to sheet
+    const newCount = await sendVote(id, action);
+    if (newCount !== null) {
+      setCounts(prev => ({ ...prev, [id]: newCount }));
+    }
+  }, [voted]);
+
+  return { voted, counts, toggle };
+}
+
+function UpvoteButton({ projectId, voted, counts, onToggle, size = 'md' }) {
+  const count = parseInt(counts[projectId]) || 0;
+  const hasVoted = !!voted[projectId];
+  const [tipVisible, setTipVisible] = useState(false);
+  const tipRef = useRef(null);
+
+  useEffect(() => {
+    if (!tipVisible) return;
+    function handler(e) {
+      if (tipRef.current && !tipRef.current.contains(e.target)) setTipVisible(false);
+    }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [tipVisible]);
+
+  if (size === 'sm') {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        <button
+          onClick={e => { e.stopPropagation(); onToggle(projectId); }}
+          style={{
+            background: hasVoted ? 'var(--accent-dim)' : 'transparent',
+            border: `1px solid ${hasVoted ? 'var(--accent)' : 'var(--border)'}`,
+            borderRadius: 99, padding: '2px 8px 2px 6px',
+            display: 'flex', alignItems: 'center', gap: 4,
+            cursor: 'pointer', transition: 'all 0.15s',
+            fontFamily: 'Inter, sans-serif', fontSize: 11,
+            color: hasVoted ? 'var(--accent)' : 'var(--fg3)',
+          }}
+        >
+          <svg width={10} height={10} viewBox="0 0 12 12" fill={hasVoted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
+            <path d="M6 1l1.5 3H11l-2.8 2 1 3.2L6 7.5l-3.2 1.7 1-3.2L1 4h3.5z"/>
+          </svg>
+          {count > 0 ? count : ''}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+      <button
+        onClick={() => onToggle(projectId)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: hasVoted ? 'var(--accent)' : 'var(--card-bg)',
+          color: hasVoted ? 'white' : 'var(--fg2)',
+          border: `1px solid ${hasVoted ? 'var(--accent)' : 'var(--border)'}`,
+          borderRadius: 8, padding: '9px 16px', cursor: 'pointer',
+          fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500,
+          transition: 'all 0.18s ease',
+          boxShadow: hasVoted ? '0 4px 16px var(--accent-dim)' : 'none',
+        }}
+        onMouseEnter={e => { if (!voted) e.currentTarget.style.borderColor = 'var(--accent)'; }}
+        onMouseLeave={e => { if (!voted) e.currentTarget.style.borderColor = 'var(--border)'; }}
+      >
+        <svg width={14} height={14} viewBox="0 0 12 12" fill={hasVoted ? 'white' : 'none'} stroke="currentColor" strokeWidth="1.5">
+          <path d="M6 1l1.5 3H11l-2.8 2 1 3.2L6 7.5l-3.2 1.7 1-3.2L1 4h3.5z"/>
+        </svg>
+        {hasVoted ? 'Upvoted' : 'Upvote'}
+      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, position: 'relative' }} ref={tipRef}>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)' }}>
+          {count} upvote{count !== 1 ? 's' : ''}
+        </span>
+        <button
+          onClick={() => setTipVisible(v => !v)}
+          style={{
+            width: 16, height: 16, borderRadius: 99,
+            border: '1px solid var(--border)', background: 'var(--bg2)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: 'pointer', fontSize: 10, color: 'var(--fg3)',
+            fontFamily: 'Inter, sans-serif', fontWeight: 600, lineHeight: 1,
+            flexShrink: 0,
+          }}
+          aria-label="What are upvotes?"
+        >?</button>
+        {tipVisible && (
+          <div style={{
+            position: 'absolute', bottom: 'calc(100% + 8px)', left: '50%',
+            transform: 'translateX(-50%)',
+            width: 240, background: 'var(--fg)', color: 'var(--bg)',
+            borderRadius: 8, padding: '10px 12px',
+            fontFamily: 'Inter, sans-serif', fontSize: 12, lineHeight: 1.55,
+            boxShadow: '0 8px 24px oklch(0% 0 0 / 0.18)',
+            zIndex: 50,
+          }}>
+            {UPVOTE_TOOLTIP}
+            <div style={{
+              position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)',
+              width: 0, height: 0,
+              borderLeft: '6px solid transparent', borderRight: '6px solid transparent',
+              borderTop: `6px solid var(--fg)`,
+            }} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function cn(...classes) { return classes.filter(Boolean).join(' '); }
+
+// Returns the project to feature on the homepage:
+// 1. Manually flagged (featured === true), or
+// 2. Auto: rotates weekly by index based on ISO week number
+function getFeatured(projects) {
+  if (!projects.length) return null;
+  const manual = projects.find(p => p.featured);
+  if (manual) return manual;
+  const week = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+  return projects[week % projects.length];
+}
+
+function ProjectThumb({ project, size = 'md' }) {
+  const h = size === 'lg' ? 320 : size === 'sm' ? 120 : 180;
+  const hasThumb = !!project.thumb;
+  return (
+    <div style={{
+      width: '100%', height: h,
+      background: 'var(--bg2)',
+      position: 'relative', overflow: 'hidden', flexShrink: 0,
+    }}>
+      {hasThumb ? (
+        <img
+          src={project.thumb}
+          alt={project.title}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          onError={e => { e.target.style.display = 'none'; }}
+        />
+      ) : (
+        <>
+          {/* faint diagonal hatch */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            backgroundImage: 'repeating-linear-gradient(45deg, transparent 0, transparent 8px, oklch(0% 0 0 / 0.04) 8px, oklch(0% 0 0 / 0.04) 9px)',
+          }} />
+          {/* play button center */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <div style={{
+              width: size === 'lg' ? 60 : 38, height: size === 'lg' ? 60 : 38,
+              border: '1px solid var(--fg)', borderRadius: 99,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'oklch(100% 0 0 / 0.7)',
+            }}>
+              <div style={{
+                width: 0, height: 0,
+                borderTop: (size === 'lg' ? 9 : 5) + 'px solid transparent',
+                borderBottom: (size === 'lg' ? 9 : 5) + 'px solid transparent',
+                borderLeft: (size === 'lg' ? 13 : 7) + 'px solid var(--fg)',
+                marginLeft: 3,
+              }} />
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function VRIcon({ size = 20 }) {
+  return (
+    <svg width={size} height={size * 0.6} viewBox="0 0 32 20" fill="none">
+      <rect x="1" y="1" width="30" height="18" rx="4" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="11" cy="10" r="4" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="21" cy="10" r="4" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M15 10h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function Tag({ label, active, onClick, accent }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '7px 13px', borderRadius: 0,
+        border: '1px solid ' + (active ? 'var(--fg)' : 'var(--border)'),
+        fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 400,
+        letterSpacing: '0.02em', cursor: 'pointer',
+        transition: 'all 0.15s ease',
+        background: 'transparent',
+        color: active ? 'var(--fg)' : 'var(--fg3)',
+      }}
+      onMouseEnter={e => { if (!active) { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)'; } }}
+      onMouseLeave={e => { if (!active) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--fg3)'; } }}
+    >
+      {label}
+    </button>
+  );
+}
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+function Nav({ view, onNav, onSearch, searchQuery }) {
+  const [scrolled, setScrolled] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth < 720);
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    const el = document.getElementById('scroll-root');
+    if (!el) return;
+    const handler = () => setScrolled(el.scrollTop > 30);
+    el.addEventListener('scroll', handler);
+    return () => el.removeEventListener('scroll', handler);
+  }, []);
+  useEffect(() => {
+    const onResize = () => setIsNarrow(window.innerWidth < 720);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  useEffect(() => { setMenuOpen(false); }, [view]);
+
+  const links = [
+    { key: 'browse', label: 'Browse' },
+    { key: 'atlas', label: 'Atlas' },
+    { key: 'equipment', label: 'Equipment' },
+    { key: 'contribute', label: 'Contribute' },
+    { key: 'for educators', label: 'For Educators' },
+    { key: 'about', label: 'About' },
+  ];
+
+  return (
+    <nav style={{
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+      background: scrolled ? 'var(--glass)' : 'var(--bg)',
+      backdropFilter: scrolled ? 'blur(12px) saturate(1.1)' : 'none',
+      WebkitBackdropFilter: scrolled ? 'blur(12px) saturate(1.1)' : 'none',
+      borderBottom: '1px solid var(--border)',
+      transition: 'background 0.3s',
+      padding: 'clamp(0px, 4vw, 56px) clamp(20px, 4vw, 56px)',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      gap: 16, flexWrap: 'nowrap',
+      height: 64,
+    }}>
+      <button
+        onClick={() => onNav('home')}
+        style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 14,
+          padding: 0, flexShrink: 0, whiteSpace: 'nowrap',
+        }}
+      >
+        <span style={{ display: 'inline-block', width: 10, height: 10, background: 'var(--accent)', borderRadius: 99, flexShrink: 0 }} />
+        <span style={{
+          fontFamily: 'Inter, sans-serif', fontWeight: 500,
+          fontSize: 13, letterSpacing: '0.08em', color: 'var(--fg)',
+          whiteSpace: 'nowrap',
+        }}>L · E · N · S</span>
+      </button>
+
+      {!isNarrow && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(14px, 2.2vw, 32px)', flexShrink: 1, minWidth: 0, overflow: 'hidden' }}>
+          {links.map(({ key, label }) => {
+            const active = view === key;
+            return (
+              <button
+                key={key}
+                onClick={() => onNav(key)}
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif', fontSize: 12,
+                  fontWeight: active ? 500 : 400,
+                  color: active ? 'var(--fg)' : 'var(--fg3)',
+                  padding: 0,
+                  whiteSpace: 'nowrap',
+                  transition: 'color 0.15s',
+                }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'var(--accent)'; }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'var(--fg3)'; }}
+              >{label}</button>
+            );
+          })}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          <svg style={{ position: 'absolute', left: 10, color: 'var(--fg4)', pointerEvents: 'none' }} width={12} height={12} viewBox="0 0 16 16" fill="none">
+            <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/>
+            <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+          <input
+            value={searchQuery}
+            onChange={e => onSearch(e.target.value)}
+            placeholder="Search"
+            style={{
+              paddingLeft: 28, paddingRight: 12, paddingTop: 7, paddingBottom: 7,
+              border: '1px solid var(--border)', borderRadius: 0,
+              background: 'transparent', fontFamily: 'Inter, sans-serif',
+              fontSize: 12, color: 'var(--fg)', outline: 'none',
+              width: 'clamp(110px, 14vw, 160px)',
+              transition: 'border-color 0.15s',
+            }}
+            onFocus={e => { e.target.style.borderColor = 'var(--fg)'; }}
+            onBlur={e => { e.target.style.borderColor = 'var(--border)'; }}
+          />
+        </div>
+        {isNarrow && (
+          <button
+            onClick={() => setMenuOpen(o => !o)}
+            aria-label="Menu"
+            style={{
+              background: 'none', border: '1px solid var(--border)', cursor: 'pointer',
+              width: 34, height: 34, display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center', gap: 4, padding: 0,
+            }}
+          >
+            <span style={{ display: 'block', width: 16, height: 1.5, background: 'var(--fg)' }} />
+            <span style={{ display: 'block', width: 16, height: 1.5, background: 'var(--fg)' }} />
+            <span style={{ display: 'block', width: 16, height: 1.5, background: 'var(--fg)' }} />
+          </button>
+        )}
+      </div>
+      {isNarrow && menuOpen && (
+        <div style={{
+          position: 'absolute', top: 64, right: 16,
+          background: 'var(--bg)',
+          border: '1px solid var(--border)',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+          minWidth: 200, padding: 8,
+          display: 'flex', flexDirection: 'column',
+        }}>
+          {links.map(({ key, label }) => {
+            const active = view === key;
+            return (
+              <button
+                key={key}
+                onClick={() => { onNav(key); setMenuOpen(false); }}
+                style={{
+                  background: active ? 'var(--accent-dim)' : 'transparent',
+                  border: 'none', cursor: 'pointer',
+                  fontFamily: 'Inter, sans-serif', fontSize: 13,
+                  fontWeight: active ? 500 : 400,
+                  color: active ? 'var(--accent-bright)' : 'var(--fg2)',
+                  padding: '10px 14px', textAlign: 'left',
+                }}
+              >{label}</button>
+            );
+          })}
+        </div>
+      )}
+    </nav>
+  );
+}
+
+// ─── HERO ─────────────────────────────────────────────────────────────────────
+function Hero({ featured, onSelect, heroLayout }) {
+  const [narrow, setNarrow] = useState(typeof window !== 'undefined' && window.innerWidth < 880);
+  useEffect(() => {
+    const onR = () => setNarrow(window.innerWidth < 880);
+    window.addEventListener('resize', onR);
+    return () => window.removeEventListener('resize', onR);
+  }, []);
+  const useSplit = heroLayout === 'split' && !narrow;
+  return (
+    <div style={{ padding: 'clamp(96px, 12vw, 120px) clamp(20px, 4vw, 56px) 80px' }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: useSplit ? '1fr 1fr' : '1fr',
+        gap: useSplit ? 64 : 40, alignItems: 'start',
+      }}>
+        <div>
+          <div style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 11,
+            letterSpacing: '0.14em', textTransform: 'uppercase',
+            color: 'var(--fg3)', marginBottom: 40,
+          }}>
+            <span style={{ color: 'var(--accent)', marginRight: 8 }}>●</span>
+            Currently featured · {featured.year}
+          </div>
+          <h1 style={{
+            fontFamily: 'Inter, sans-serif', fontWeight: 200,
+            fontSize: 'clamp(48px, 6vw, 88px)', lineHeight: 1.0,
+            letterSpacing: '-0.025em', color: 'var(--fg)',
+            marginBottom: 32,
+          }}>{featured.title}</h1>
+          <p style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 18, color: 'var(--fg2)',
+            lineHeight: 1.55, marginBottom: 48, maxWidth: 520, fontWeight: 400,
+          }}>{featured.subtitle}</p>
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '14px 32px',
+            marginBottom: 48, maxWidth: 480,
+            paddingTop: 20, borderTop: '1px solid var(--border)',
+          }}>
+            {[
+              ['Designer', featured.designer],
+              ['Location', featured.location],
+              ['Type', featured.type],
+              ['Site area', featured.area || '—'],
+            ].map(([k,v]) => (
+              <React.Fragment key={k}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.04em', color: 'var(--fg3)' }}>{k}</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg)' }}>{v}</div>
+              </React.Fragment>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <button
+              onClick={() => onSelect(featured)}
+              style={{
+                background: 'var(--fg)', color: 'var(--bg)', border: '1px solid var(--fg)',
+                padding: '14px 24px', borderRadius: 0, cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500,
+                display: 'flex', alignItems: 'center', gap: 10,
+                transition: 'all 0.18s ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--bg)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--fg)'; e.currentTarget.style.borderColor = 'var(--fg)'; e.currentTarget.style.color = 'var(--bg)'; }}
+            >
+              Enter VR experience
+              <span style={{ fontSize: 14 }}>→</span>
+            </button>
+            <button
+              onClick={() => onSelect(featured)}
+              style={{
+                background: 'transparent', color: 'var(--fg)', border: 'none',
+                padding: '14px 8px', borderRadius: 0, cursor: 'pointer',
+                fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 400,
+                textDecoration: 'underline', textUnderlineOffset: 4,
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--fg)'; }}
+            >Project details</button>
+          </div>
+        </div>
+        {useSplit && (
+          <div
+            style={{
+              position: 'relative', cursor: 'pointer', overflow: 'hidden',
+              aspectRatio: '4/5',
+            }}
+            onClick={() => onSelect(featured)}
+          >
+            {featured.thumb ? (
+              <img
+                src={featured.thumb}
+                alt={featured.title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            ) : (
+              <div style={{ width: '100%', height: '100%', background: 'var(--bg2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{
+                  width: 72, height: 72, border: '1px solid var(--fg)', borderRadius: 99,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: 'oklch(100% 0 0 / 0.7)',
+                }}>
+                  <div style={{ width: 0, height: 0, borderTop: '10px solid transparent', borderBottom: '10px solid transparent', borderLeft: '15px solid var(--fg)', marginLeft: 4 }} />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── PROJECT CARD ─────────────────────────────────────────────────────────────
+function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onToggle }) {
+  const [hovered, setHovered] = useState(false);
+  const archiveId = 'LENS-' + String(project.id).padStart(3, '0');
+  if (cardStyle === 'list') {
+    return (
+      <div
+        onClick={onClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          display: 'grid', gridTemplateColumns: '110px 1fr auto auto',
+          gap: 28, alignItems: 'center',
+          padding: '20px 4px',
+          cursor: 'pointer',
+          borderBottom: '1px solid var(--border)',
+          transition: 'background 0.15s',
+          background: hovered ? 'var(--bg2)' : 'transparent',
+        }}
+      >
+        <div style={{ overflow: 'hidden', flexShrink: 0 }}>
+          <ProjectThumb project={project} size="sm" />
+        </div>
+        <div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, marginBottom: 6, letterSpacing: '-0.015em', lineHeight: 1.15 }}>{project.title}</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)' }}>{project.designer} · {project.location}</div>
+          {showTags && (
+            <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
+              {project.tags.slice(0,3).map(t => (
+                <span key={t} style={{ fontSize: 11, fontFamily: 'Inter, sans-serif', color: 'var(--fg3)', border: '1px solid var(--border)', padding: '3px 9px' }}>{t}</span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{project.type}</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', marginTop: 4 }}>{project.year}</div>
+        </div>
+        <div>
+          <UpvoteButton projectId={project.id} voted={voted} counts={counts} onToggle={onToggle} size="sm" />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        cursor: 'pointer',
+        position: 'relative',
+        transition: 'transform 0.25s ease',
+        transform: hovered ? 'translateY(-3px)' : 'none',
+      }}
+    >
+      <div style={{ overflow: 'hidden', position: 'relative', marginBottom: 16 }}>
+        <ProjectThumb project={project} size="md" />
+        {/* upvote in corner */}
+        <div style={{
+          position: 'absolute', top: 12, right: 12,
+          opacity: hovered ? 1 : 0, transition: 'opacity 0.2s',
+        }} onClick={e => e.stopPropagation()}>
+          <UpvoteButton projectId={project.id} voted={voted} counts={counts} onToggle={onToggle} size="sm" />
+        </div>
+      </div>
+      <div>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
+          <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, lineHeight: 1.15, letterSpacing: '-0.015em', color: 'var(--fg)', margin: 0 }}>{project.title}</h3>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', flexShrink: 0 }}>{project.year}</span>
+        </div>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', marginBottom: 4, lineHeight: 1.5 }}>
+          {project.designer}
+        </p>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)', marginBottom: 0, lineHeight: 1.5 }}>
+          {project.location}
+        </p>
+        {showTags && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 12 }}>
+            {project.tags.slice(0,3).map(t => (
+              <span key={t} style={{
+                fontSize: 11, fontFamily: 'Inter, sans-serif',
+                color: 'var(--fg3)', border: '1px solid var(--border)',
+                padding: '3px 9px',
+              }}>{t}</span>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── BROWSE ──────────────────────────────────────────────────────────────────
+function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, counts, onToggle }) {
+  const [activeTag, setActiveTag] = useState('All');
+  const [activeType, setActiveType] = useState('All Types');
+  const [sortBy, setSortBy] = useState('year');
+
+  const ALL_TAGS = getTagsFromProjects(projects);
+  const ALL_TYPES = getTypesFromProjects(projects);
+
+  const filtered = projects.filter(p => {
+    const matchTag = activeTag === 'All' || p.tags.includes(activeTag);
+    const matchType = activeType === 'All Types' || p.type === activeType;
+    const matchSearch = !searchQuery || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.location.toLowerCase().includes(searchQuery.toLowerCase()) || p.designer.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchTag && matchType && matchSearch;
+  }).sort((a, b) => {
+    if (sortBy === 'year') return b.year - a.year;
+    if (sortBy === 'title') return a.title.localeCompare(b.title);
+    if (sortBy === 'votes') return (parseInt(counts[b.id]) || 0) - (parseInt(counts[a.id]) || 0);
+    if (sortBy === 'area') {
+      const parseArea = s => parseFloat((s || '0').replace(/[^0-9.]/g, '')) || 0;
+      return parseArea(b.area) - parseArea(a.area);
+    }
+    return 0;
+  });
+
+  return (
+    <div style={{ padding: '0 56px 96px', position: 'relative', zIndex: 1 }}>
+      {/* Filters */}
+      <div style={{
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+        marginBottom: 36, flexWrap: 'wrap', gap: 24,
+        paddingTop: 20, borderTop: '1px solid var(--border)',
+      }}>
+        <div style={{ flex: '1 1 auto', minWidth: 280 }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.04em', color: 'var(--fg3)', textTransform: 'uppercase', marginBottom: 12 }}>Filter by tag</div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: 720 }}>
+            {ALL_TAGS.map(t => (
+              <Tag key={t} label={t} active={activeTag === t} onClick={() => setActiveTag(t)} accent={tweaks.accentHue} />
+            ))}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+          <select
+            value={activeType}
+            onChange={e => setActiveType(e.target.value)}
+            style={{
+              fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 28px 8px 12px',
+              border: '1px solid var(--border)', borderRadius: 0, background: 'transparent',
+              color: 'var(--fg)', cursor: 'pointer', outline: 'none',
+              appearance: 'none',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2399a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center',
+            }}
+          >
+            {ALL_TYPES.map(t => <option key={t}>{t}</option>)}
+          </select>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            style={{
+              fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 28px 8px 12px',
+              border: '1px solid var(--border)', borderRadius: 0, background: 'transparent',
+              color: 'var(--fg)', cursor: 'pointer', outline: 'none',
+              appearance: 'none',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2399a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center',
+            }}
+          >
+            <option value="year">Sort by recent</option>
+            <option value="title">Sort by A–Z</option>
+            <option value="votes">Sort by upvotes</option>
+            <option value="area">Sort by size</option>
+          </select>
+          {/* Layout toggle */}
+          <div style={{ display: 'flex', border: '1px solid var(--border)', borderRadius: 0 }}>
+            {['grid', 'list'].map(mode => (
+              <button
+                key={mode}
+                onClick={() => setTweak('cardStyle', mode)}
+                style={{
+                  padding: '8px 12px', border: 'none', cursor: 'pointer',
+                  background: tweaks.cardStyle === mode ? 'var(--fg)' : 'transparent',
+                  color: tweaks.cardStyle === mode ? 'var(--bg)' : 'var(--fg3)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                {mode === 'grid'
+                  ? <svg width={12} height={12} viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="5" height="5"/><rect x="9" y="0" width="5" height="5"/><rect x="0" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/></svg>
+                  : <svg width={12} height={12} viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2"/><rect x="0" y="6" width="14" height="2"/><rect x="0" y="12" width="14" height="2"/></svg>
+                }
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* Count */}
+      <div style={{
+        fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)',
+        marginBottom: 32,
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+        <span>{filtered.length} {filtered.length === 1 ? 'project' : 'projects'}</span>
+        {searchQuery && <span style={{ color: 'var(--fg2)' }}>· matching "{searchQuery}"</span>}
+      </div>
+      {/* Grid */}
+      {tweaks.cardStyle === 'grid' ? (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+          gap: '48px 28px',
+        }}>
+          {filtered.map(p => (
+            <ProjectCard key={p.id} project={p} onClick={() => onSelect(p)} showTags={tweaks.showTags} cardStyle="grid" voted={voted} counts={counts} onToggle={onToggle} />
+          ))}
+        </div>
+      ) : (
+        <div style={{ borderTop: '1px solid var(--border)' }}>
+          {filtered.map(p => (
+            <ProjectCard key={p.id} project={p} onClick={() => onSelect(p)} showTags={tweaks.showTags} cardStyle="list" voted={voted} counts={counts} onToggle={onToggle} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── VIEWER ──────────────────────────────────────────────────────────────────
+function VRViewer({ project, capture, onClose }) {
+  const [vrMode, setVrMode] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  // Use the active capture's vrId if provided, fall back to legacy project.vrId
+  const vrId = (capture && capture.vrId) || project.vrId;
+  const captureLabel = capture && capture.label;
+  const vrTypeLabel = (project.vrTypes && project.vrTypes.length > 0)
+    ? project.vrTypes.join(' · ')
+    : (project.vrType || '');
+
+  // Build an autoplay 360 embed URL
+  const embedUrl = `https://www.youtube.com/embed/${vrId}?autoplay=0&controls=1&modestbranding=1&rel=0`;
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoaded(true), 800);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 200,
+      background: 'oklch(8% 0.01 255)',
+      display: 'flex', flexDirection: 'column',
+      animation: 'fadeIn 0.3s ease',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '16px 32px', display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottom: '1px solid oklch(100% 0 0 / 0.08)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'oklch(100% 0 0 / 0.07)', border: 'none',
+              borderRadius: 8, padding: '8px 14px', cursor: 'pointer',
+              color: 'oklch(100% 0 0 / 0.7)', display: 'flex', alignItems: 'center', gap: 6,
+              fontFamily: 'Inter, sans-serif', fontSize: 13, transition: 'background 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'oklch(100% 0 0 / 0.12)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'oklch(100% 0 0 / 0.07)'}
+          >
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+              <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Back
+          </button>
+          <div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 16, color: 'white' }}>
+              {project.title}{captureLabel ? <span style={{ color: 'oklch(100% 0 0 / 0.55)', fontWeight: 400 }}> · {captureLabel}</span> : null}
+            </div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'oklch(100% 0 0 / 0.4)' }}>{project.type} · {project.location}</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {vrTypeLabel && (
+            <span style={{
+              fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500,
+              letterSpacing: '0.08em', textTransform: 'uppercase',
+              color: 'var(--accent)', background: 'var(--accent-dim)',
+              padding: '4px 10px', borderRadius: 99, border: '1px solid oklch(56% 0.17 196 / 0.3)',
+            }}>{vrTypeLabel}</span>
+          )}
+        </div>
+      </div>
+
+      {/* VR Frame */}
+      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+        {!loaded && (
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex',
+            flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: 16, color: 'oklch(100% 0 0 / 0.4)',
+          }}>
+            <div style={{ animation: 'spin 1.2s linear infinite' }}>
+              <svg width={32} height={32} viewBox="0 0 32 32" fill="none">
+                <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="2" strokeDasharray="40 20" />
+              </svg>
+            </div>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13 }}>Loading immersive experience…</span>
+          </div>
+        )}
+        <iframe
+          src={embedUrl}
+          style={{
+            width: '100%', height: '100%', border: 'none',
+            opacity: loaded ? 1 : 0, transition: 'opacity 0.5s',
+          }}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          title={`VR: ${project.title}`}
+        />
+      </div>
+
+      {/* Info strip */}
+      <div style={{
+        padding: '16px 32px',
+        borderTop: '1px solid oklch(100% 0 0 / 0.08)',
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+        gap: 24, background: 'oklch(12% 0.01 255)',
+      }}>
+        {[
+          ['Designer', project.designer],
+          ['Location', project.location],
+          ['Year', project.year],
+          ['Area', project.area],
+        ].map(([k, v]) => (
+          <div key={k}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'oklch(100% 0 0 / 0.35)', marginBottom: 4 }}>{k}</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, color: 'oklch(100% 0 0 / 0.85)' }}>{v}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── PROJECT DETAIL ───────────────────────────────────────────────────────────
+function ProjectDetail({ project, onBack, onVR, voted, counts, onToggle }) {
+  const [hovered, setHovered] = useState(false);
+  const captures = project.captures || [];
+  const [activeIdx, setActiveIdx] = useState(0);
+  // Reset to first capture when project changes
+  useEffect(() => { setActiveIdx(0); }, [project.id]);
+  const activeCapture = captures[activeIdx] || null;
+  const vrTypeLabel = (project.vrTypes && project.vrTypes.length > 0)
+    ? project.vrTypes.join(' · ')
+    : (project.vrType || '');
+  const meta = [
+    ['Designer', project.designer],
+    ['Location', project.location],
+    ['Year documented', project.year],
+    ['Type', project.type],
+    ['Site area', project.area],
+    project.contributor && ['Contributor', project.contributor],
+    project.dateCollected && ['Captured', project.dateCollected],
+  ].filter(Boolean);
+
+  return (
+    <div style={{ padding: '120px 56px 96px', maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <button
+        onClick={onBack}
+        style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 8,
+          fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)',
+          marginBottom: 56, padding: 0, transition: 'color 0.15s',
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+        onMouseLeave={e => e.currentTarget.style.color = 'var(--fg3)'}
+      >
+        <svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+          <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        All projects
+      </button>
+
+      {/* Title block */}
+      <div style={{ marginBottom: 56, maxWidth: 880 }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', marginBottom: 20, letterSpacing: '0.04em' }}>
+          {project.type}{vrTypeLabel ? ` · ${vrTypeLabel}` : ''} · {project.year}
+        </div>
+        <h1 style={{
+          fontFamily: 'Inter, sans-serif', fontWeight: 200,
+          fontSize: 'clamp(48px, 6.5vw, 88px)', lineHeight: 0.98,
+          letterSpacing: '-0.03em', margin: 0, marginBottom: 20,
+        }}>{project.title}</h1>
+        <p style={{
+          fontFamily: 'Inter, sans-serif', fontStyle: 'italic', fontWeight: 300,
+          fontSize: 'clamp(20px, 2vw, 26px)', lineHeight: 1.3,
+          color: 'var(--fg2)', margin: 0, maxWidth: 720,
+        }}>{project.subtitle}</p>
+      </div>
+
+      {/* VR preview — large, top of page */}
+      <div
+        onClick={() => onVR(activeCapture)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          position: 'relative', cursor: 'pointer',
+          overflow: 'hidden',
+          aspectRatio: '16 / 9',
+          marginBottom: captures.length > 1 ? 24 : 64,
+          transition: 'transform 0.4s ease',
+          transform: hovered ? 'scale(1.005)' : 'scale(1)',
+        }}
+      >
+        <ProjectThumb project={project} size="lg" />
+        <div style={{
+          position: 'absolute', inset: 0, display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+          background: hovered ? 'oklch(0% 0 0 / 0.18)' : 'oklch(0% 0 0 / 0.05)',
+          transition: 'background 0.3s ease',
+          pointerEvents: 'none',
+        }}>
+          <div style={{
+            background: 'oklch(100% 0 0 / 0.92)', backdropFilter: 'blur(8px)',
+            border: '1px solid oklch(100% 0 0 / 0.4)',
+            padding: '14px 28px',
+            display: 'flex', alignItems: 'center', gap: 10,
+            fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500,
+            color: 'var(--fg)',
+            borderRadius: 99,
+            boxShadow: hovered ? '0 12px 40px oklch(0% 0 0 / 0.18)' : '0 6px 20px oklch(0% 0 0 / 0.12)',
+            transition: 'all 0.3s ease',
+          }}>
+            <VRIcon size={16} />
+            {captures.length > 1 && activeCapture
+              ? `Enter VR · ${activeCapture.label}`
+              : 'Enter VR experience'}
+          </div>
+        </div>
+        {vrTypeLabel && (
+          <div style={{
+            position: 'absolute', top: 16, right: 16,
+            fontFamily: 'Inter, sans-serif', fontSize: 10,
+            letterSpacing: '0.12em', textTransform: 'uppercase',
+            color: 'oklch(100% 0 0 / 0.85)',
+            background: 'oklch(0% 0 0 / 0.45)', backdropFilter: 'blur(6px)',
+            padding: '6px 10px',
+          }}>{vrTypeLabel}</div>
+        )}
+      </div>
+
+      {/* Viewpoints — only when project has multiple capture points */}
+      {captures.length > 1 && (
+        <div style={{ marginBottom: 64 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 16 }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg3)' }}>
+              Viewpoints · {captures.length}
+            </div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)' }}>
+              Select a capture point to enter VR
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--border)', borderRadius: 4, overflow: 'hidden' }}>
+            {captures.map((c, i) => {
+              const isActive = i === activeIdx;
+              return (
+                <button
+                  key={i}
+                  onClick={() => setActiveIdx(i)}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '52px 1fr auto auto',
+                    gap: 20, alignItems: 'center',
+                    textAlign: 'left',
+                    padding: '14px 20px',
+                    background: isActive ? 'var(--accent-dim)' : (i % 2 === 0 ? 'var(--card-bg)' : 'transparent'),
+                    border: 'none',
+                    borderTop: i > 0 ? '1px solid var(--border)' : 'none',
+                    borderLeft: isActive ? '3px solid var(--accent)' : '3px solid transparent',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    transition: 'background 0.15s, border-color 0.15s',
+                  }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = 'var(--bg2)'; }}
+                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = i % 2 === 0 ? 'var(--card-bg)' : 'transparent'; }}
+                >
+                  <div style={{
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: 12, fontWeight: 500,
+                    color: isActive ? 'var(--accent)' : 'var(--fg3)',
+                    letterSpacing: '0.04em',
+                  }}>
+                    {String(i + 1).padStart(2, '0')}
+                  </div>
+                  <div>
+                    <div style={{
+                      fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 15,
+                      color: isActive ? 'var(--accent-bright)' : 'var(--fg)',
+                      marginBottom: c.description ? 3 : 0,
+                    }}>{c.label}</div>
+                    {c.description && (
+                      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12.5, color: 'var(--fg3)', lineHeight: 1.45 }}>
+                        {c.description}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--fg3)', letterSpacing: '0.04em' }}>
+                    {c.height || ''}
+                  </div>
+                  <div style={{
+                    fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500,
+                    letterSpacing: '0.08em', textTransform: 'uppercase',
+                    color: isActive ? 'var(--accent-bright)' : 'var(--fg3)',
+                    minWidth: 70, textAlign: 'right',
+                  }}>
+                    {isActive ? 'Selected' : 'Select'}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Body — two-column: description + metadata */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(280px, 1fr)', gap: 96, alignItems: 'start' }}>
+        <div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 24 }}>About this space</div>
+          <p style={{
+            fontFamily: 'Inter, sans-serif', fontWeight: 300,
+            fontSize: 19, lineHeight: 1.55, color: 'var(--fg)',
+            margin: 0, marginBottom: 32,
+          }}>{project.description}</p>
+          {project.tags && project.tags.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 32 }}>
+              {project.tags.map(t => (
+                <Tag key={t} label={t} active={false} onClick={() => {}} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Metadata column */}
+        <div style={{ position: 'sticky', top: 96 }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 24 }}>Details</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, marginBottom: 32 }}>
+            {meta.map(([k, v]) => (
+              <div key={k} style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: 16, alignItems: 'baseline' }}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)' }}>{k}</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg)', fontWeight: 400 }}>{v}</div>
+              </div>
+            ))}
+          </div>
+
+          {project.coordinates && coordsToEmbed(project.coordinates) && (
+            <div style={{ marginBottom: 28, borderTop: '1px solid var(--border)', paddingTop: 24 }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 12 }}>Location</div>
+              <div style={{ overflow: 'hidden', border: '1px solid var(--border)', marginBottom: 10 }}>
+                <iframe
+                  src={coordsToEmbed(project.coordinates)}
+                  width="100%"
+                  height="180"
+                  style={{ border: 'none', display: 'block', filter: 'grayscale(0.2)' }}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title={`Map: ${project.title}`}
+                />
+              </div>
+              <a
+                href={coordsToLink(project.coordinates)}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-block',
+                  fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg2)',
+                  textDecoration: 'underline', textUnderlineOffset: 3,
+                }}
+              >
+                Open in Google Maps ↗
+              </a>
+            </div>
+          )}
+
+          {project.links && project.links.length > 0 && (
+            <div style={{ marginBottom: 28, borderTop: '1px solid var(--border)', paddingTop: 24 }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 12 }}>External</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {project.links.map((l, i) => (
+                  <a
+                    key={i}
+                    href={l.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg)',
+                      textDecoration: 'none',
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      borderBottom: '1px solid var(--border)',
+                      paddingBottom: 8,
+                      transition: 'color 0.15s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+                    onMouseLeave={e => e.currentTarget.style.color = 'var(--fg)'}
+                  >
+                    {l.label} <span style={{ marginLeft: 'auto', color: 'var(--fg3)' }}>↗</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ borderTop: '1px solid var(--border)', paddingTop: 24 }}>
+            <UpvoteButton projectId={project.id} voted={voted} counts={counts} onToggle={onToggle} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── CONTRIBUTE ──────────────────────────────────────────────────────────────
+
+// Submission endpoint — Google Apps Script Web App URL (see SUBMISSIONS-SETUP.md)
+const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+
+const COLLECTION_PROTOCOL = [
+  {
+    step: "01",
+    title: "Equipment",
+    body: "Use a 360° camera such as the Insta360 X5 or equivalent. Mount on a tall tripod at standard eye level height (approximately 1.6 m). Ensure the camera is level and the tripod legs are not visible in the frame.",
+  },
+  {
+    step: "02",
+    title: "Capture positions",
+    body: "Record at a minimum of two positions: standing eye level (≈1.6 m) and, where seating is present, seated eye level (≈1.1 m). Choose positions that are representative of the primary spatial experience of the project.",
+  },
+  {
+    step: "03",
+    title: "Duration",
+    body: "Each clip should be 30 seconds to 1 minute in length. Capture during appropriate daylight conditions. Avoid heavy crowds, construction activity, or temporary obstructions where possible.",
+  },
+  {
+    step: "04",
+    title: "File format",
+    body: "Export as equirectangular MP4 (for video) or JPEG (for photo), maximum 8K resolution. Upload to YouTube as a 360° video and note the video ID, or share the raw file via Google Drive.",
+  },
+  {
+    step: "05",
+    title: "Upload to YouTube",
+    body: "Upload your video to YouTube. In the video settings, check 'This video was shot in 360°' under Video Details → More options. Copy the video ID from the URL (the string after ?v=) — you'll need this for submission.",
+  },
+];
+
+const WISHLIST = [
+  { id: "w1",  title: "Parque del Retiro",          city: "Madrid",        country: "Spain",        designer: "Various",                    type: "Urban Park" },
+  { id: "w2",  title: "Superkilen",                  city: "Copenhagen",    country: "Denmark",      designer: "BIG + Topotek1 + Superflex",  type: "Urban Park" },
+  { id: "w3",  title: "Promenade Plantée",           city: "Paris",         country: "France",       designer: "Jacques Vergely",             type: "Linear Park" },
+  { id: "w4",  title: "Post Office Square",          city: "Brisbane",      country: "Australia",    designer: "Tract Consultants",           type: "Urban Park" },
+  { id: "w5",  title: "Sanya Mangrove Park",         city: "Sanya",         country: "China",        designer: "Turenscape",                  type: "Ecological Restoration" },
+  { id: "w6",  title: "Yongning River Park",         city: "Taizhou",       country: "China",        designer: "Turenscape",                  type: "Urban Wetland" },
+  { id: "w7",  title: "Klyde Warren Park",           city: "Dallas",        country: "USA",          designer: "The Office of James Burnett", type: "Linear Park" },
+  { id: "w8",  title: "Freshkills Park",             city: "New York",      country: "USA",          designer: "James Corner Field Operations", type: "Ecological Restoration" },
+  { id: "w9",  title: "Governors Island",            city: "New York",      country: "USA",          designer: "West 8",                      type: "Urban Park" },
+  { id: "w10", title: "The 606 Trail",               city: "Chicago",       country: "USA",          designer: "Michael Van Valkenburgh",     type: "Linear Park" },
+  { id: "w11", title: "Bishan-Ang Mo Kio Park",      city: "Singapore",     country: "Singapore",    designer: "Ramboll Studio Dreiseitl",    type: "Urban Wetland" },
+  { id: "w12", title: "Qunli Stormwater Park",       city: "Haerbin",       country: "China",        designer: "Turenscape",                  type: "Urban Wetland" },
+  { id: "w13", title: "Katajanokka Waterfront",      city: "Helsinki",      country: "Finland",      designer: "LOCI Landscape Architects",  type: "Waterfront" },
+  { id: "w14", title: "Madrid Río",                  city: "Madrid",        country: "Spain",        designer: "Burgos & Garrido",            type: "Linear Park" },
+  { id: "w15", title: "Sydney Park Wetlands",        city: "Sydney",        country: "Australia",    designer: "Turf Design Studio",          type: "Urban Wetland" },
+  { id: "w16", title: "Millennium Parklands",        city: "Sydney",        country: "Australia",    designer: "Hargreaves Associates",       type: "Urban Park" },
+  { id: "w17", title: "Waterloo Wetlands",           city: "London",        country: "UK",           designer: "Kinnear Landscape Architects", type: "Urban Wetland" },
+  { id: "w18", title: "Queen Elizabeth Olympic Park", city: "London",       country: "UK",           designer: "Hargreaves Associates",       type: "Urban Park" },
+];
+
+// ─── CONTRIBUTE SVG DIAGRAMS ─────────────────────────────────────────────────
+function DiagramEquipment() {
+  return (
+    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%'}}>
+      {/* Tripod legs */}
+      <line x1="100" y1="90" x2="60" y2="175" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="100" y1="90" x2="140" y2="175" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+      <line x1="100" y1="90" x2="100" y2="175" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+      {/* Tripod center column */}
+      <line x1="100" y1="90" x2="100" y2="55" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      {/* 360 camera body */}
+      <ellipse cx="100" cy="46" rx="18" ry="12" stroke="currentColor" strokeWidth="2"/>
+      {/* Camera lenses */}
+      <circle cx="87" cy="46" r="5" stroke="currentColor" strokeWidth="1.5"/>
+      <circle cx="113" cy="46" r="5" stroke="currentColor" strokeWidth="1.5"/>
+      {/* Height arrow */}
+      <line x1="158" y1="46" x2="158" y2="175" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.4"/>
+      <path d="M154 52l4-8 4 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.4"/>
+      <path d="M154 169l4 8 4-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.4"/>
+      {/* Label */}
+      <text x="100" y="195" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="11" fill="currentColor" opacity="0.5">360° camera on tall tripod</text>
+    </svg>
+  );
+}
+
+function DiagramPositions() {
+  return (
+    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%'}}>
+      {/* Ground line */}
+      <line x1="20" y1="178" x2="180" y2="178" stroke="currentColor" strokeWidth="1.5" opacity="0.3"/>
+      {/* Standing figure */}
+      <circle cx="65" cy="55" r="10" stroke="currentColor" strokeWidth="2"/>
+      <line x1="65" y1="65" x2="65" y2="120" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="65" y1="80" x2="45" y2="100" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="65" y1="80" x2="85" y2="100" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="65" y1="120" x2="50" y2="178" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="65" y1="120" x2="80" y2="178" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      {/* Standing eye level line */}
+      <line x1="30" y1="58" x2="105" y2="58" stroke="currentColor" strokeWidth="1" strokeDasharray="4 3" opacity="0.45"/>
+      <text x="108" y="62" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0.6">1.6 m</text>
+      {/* Seated figure */}
+      <circle cx="145" cy="90" r="10" stroke="currentColor" strokeWidth="2"/>
+      {/* Body */}
+      <line x1="145" y1="100" x2="145" y2="140" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      {/* Arms */}
+      <line x1="145" y1="112" x2="128" y2="128" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="145" y1="112" x2="162" y2="128" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      {/* Seat */}
+      <line x1="125" y1="140" x2="165" y2="140" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+      {/* Legs */}
+      <line x1="135" y1="140" x2="128" y2="178" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <line x1="155" y1="140" x2="162" y2="178" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      {/* Seat supports */}
+      <line x1="125" y1="140" x2="125" y2="178" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+      <line x1="165" y1="140" x2="165" y2="178" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+      {/* Seated eye level */}
+      <line x1="105" y1="93" x2="175" y2="93" stroke="currentColor" strokeWidth="1" strokeDasharray="4 3" opacity="0.45"/>
+      <text x="32" y="97" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0.6">1.1 m</text>
+      <line x1="30" y1="93" x2="103" y2="93" stroke="currentColor" strokeWidth="1" strokeDasharray="4 3" opacity="0.45"/>
+    </svg>
+  );
+}
+
+function DiagramDuration() {
+  return (
+    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%'}}>
+      {/* Timeline bar background */}
+      <rect x="30" y="90" width="140" height="10" rx="5" stroke="currentColor" strokeWidth="1.5" opacity="0.2" fill="currentColor" fillOpacity="0.05"/>
+      {/* 30s fill */}
+      <rect x="30" y="90" width="70" height="10" rx="5" fill="currentColor" opacity="0.25"/>
+      {/* 1min fill */}
+      <rect x="30" y="90" width="140" height="10" rx="5" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.5"/>
+      {/* Tick marks */}
+      {[0,35,70,105,140].map((x,i) => (
+        <line key={i} x1={30+x} y1="104" x2={30+x} y2="110" stroke="currentColor" strokeWidth="1.5" opacity="0.4" strokeLinecap="round"/>
+      ))}
+      {/* Labels */}
+      <text x="30" y="124" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0.5">0s</text>
+      <text x="100" y="124" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0.7">30s</text>
+      <text x="170" y="124" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0.5">60s</text>
+      {/* Bracket */}
+      <path d="M30 78 L30 70 L170 70 L170 78" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.4"/>
+      <text x="100" y="62" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="11" fill="currentColor" opacity="0.6">30s – 1 min per position</text>
+      {/* Sun icon */}
+      <circle cx="100" cy="155" r="12" stroke="currentColor" strokeWidth="1.5" opacity="0.5"/>
+      {[0,45,90,135,180,225,270,315].map((a,i) => {
+        const r1=17, r2=21, rad=a*Math.PI/180;
+        return <line key={i} x1={100+r1*Math.cos(rad)} y1={155+r1*Math.sin(rad)} x2={100+r2*Math.cos(rad)} y2={155+r2*Math.sin(rad)} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/>;
+      })}
+      <text x="100" y="192" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0.5">good daylight conditions</text>
+    </svg>
+  );
+}
+
+function DiagramFormat() {
+  return (
+    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%'}}>
+      {/* Globe/equirectangular icon */}
+      <ellipse cx="100" cy="80" rx="45" ry="45" stroke="currentColor" strokeWidth="2" opacity="0.7"/>
+      <ellipse cx="100" cy="80" rx="20" ry="45" stroke="currentColor" strokeWidth="1.5" opacity="0.35"/>
+      <line x1="55" y1="80" x2="145" y2="80" stroke="currentColor" strokeWidth="1.5" opacity="0.35"/>
+      <line x1="60" y1="60" x2="140" y2="60" stroke="currentColor" strokeWidth="1" opacity="0.25"/>
+      <line x1="60" y1="100" x2="140" y2="100" stroke="currentColor" strokeWidth="1" opacity="0.25"/>
+      {/* Arrow down to flat */}
+      <path d="M100 130 L100 148" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+      <path d="M95 144 L100 150 L105 144" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
+      {/* Flat rectangle = equirectangular */}
+      <rect x="45" y="155" width="110" height="35" rx="3" stroke="currentColor" strokeWidth="1.5" opacity="0.5"/>
+      <line x1="45" y1="172" x2="155" y2="172" stroke="currentColor" strokeWidth="1" opacity="0.25"/>
+      {[72,99,126].map(x => <line key={x} x1={x} y1="155" x2={x} y2="190" stroke="currentColor" strokeWidth="1" opacity="0.2"/>)}
+      <text x="100" y="200" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0">.</text>
+    </svg>
+  );
+}
+
+function DiagramUpload() {
+  return (
+    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%'}}>
+      {/* File icon */}
+      <rect x="60" y="30" width="80" height="95" rx="6" stroke="currentColor" strokeWidth="2" opacity="0.6"/>
+      <path d="M120 30 L140 50" stroke="currentColor" strokeWidth="2" opacity="0.6" strokeLinecap="round"/>
+      <path d="M120 30 L120 50 L140 50" stroke="currentColor" strokeWidth="2" opacity="0.6" strokeLinecap="round" strokeLinejoin="round"/>
+      {/* Lines in file */}
+      {[65,75,85].map(y => <line key={y} x1="75" y1={y} x2="125" y2={y} stroke="currentColor" strokeWidth="1.5" opacity="0.25" strokeLinecap="round"/>)}
+      {/* Upload arrow */}
+      <path d="M100 138 L100 168" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
+      <path d="M88 148 L100 136 L112 148" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.7"/>
+      {/* Cloud */}
+      <path d="M72 182 Q62 182 62 172 Q62 164 70 163 Q70 153 80 152 Q88 144 98 150 Q104 142 114 145 Q126 145 126 157 Q134 158 134 167 Q134 182 122 182 Z" stroke="currentColor" strokeWidth="1.5" opacity="0.45"/>
+      <text x="100" y="200" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0">.</text>
+    </svg>
+  );
+}
+
+// ─── CONTRIBUTE PAGES ─────────────────────────────────────────────────────────
+
+function ContributeIndex({ onSubNav }) {
+  const cards = [
+    {
+      id: 'protocol',
+      label: '01',
+      title: 'Learn the protocol',
+      desc: 'Step-by-step guide to capturing a landscape space with a 360° camera — equipment, positions, duration, and file preparation.',
+      cta: 'Read protocol →',
+      primary: true,
+    },
+    {
+      id: 'wishlist',
+      label: '02',
+      title: 'Find a project to document',
+      desc: "Browse our wishlist of spaces we'd love to see in LENS. Filter by city to find projects near you.",
+      cta: 'Browse wishlist →',
+      primary: false,
+    },
+    {
+      id: 'submit',
+      label: '03',
+      title: 'Submit a recording',
+      desc: "Already captured something? Submit your footage for review. We'll credit you and be in touch before adding it to the collection.",
+      cta: 'Submit footage →',
+      primary: false,
+    },
+  ];
+
+  return (
+    <div style={{ padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <div style={{ marginBottom: 64 }}>
+        <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.05, marginBottom: 20 }}>Help build the collection</h1>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.55, fontWeight: 400 }}>
+          LENS grows through community documentation. If you visit a significant landscape space, you can capture it and submit it for inclusion — helping educators and students around the world experience places they may never visit in person.
+        </p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+        {cards.map(card => (
+          <button
+            key={card.id}
+            onClick={() => onSubNav(card.id)}
+            style={{
+              background: 'var(--card-bg)',
+              border: '1px solid var(--border)',
+              borderRadius: 14, padding: '32px 28px',
+              textAlign: 'left', cursor: 'pointer',
+              display: 'flex', flexDirection: 'column', gap: 12,
+              transition: 'all 0.22s cubic-bezier(0.34,1.3,0.64,1)',
+              boxShadow: '0 2px 8px oklch(0% 0 0 / 0.04)',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 12px 32px oklch(0% 0 0 / 0.08)';
+              const u = e.currentTarget.querySelector('[data-cta-underline]');
+              if (u) u.style.transform = 'scaleX(1)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.transform = 'none';
+              e.currentTarget.style.boxShadow = '0 2px 8px oklch(0% 0 0 / 0.04)';
+              const u = e.currentTarget.querySelector('[data-cta-underline]');
+              if (u) u.style.transform = 'scaleX(0)';
+            }}
+          >
+            <div style={{
+              fontFamily: 'Inter, sans-serif', fontWeight: 700,
+              fontSize: 28, lineHeight: 1, letterSpacing: '-0.02em',
+              color: 'var(--accent)', opacity: 0.5,
+            }}>{card.label}</div>
+            <div style={{
+              fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 17,
+              color: 'var(--fg)',
+            }}>{card.title}</div>
+            <div style={{
+              fontFamily: 'Inter, sans-serif', fontSize: 13, lineHeight: 1.65,
+              color: 'var(--fg2)',
+              flex: 1,
+            }}>{card.desc}</div>
+            <div style={{ marginTop: 8, display: 'inline-block', position: 'relative', alignSelf: 'flex-start' }}>
+              <span style={{
+                fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500,
+                color: 'var(--accent)',
+              }}>{card.cta}</span>
+              <span data-cta-underline style={{
+                position: 'absolute', left: 0, right: 0, bottom: -2, height: 1.5,
+                background: 'var(--accent)',
+                transform: 'scaleX(0)', transformOrigin: 'left center',
+                transition: 'transform 0.28s cubic-bezier(0.34,1.3,0.64,1)',
+              }}></span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      <div style={{ marginTop: 64, paddingTop: 40, borderTop: '1px solid var(--border)' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 20 }}>
+          Support LENS <span style={{ marginLeft: 8, padding: '2px 8px', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 999, fontSize: 10, letterSpacing: '0.08em', color: 'var(--fg3)' }}>Upcoming</span>
+        </div>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.6, fontWeight: 400, marginBottom: 16 }}>
+          LENS is maintained as an open-access educational resource. Small contributions help cover the everyday costs of keeping the platform running and adding new projects over time. A simple way to chip in will be available here soon — no pressure, anything is appreciated.
+        </p>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg3)', lineHeight: 1.6, fontWeight: 400, marginBottom: 12 }}>
+          In the meantime, if you'd like to support the project in any form, feel free to get in touch.
+        </p>
+        <RevealEmail user="wang" domain="unl.edu" />
+      </div>
+    </div>
+  );
+}
+
+function ContributeProtocol({ onBack }) {
+  const steps = [
+    { step: '01', title: 'Equipment', Diagram: DiagramEquipment, body: 'Use a 360° camera such as the Insta360 X5 or equivalent. Mount on a tall tripod at standard eye level height (approximately 1.6 m). Ensure the camera is level and the tripod legs are not visible in the frame if possible.' },
+    { step: '02', title: 'Capture positions', Diagram: DiagramPositions, body: 'Record at a minimum of two positions: standing eye level (≈1.6 m) and, where seating is present, seated eye level (≈1.1 m). Choose positions that are representative of the primary spatial experience of the project.' },
+    { step: '03', title: 'Duration & conditions', Diagram: DiagramDuration, body: 'Each clip should be 30 seconds to 1 minute in length. Capture during appropriate daylight conditions. Avoid heavy crowds, construction activity, or temporary obstructions where possible.' },
+    { step: '04', title: 'File format', Diagram: DiagramFormat, body: 'Export as equirectangular MP4 (for video) or JPEG (for photo), maximum 8K resolution. The equirectangular projection is the standard format for 360° content and is what YouTube and most VR platforms expect.' },
+    { step: '05', title: 'Upload to YouTube', Diagram: DiagramUpload, body: 'Upload your video to YouTube. In Video Details → More options, check "This video was shot in 360°". Copy the video ID from the URL — the string after ?v= — and include it in your submission.' },
+  ];
+
+  return (
+    <div style={{ padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 880, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <button
+        onClick={onBack}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)', marginBottom: 48, padding: 0, transition: 'color 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+        onMouseLeave={e => e.currentTarget.style.color = 'var(--fg3)'}
+      >
+        <svg width={14} height={14} viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        Contribute
+      </button>
+      <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.05, marginBottom: 20 }}>Collection Protocol</h1>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.55, fontWeight: 400, marginBottom: 64, maxWidth: 580 }}>
+        Follow these steps to capture a landscape space that meets LENS quality standards.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        {steps.map((item, i) => (
+          <div key={item.step} style={{
+            display: 'grid', gridTemplateColumns: '1fr 200px',
+            gap: 48, padding: '48px 0',
+            borderTop: '1px solid var(--border)',
+            borderBottom: i === steps.length - 1 ? '1px solid var(--border)' : 'none',
+            alignItems: 'center',
+          }}>
+            <div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: 11, color: 'var(--accent)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Step {item.step}</div>
+              <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: 24, letterSpacing: '-0.02em', marginBottom: 16 }}>{item.title}</h2>
+              <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'var(--fg2)', lineHeight: 1.75 }}>{item.body}</p>
+            </div>
+            <div style={{ color: 'var(--fg2)', height: 180 }}>
+              <item.Diagram />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ContributeWishlist({ onBack }) {
+  const [activeCity, setActiveCity] = useState('All');
+  const cities = ['All', ...Array.from(new Set(WISHLIST.map(p => p.city))).sort()];
+  const filtered = activeCity === 'All' ? WISHLIST : WISHLIST.filter(p => p.city === activeCity);
+
+  return (
+    <div style={{ padding: 'clamp(96px, 12vw, 120px) clamp(20px, 4vw, 56px) 96px', position: 'relative', zIndex: 1, maxWidth: 720, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)', marginBottom: 48, padding: 0, transition: 'color 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+        onMouseLeave={e => e.currentTarget.style.color = 'var(--fg3)'}
+      >
+        <svg width={14} height={14} viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        Contribute
+      </button>
+      <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.05, marginBottom: 20 }}>Project Wishlist</h1>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.55, fontWeight: 400, marginBottom: 16, maxWidth: 580 }}>
+        These are spaces we'd love to see documented. If you're travelling to any of these cities, consider capturing one for LENS.
+      </p>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg3)', lineHeight: 1.6, fontWeight: 400, marginBottom: 40, maxWidth: 580 }}>
+        Not on the list? Submissions of any contemporary landscape project of educational significance are equally welcome — feel free to propose one that isn't here yet.
+      </p>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 28 }}>
+        {cities.map(city => (
+          <button key={city} onClick={() => setActiveCity(city)} style={{
+            padding: '4px 12px', borderRadius: 999, border: 'none',
+            fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500,
+            letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer',
+            transition: 'all 0.15s',
+            background: activeCity === city ? 'var(--accent)' : 'var(--bg2)',
+            color: activeCity === city ? 'white' : 'var(--fg2)',
+          }}>{city}</button>
+        ))}
+      </div>
+      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', marginBottom: 16 }}>{filtered.length} project{filtered.length !== 1 ? 's' : ''}</div>
+      <div style={{ border: '1px solid var(--border)', borderRadius: 12, overflow: 'hidden' }}>
+        {filtered.map((p, i) => (
+          <div key={p.id} style={{
+            display: 'grid', gridTemplateColumns: '1fr auto', gap: 16,
+            padding: '14px 20px', alignItems: 'center',
+            background: i % 2 === 0 ? 'var(--card-bg)' : 'transparent',
+            borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none',
+          }}>
+            <div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, marginBottom: 3 }}>{p.title}</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)' }}>{p.designer} · {p.type}</div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg2)', fontWeight: 500 }}>{p.city}</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'var(--fg3)' }}>{p.country}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ContributeSubmit({ onBack }) {
+  const [submitStep, setSubmitStep] = useState('form');
+  const [agreed, setAgreed] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', project: '', driveLink: '', notes: '' });
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!agreed || submitting) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      // Apps Script endpoints reject preflighted JSON — send as form-encoded text
+      const body = new URLSearchParams({
+        ...formData,
+        timestamp: new Date().toISOString(),
+      }).toString();
+      await fetch(SUBMIT_ENDPOINT, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
+      });
+      setSubmitStep('success');
+    } catch (err) {
+      setError('Could not send submission. Please email us directly.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div style={{ padding: 'clamp(96px, 12vw, 120px) clamp(20px, 4vw, 56px) 96px', position: 'relative', zIndex: 1, maxWidth: 720, margin: '0 auto' }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)', marginBottom: 48, padding: 0, transition: 'color 0.15s' }}
+        onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
+        onMouseLeave={e => e.currentTarget.style.color = 'var(--fg3)'}
+      >
+        <svg width={14} height={14} viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        Contribute
+      </button>
+      <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.05, marginBottom: 20 }}>Submit a Recording</h1>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.55, fontWeight: 400, marginBottom: 24, maxWidth: 580 }}>
+        Completed a capture? Share a link to your file (Google Drive, Dropbox, WeTransfer, or similar). LENS hosts all media on its own YouTube channel to ensure long-term availability — we don't link directly to contributors' personal accounts, since those can change or disappear.
+      </p>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg3)', lineHeight: 1.7, marginBottom: 36, maxWidth: 580 }}>
+        We'll review your submission, upload it to the LENS channel with full attribution, and follow up via email.
+      </p>
+      {submitStep === 'success' ? (
+        <div style={{ background: 'var(--accent-dim)', border: '1px solid oklch(56% 0.17 196 / 0.25)', borderRadius: 12, padding: '40px', textAlign: 'center' }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: 40, color: 'var(--accent)', marginBottom: 12 }}>✓</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 18, marginBottom: 8 }}>Submission received</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg2)', lineHeight: 1.6 }}>Thank you for contributing to LENS. We'll review your recording and follow up via email.</div>
+          <button onClick={() => { setSubmitStep('form'); setAgreed(false); setFormData({ name: '', email: '', project: '', driveLink: '', notes: '' }); }} style={{ marginTop: 20, background: 'none', border: '1px solid var(--border)', borderRadius: 7, padding: '8px 20px', cursor: 'pointer', fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)' }}>Submit another</button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {[
+            { id: 'name', label: 'Your name', placeholder: 'Jane Smith', type: 'text', required: true },
+            { id: 'email', label: 'Email address', placeholder: 'jane@example.com', type: 'email', required: true },
+            { id: 'project', label: 'Project name & location', placeholder: 'Paley Park, New York', type: 'text', required: true },
+            { id: 'driveLink', label: 'File link (Google Drive, Dropbox, WeTransfer, etc.)', placeholder: 'https://drive.google.com/...', type: 'url', required: true, hint: 'Set sharing to "Anyone with the link" so we can access the file.' },
+          ].map(field => (
+            <div key={field.id}>
+              <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500, color: 'var(--fg2)', display: 'block', marginBottom: 6 }}>
+                {field.label}{field.required && <span style={{ color: 'var(--accent)', marginLeft: 3 }}>*</span>}
+              </label>
+              <input type={field.type} placeholder={field.placeholder} required={field.required} value={formData[field.id]}
+                onChange={e => setFormData(p => ({ ...p, [field.id]: e.target.value }))}
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--card-bg)', fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg)', outline: 'none', transition: 'border-color 0.15s, box-shadow 0.15s' }}
+                onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px var(--accent-dim)'; }}
+                onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+              />
+              {field.hint && <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', marginTop: 6, lineHeight: 1.5 }}>{field.hint}</div>}
+            </div>
+          ))}
+          <div>
+            <label style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500, color: 'var(--fg2)', display: 'block', marginBottom: 6 }}>Additional notes</label>
+            <textarea placeholder="Capture date, conditions, equipment used…" rows={3} value={formData.notes}
+              onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))}
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 8, background: 'var(--card-bg)', fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg)', outline: 'none', resize: 'vertical', transition: 'border-color 0.15s, box-shadow 0.15s' }}
+              onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.boxShadow = '0 0 0 3px var(--accent-dim)'; }}
+              onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+            />
+          </div>
+          <div style={{ background: 'var(--bg2)', borderRadius: 10, padding: '16px 18px', border: '1px solid var(--border)' }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 13, marginBottom: 8 }}>Copyright & Attribution</div>
+            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', lineHeight: 1.65, marginBottom: 14 }}>
+              By submitting, you confirm that you are the original author of this recording. LENS will credit you by name in the project entry. Any commercial use beyond educational display will be discussed and separately agreed upon with you before proceeding.
+            </p>
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
+              <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, accentColor: 'var(--accent)', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', lineHeight: 1.55 }}>I confirm I hold the rights to this recording and agree to the attribution and usage terms above.</span>
+            </label>
+          </div>
+          <button type="submit" disabled={!agreed || submitting} style={{ background: (agreed && !submitting) ? 'var(--accent)' : 'var(--bg2)', color: (agreed && !submitting) ? 'white' : 'var(--fg3)', border: 'none', borderRadius: 8, padding: '13px 24px', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, cursor: (agreed && !submitting) ? 'pointer' : 'not-allowed', transition: 'all 0.18s ease', boxShadow: (agreed && !submitting) ? '0 4px 16px var(--accent-dim)' : 'none', alignSelf: 'flex-start' }}>
+            {submitting ? 'Sending…' : 'Submit Recording'}
+          </button>
+          {error && <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#c64545', marginTop: -4 }}>{error}</div>}
+        </form>
+      )}
+    </div>
+  );
+}
+
+function Contribute({ onNav }) {
+  const [subView, setSubView] = useState('index');
+  if (subView === 'protocol') return <ContributeProtocol onBack={() => setSubView('index')} />;
+  if (subView === 'wishlist') return <ContributeWishlist onBack={() => setSubView('index')} />;
+  if (subView === 'submit') return <ContributeSubmit onBack={() => setSubView('index')} />;
+  return <ContributeIndex onSubNav={setSubView} />;
+}
+// ─── FOR EDUCATORS ──────────────────────────────────────────────────────────
+
+function DrawingDiagram() {
+  const items = [
+    {
+      label: 'Plan',
+      caption: 'Spatial organisation from above — anchored to a body placed inside it',
+      svg: (
+        <svg viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%', height:'100%'}}>
+          {/* Boundary */}
+          <rect x="12" y="12" width="136" height="136" stroke="currentColor" strokeWidth="1.2" opacity="0.9"/>
+          {/* Path through space */}
+          <path d="M12 80 Q50 80 70 60 Q90 40 110 40 L148 40" stroke="currentColor" strokeWidth="1" strokeDasharray="3 2" opacity="0.4"/>
+          {/* Water body */}
+          <ellipse cx="48" cy="110" rx="22" ry="14" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
+          <ellipse cx="48" cy="110" rx="16" ry="9" stroke="currentColor" strokeWidth="0.5" opacity="0.25"/>
+          {/* Planting masses */}
+          <circle cx="110" cy="100" r="16" stroke="currentColor" strokeWidth="1" opacity="0.45"/>
+          <circle cx="130" cy="115" r="10" stroke="currentColor" strokeWidth="1" opacity="0.35"/>
+          <circle cx="95" cy="118" r="8" stroke="currentColor" strokeWidth="1" opacity="0.35"/>
+          {/* Hard surface */}
+          <rect x="60" y="55" width="55" height="38" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
+          {/* Seating */}
+          <line x1="68" y1="62" x2="106" y2="62" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+          <line x1="68" y1="70" x2="106" y2="70" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+          {/* Human figure — top down */}
+          <circle cx="82" cy="86" r="4" stroke="oklch(56% 0.17 196)" strokeWidth="1.5"/>
+          <line x1="82" y1="90" x2="82" y2="100" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="78" y1="94" x2="82" y2="90" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="86" y1="94" x2="82" y2="90" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
+          {/* North arrow */}
+          <line x1="140" y1="130" x2="140" y2="118" stroke="currentColor" strokeWidth="1" opacity="0.4" strokeLinecap="round"/>
+          <path d="M137 122 L140 118 L143 122" stroke="currentColor" strokeWidth="1" opacity="0.4" strokeLinecap="round" strokeLinejoin="round"/>
+          <text x="140" y="136" textAnchor="middle" fontFamily="monospace" fontSize="7" fill="currentColor" opacity="0.35">N</text>
+        </svg>
+      ),
+    },
+    {
+      label: 'Section',
+      caption: 'Vertical scale — the eye-level line already known from standing inside',
+      svg: (
+        <svg viewBox="0 0 160 130" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%', height:'100%'}}>
+          {/* Ground line */}
+          <line x1="8" y1="108" x2="152" y2="108" stroke="currentColor" strokeWidth="1.5" opacity="0.6"/>
+          {/* Ground hatch */}
+          {[0,8,16,24,32,40,48,56,64,72,80,88,96,104,112,120,128,136,144].map(x => (
+            <line key={x} x1={x+8} y1="108" x2={x+4} y2="116" stroke="currentColor" strokeWidth="0.7" opacity="0.25" strokeLinecap="round"/>
+          ))}
+          {/* Terrain — gentle steps */}
+          <path d="M8 108 L8 92 L40 92 L40 78 L80 78 L80 108" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.55"/>
+          {/* Retaining wall */}
+          <rect x="78" y="78" width="4" height="30" stroke="currentColor" strokeWidth="1" fill="currentColor" fillOpacity="0.08" opacity="0.6"/>
+          {/* Upper level continues */}
+          <line x1="82" y1="78" x2="152" y2="78" stroke="currentColor" strokeWidth="1.2" opacity="0.35"/>
+          {/* Tree on upper level */}
+          <line x1="112" y1="78" x2="112" y2="52" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+          <path d="M96 58 Q112 38 128 58 Q128 74 112 72 Q96 74 96 58Z" stroke="currentColor" strokeWidth="1" opacity="0.4"/>
+          {/* Shrub lower level */}
+          <path d="M28 92 Q36 80 44 92" stroke="currentColor" strokeWidth="1" opacity="0.35"/>
+          {/* Human figure */}
+          <circle cx="55" cy="70" r="5" stroke="oklch(56% 0.17 196)" strokeWidth="1.5"/>
+          <line x1="55" y1="75" x2="55" y2="92" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="55" y1="81" x2="47" y2="87" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="55" y1="81" x2="63" y2="87" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="55" y1="92" x2="50" y2="108" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
+          <line x1="55" y1="92" x2="60" y2="108" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
+          {/* Eye level line */}
+          <line x1="8" y1="70" x2="152" y2="70" stroke="oklch(56% 0.17 196)" strokeWidth="0.8" strokeDasharray="5 3" opacity="0.35"/>
+          <text x="150" y="68" textAnchor="end" fontFamily="DM Sans, sans-serif" fontSize="7" fill="oklch(56% 0.17 196)" opacity="0.5">EL</text>
+          {/* Height dimension */}
+          <line x1="16" y1="92" x2="16" y2="70" stroke="currentColor" strokeWidth="0.8" opacity="0.3" strokeDasharray="2 2"/>
+          <text x="18" y="83" fontFamily="DM Sans, sans-serif" fontSize="7" fill="currentColor" opacity="0.35">1.6m</text>
+        </svg>
+      ),
+    },
+    {
+      label: 'Perspective',
+      caption: 'The view experienced — drawn with intention and selective framing',
+      svg: (
+        <svg viewBox="0 0 160 130" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%', height:'100%'}}>
+          {/* VP */}
+          <circle cx="80" cy="52" r="2" fill="oklch(56% 0.17 196)" opacity="0.6"/>
+          {/* Ground plane lines to VP */}
+          <line x1="8" y1="118" x2="80" y2="52" stroke="currentColor" strokeWidth="0.8" opacity="0.2"/>
+          <line x1="50" y1="118" x2="80" y2="52" stroke="currentColor" strokeWidth="0.8" opacity="0.15"/>
+          <line x1="110" y1="118" x2="80" y2="52" stroke="currentColor" strokeWidth="0.8" opacity="0.15"/>
+          <line x1="152" y1="118" x2="80" y2="52" stroke="currentColor" strokeWidth="0.8" opacity="0.2"/>
+          {/* Horizon line */}
+          <line x1="8" y1="52" x2="152" y2="52" stroke="currentColor" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.25"/>
+          {/* Ground */}
+          <line x1="8" y1="118" x2="152" y2="118" stroke="currentColor" strokeWidth="1.2" opacity="0.4"/>
+          {/* Left wall receding */}
+          <path d="M8 20 L8 118 L80 52" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.45"/>
+          {/* Right wall receding */}
+          <path d="M152 20 L152 118 L80 52" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.45"/>
+          {/* Tree in perspective */}
+          <line x1="110" y1="82" x2="116" y2="52" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.45"/>
+          <ellipse cx="113" cy="62" rx="12" ry="9" stroke="currentColor" strokeWidth="1" opacity="0.35" transform="rotate(-5 113 62)"/>
+          {/* Bench */}
+          <path d="M40 96 L65 88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.4"/>
+          {/* Ground texture lines */}
+          <line x1="25" y1="104" x2="135" y2="104" stroke="currentColor" strokeWidth="0.6" opacity="0.15"/>
+          <line x1="15" y1="112" x2="145" y2="112" stroke="currentColor" strokeWidth="0.6" opacity="0.15"/>
+          {/* 360 indicator */}
+          <circle cx="80" cy="52" r="22" stroke="oklch(56% 0.17 196)" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.4"/>
+          <text x="80" y="56" textAnchor="middle" fontFamily="monospace" fontSize="7" fill="oklch(56% 0.17 196)" opacity="0.6">360°</text>
+        </svg>
+      ),
+    },
+  ];
+  return (
+    <div style={{display:'grid', gridTemplateColumns:'1fr 32px 1fr 32px 1fr', alignItems:'start'}}>
+      {items.map((item, i) => (
+        <React.Fragment key={item.label}>
+          <div style={{display:'flex', flexDirection:'column', gap:14}}>
+            <div style={{background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:10, padding:'16px', aspectRatio:'1/1', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--fg)'}}>
+              {item.svg}
+            </div>
+            <div style={{textAlign:'center'}}>
+              <div style={{fontFamily: 'Inter, sans-serif', fontWeight:600, fontSize:12, letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:5}}>{item.label}</div>
+              <div style={{fontFamily: 'Inter, sans-serif', fontSize:12, color:'var(--fg3)', lineHeight:1.55}}>{item.caption}</div>
+            </div>
+          </div>
+          {i < 2 && (
+            <div style={{display:'flex', alignItems:'center', justifyContent:'center', paddingBottom:52}}>
+              <svg width="20" height="12" viewBox="0 0 20 12" fill="none">
+                <path d="M2 6h14M12 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
+              </svg>
+            </div>
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+// Typography tokens — used consistently throughout this page
+const H1 = { fontFamily: 'Inter, sans-serif', fontWeight:200, fontSize:'clamp(40px, 5vw, 56px)', lineHeight:1.05, letterSpacing:'-0.025em', color:'var(--fg)' };
+const H2 = { fontFamily: 'Inter, sans-serif', fontWeight:700, fontSize:22, lineHeight:1.2, letterSpacing:'-0.02em', color:'var(--fg)' };
+const BODY = { fontFamily: 'Inter, sans-serif', fontSize:17, lineHeight:1.55, fontWeight:400, color:'var(--fg2)' };
+const SMALL = { fontFamily: 'Inter, sans-serif', fontSize:14, lineHeight:1.6, color:'var(--fg2)' };
+const LABEL = { fontFamily: 'Inter, sans-serif', fontSize:11, fontWeight:500, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--fg3)' };
+
+function ForEducators({ onBrowse }) {
+  return (
+    <div style={{padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position:'relative', zIndex:1}}>
+
+        {/* 1 — OPENER */}
+        <div style={{paddingBottom:64}}>
+          <h1 style={{...H1, marginBottom:24}}>A photograph is relative to the camera.<br/><span style={{color:'var(--accent)'}}>A VR experience is relative to the body.</span></h1>
+          <p style={{...BODY, }}>
+            Most students of landscape architecture will never stand inside the projects they study. They encounter them through plans, through photographs — mediated, edited, always someone else's view. The precedent becomes an abstraction. The space never lands.
+          </p>
+        </div>
+
+        {/* 2 — LIMITATIONS OF TRADITIONAL PRECEDENT RESEARCH */}
+        <div style={{borderTop:'1px solid var(--border)', paddingTop:56, paddingBottom:64}}>
+          <h2 style={{...H2, marginBottom:20}}>Limitations of traditional precedent research</h2>
+          <p style={{...BODY, marginBottom:36}}>
+            Precedent research typically relies on plan drawings, sections, and photographs selected by the designer or photographer. Each is a curated position — cropped, lit, and timed deliberately. For a student trying to understand how a space actually works — its scale, its movement, its atmosphere — this is partial information. The further a student is from first-hand access to significant built work, the more these limitations compound.
+          </p>
+          <div style={{display:'flex', flexDirection:'column', border:'1px solid var(--border)', borderRadius:10, overflow:'hidden'}}>
+            <div style={{...LABEL, padding:'12px 16px', borderBottom:'1px solid var(--border)', background:'var(--bg2)'}}>What traditional precedent research gives you</div>
+            {[
+              {label:"The designer's best angle", has:true},
+              {label:'Ideal lighting conditions', has:true},
+              {label:'An emptied-out space', has:true},
+              {label:'Cropped edges', has:true},
+              {label:'Your scale in the space', has:false},
+              {label:"What's behind you", has:false},
+              {label:'The transition between zones', has:false},
+              {label:'How the ground feels underfoot', has:false},
+            ].map((item, i, arr) => (
+              <div key={i} style={{display:'flex', alignItems:'center', gap:12, padding:'9px 16px', borderBottom: i<arr.length-1 ? '1px solid var(--border)' : 'none', background: item.has ? 'var(--bg2)' : 'transparent'}}>
+                <span style={{fontSize:11, color: item.has ? 'var(--fg2)' : 'var(--fg3)', flexShrink:0, width:12, textAlign:'center', fontWeight:500}}>{item.has ? '✓' : '–'}</span>
+                <span style={{...SMALL, color: item.has ? 'var(--fg2)' : 'var(--fg3)', textDecoration: item.has ? 'none' : 'line-through'}}>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      {/* 3 — BODY AS INSTRUMENT: full-bleed dark */}
+        <div style={{borderTop:'1px solid var(--border)', paddingTop:56, paddingBottom:64}}>
+          <h2 style={{...H2, marginBottom:20}}>The body is the first instrument of scale</h2>
+          <p style={{...BODY, marginBottom:16}}>
+            A person understands space from the inside out. Scale begins with the body — the reach of an arm, the height of an eye, the distance a voice carries. These are felt, not measured.
+          </p>
+          <p style={{...BODY, marginBottom:40}}>
+            LENS places a student at eye level — standing or seated — inside a documented landscape. The 360° view is not cinematic or composed. It is the view a body would have. That is the point.
+          </p>
+          <div style={{borderTop:'1px solid var(--border)', paddingTop:32}}>
+            <svg viewBox="0 0 820 180" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%'}}>
+              {/* Ground line */}
+              <line x1="0" y1="162" x2="820" y2="162" stroke="oklch(60% 0.008 255)" strokeWidth="1" opacity="0.3"/>
+              {/* Ground hatch */}
+              {[...Array(42)].map((_,i) => (
+                <line key={i} x1={i*20} y1="162" x2={i*20-6} y2="170" stroke="oklch(60% 0.008 255)" strokeWidth="0.7" opacity="0.18" strokeLinecap="round"/>
+              ))}
+
+              {/* HUMAN FIGURE */}
+              <circle cx="80" cy="72" r="10" stroke="oklch(56% 0.17 196)" strokeWidth="2"/>
+              <line x1="80" y1="82" x2="80" y2="130" stroke="oklch(56% 0.17 196)" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="80" y1="100" x2="62" y2="116" stroke="oklch(56% 0.17 196)" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="80" y1="100" x2="98" y2="116" stroke="oklch(56% 0.17 196)" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="80" y1="130" x2="68" y2="162" stroke="oklch(56% 0.17 196)" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="80" y1="130" x2="92" y2="162" stroke="oklch(56% 0.17 196)" strokeWidth="2" strokeLinecap="round"/>
+              {/* Height dimension */}
+              <line x1="108" y1="72" x2="108" y2="162" stroke="oklch(60% 0.008 255)" strokeWidth="1" strokeDasharray="3 3" opacity="0.5"/>
+              <path d="M104 79l4-9 4 9" stroke="oklch(60% 0.008 255)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
+              <path d="M104 155l4 9 4-9" stroke="oklch(60% 0.008 255)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
+              <text x="118" y="122" fontFamily="DM Sans, sans-serif" fontSize="12" fill="oklch(60% 0.008 255)" opacity="0.7">1.6 m</text>
+
+              {/* EYE LEVEL LINE */}
+              <line x1="0" y1="72" x2="820" y2="72" stroke="oklch(56% 0.17 196)" strokeWidth="0.8" strokeDasharray="8 5" opacity="0.2"/>
+              <text x="730" y="68" fontFamily="DM Sans, sans-serif" fontSize="10" fill="oklch(56% 0.17 196)" opacity="0.45">eye level</text>
+
+              {/* TREE — canopy + trunk */}
+              <line x1="320" y1="162" x2="320" y2="96" stroke="oklch(60% 0.008 255)" strokeWidth="4" opacity="0.35" strokeLinecap="round"/>
+              <circle cx="320" cy="68" r="44" stroke="oklch(60% 0.008 255)" strokeWidth="1.2" opacity="0.3"/>
+              <circle cx="300" cy="80" r="26" stroke="oklch(60% 0.008 255)" strokeWidth="0.8" opacity="0.18"/>
+              <circle cx="340" cy="75" r="30" stroke="oklch(60% 0.008 255)" strokeWidth="0.8" opacity="0.18"/>
+              {/* Tree height dim */}
+              <line x1="380" y1="24" x2="380" y2="162" stroke="oklch(60% 0.008 255)" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.3"/>
+              <path d="M376 31l4-9 4 9" stroke="oklch(60% 0.008 255)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
+              <path d="M376 155l4 9 4-9" stroke="oklch(60% 0.008 255)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
+              <text x="390" y="98" fontFamily="DM Sans, sans-serif" fontSize="11" fill="oklch(60% 0.008 255)" opacity="0.45">~9 m</text>
+
+              {/* WALL */}
+              <rect x="548" y="18" width="22" height="144" stroke="oklch(60% 0.008 255)" strokeWidth="1.5" opacity="0.4" fill="oklch(60% 0.008 255)" fillOpacity="0.06"/>
+              {/* Wall height dim */}
+              <line x1="588" y1="18" x2="588" y2="162" stroke="oklch(60% 0.008 255)" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.3"/>
+              <path d="M584 25l4-9 4 9" stroke="oklch(60% 0.008 255)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
+              <path d="M584 155l4 9 4-9" stroke="oklch(60% 0.008 255)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
+              <text x="598" y="96" fontFamily="DM Sans, sans-serif" fontSize="11" fill="oklch(60% 0.008 255)" opacity="0.45">~12 m</text>
+
+              {/* SEATED FIGURE */}
+              <circle cx="700" cy="108" r="8" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" opacity="0.7"/>
+              <line x1="700" y1="116" x2="700" y2="140" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+              <line x1="700" y1="126" x2="688" y2="134" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+              <line x1="700" y1="126" x2="712" y2="134" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+              {/* Seat */}
+              <line x1="682" y1="140" x2="720" y2="140" stroke="oklch(60% 0.008 255)" strokeWidth="2.5" opacity="0.4" strokeLinecap="round"/>
+              <line x1="684" y1="140" x2="680" y2="162" stroke="oklch(60% 0.008 255)" strokeWidth="1.5" opacity="0.3" strokeLinecap="round"/>
+              <line x1="718" y1="140" x2="722" y2="162" stroke="oklch(60% 0.008 255)" strokeWidth="1.5" opacity="0.3" strokeLinecap="round"/>
+              {/* Seated eye level */}
+              <line x1="640" y1="108" x2="760" y2="108" stroke="oklch(56% 0.17 196)" strokeWidth="0.8" strokeDasharray="5 3" opacity="0.25"/>
+              <text x="764" y="111" fontFamily="DM Sans, sans-serif" fontSize="9" fill="oklch(56% 0.17 196)" opacity="0.35">1.1 m</text>
+            </svg>
+          </div>
+        </div>
+
+        {/* 4 — FROM SENSATION TO DRAWING */}
+        <div style={{borderTop:'1px solid var(--border)', paddingTop:56, paddingBottom:64}}>
+          <h2 style={{...H2, marginBottom:16}}>From sensation to drawing</h2>
+          <p style={{...BODY, marginBottom:48}}>
+            The exercise connects what a student felt inside the space to the three drawing types they will use as designers. Each drawing becomes a reconstruction of a real experience, not an application of a convention.
+          </p>
+          <DrawingDiagram/>
+          <div style={{marginTop:48}}>
+            <div style={{...LABEL, marginBottom:20}}>Possible teaching directions</div>
+            <div style={{display:'flex', flexDirection:'column'}}>
+              {[
+                { title: 'Drawing from experience', body: 'Ask students to produce a plan, section, and perspective freehand — from memory, after the VR session. The drawings become a direct record of spatial recall rather than a copying exercise.' },
+                { title: 'Linking moves to atmosphere', body: 'Use the 360° view as a reference during desk crits. Ask: which specific design decisions — a change in level, a material boundary, a planted edge — produced what you felt standing there?' },
+                { title: 'Scale calibration', body: 'Ask students to estimate dimensions from within the VR experience, then verify against the project data. The gap between felt scale and measured scale is itself a design lesson.' },
+                { title: 'Comparative reading', body: 'Place two projects of the same typology side by side. What does each designer prioritise? How do the spatial sequences differ? The shared point of entry — eye level, same height — makes comparison more reliable.' },
+              ].map((item, i, arr) => (
+                <div key={i} style={{display:'flex', gap:20, alignItems:'flex-start', padding:'16px 0', borderBottom: i<arr.length-1 ? '1px solid var(--border)' : 'none'}}>
+                  <span style={{fontFamily: 'Inter, sans-serif', fontWeight:700, fontSize:11, color:'var(--accent)', flexShrink:0, lineHeight:1.9, opacity:0.5, letterSpacing:'0.06em', minWidth:24}}>0{i+1}</span>
+                  <div>
+                    <div style={{fontFamily: 'Inter, sans-serif', fontWeight:600, fontSize:14, marginBottom:5}}>{item.title}</div>
+                    <span style={{...SMALL}}>{item.body}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 5 — CLOSING */}
+        <div style={{borderTop:'1px solid var(--border)', paddingTop:56}}>
+          <p style={{fontFamily: 'Inter, sans-serif', fontWeight:600, fontSize:20, lineHeight:1.45, letterSpacing:'-0.015em', color:'var(--fg)', marginBottom:16, }}>
+            "The goal is not to simulate the visit. It is to make the drawing true."
+          </p>
+          <p style={{...SMALL, color:'var(--fg3)', marginBottom:28}}>
+            Plans, sections and perspectives are ways of seeing. LENS gives students a real spatial experience to draw from.
+          </p>
+          <button onClick={onBrowse} style={{background:'var(--fg)', color:'var(--bg)', border:'none', borderRadius:8, padding:'12px 24px', fontFamily: 'Inter, sans-serif', fontSize:14, fontWeight:500, cursor:'pointer', transition:'background 0.18s', display:'inline-flex', alignItems:'center', gap:8}}
+            onMouseEnter={e => e.currentTarget.style.background='var(--accent)'}
+            onMouseLeave={e => e.currentTarget.style.background='var(--fg)'}
+          >Browse the collection →</button>
+        </div>
+    </div>
+  );
+}
+
+// ─── ABOUT ───────────────────────────────────────────────────────────────────
+function RevealEmail({ user, domain }) {
+  const [revealed, setRevealed] = useState(false);
+  if (!revealed) {
+    return (
+      <button
+        onClick={() => setRevealed(true)}
+        style={{
+          fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500,
+          color: 'var(--accent)', background: 'transparent',
+          border: '1px solid var(--accent)', borderRadius: 6,
+          padding: '8px 14px', cursor: 'pointer',
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          transition: 'all 0.18s'
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.color = 'white'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--accent)'; }}
+      >
+        Show email address →
+      </button>
+    );
+  }
+  const email = user + '@' + domain;
+  return (
+    <a href={'mailto:' + email} style={{
+      fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 500,
+      color: 'var(--accent)', textDecoration: 'none',
+      display: 'inline-flex', alignItems: 'center', gap: 8,
+      borderBottom: '1px solid var(--accent)', paddingBottom: 2
+    }}>
+      {email}
+    </a>
+  );
+}
+
+function Equipment({ onBrowse }) {
+  const steps = [
+    {
+      n: '01',
+      title: 'Power on the Quest 3',
+      body: 'Put on the headset and complete guardian setup if it is the first time. The headset works standalone — no PC, no phone tethering required.',
+    },
+    {
+      n: '02',
+      title: 'Open the built-in browser',
+      body: 'From the universal menu, launch the Meta Browser app. Sign into a Google account if you want voting and contribution features (optional — browsing works anonymously).',
+    },
+    {
+      n: '03',
+      title: 'Navigate to LENS',
+      body: 'Type the LENS URL into the address bar. Bookmark it for quick access in future sessions. The site is fully responsive inside the headset browser.',
+    },
+    {
+      n: '04',
+      title: 'Pick a project, enter VR',
+      body: 'Browse the catalogue, open a project, and tap the large 360° preview. The embedded YouTube player exposes a VR / cardboard icon in the bottom-right of the video — tap it to drop into immersive view.',
+    },
+    {
+      n: '05',
+      title: 'Look around',
+      body: 'Use head movement to look around the captured space. Some projects include multiple viewpoints — return to the project page and select another viewpoint to teleport between them.',
+    },
+  ];
+
+  return (
+    <div style={{ padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.05, marginBottom: 24 }}>
+        Hardware &amp; recommended workflow
+      </h1>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.55, fontWeight: 400, marginBottom: 48 }}>
+        LENS is delivered through standard 360° YouTube embeds, which means it works on any device with a modern browser. For the intended embodied experience, we recommend a dedicated standalone headset — the workflow below is what we use in studio.
+      </p>
+
+      {/* Recommended headset */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'minmax(0, 220px) 1fr', gap: 32,
+        padding: 32, background: 'var(--card-bg)', border: '1px solid var(--border)',
+        borderRadius: 12, marginBottom: 56, alignItems: 'center',
+      }}>
+        {/* Schematic illustration of a headset */}
+        <div style={{
+          aspectRatio: '4 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          background: 'var(--bg2)', borderRadius: 8, border: '1px solid var(--border)',
+        }}>
+          <svg viewBox="0 0 160 120" style={{ width: '78%', height: 'auto' }}>
+            {/* headset main body */}
+            <rect x="20" y="38" width="120" height="56" rx="14" fill="none" stroke="currentColor" strokeOpacity="0.7" strokeWidth="1.5" />
+            {/* lenses */}
+            <circle cx="58" cy="66" r="13" fill="none" stroke="var(--accent)" strokeWidth="1.5" />
+            <circle cx="102" cy="66" r="13" fill="none" stroke="var(--accent)" strokeWidth="1.5" />
+            <circle cx="58" cy="66" r="4" fill="var(--accent)" opacity="0.4" />
+            <circle cx="102" cy="66" r="4" fill="var(--accent)" opacity="0.4" />
+            {/* nose bridge */}
+            <path d="M 75 80 Q 80 88 85 80" fill="none" stroke="currentColor" strokeOpacity="0.5" strokeWidth="1.2" />
+            {/* head strap (top) */}
+            <path d="M 30 44 Q 80 14 130 44" fill="none" stroke="currentColor" strokeOpacity="0.5" strokeWidth="1.2" strokeDasharray="2 3" />
+            {/* side strap hints */}
+            <line x1="20" y1="56" x2="8" y2="58" stroke="currentColor" strokeOpacity="0.4" strokeWidth="1.2" />
+            <line x1="140" y1="56" x2="152" y2="58" stroke="currentColor" strokeOpacity="0.4" strokeWidth="1.2" />
+            {/* sensor dots on front */}
+            <circle cx="38" cy="50" r="1.5" fill="currentColor" opacity="0.4" />
+            <circle cx="122" cy="50" r="1.5" fill="currentColor" opacity="0.4" />
+          </svg>
+        </div>
+        <div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 8 }}>Recommended</div>
+          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 26, letterSpacing: '-0.015em', margin: 0, marginBottom: 8 }}>Meta Quest 3</h2>
+          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg2)', lineHeight: 1.55, margin: 0, marginBottom: 16 }}>
+            Standalone, no PC required. Sharp pancake lenses, comfortable for studio sessions, and the built-in Meta Browser handles 360° YouTube embeds well — including the immersive VR mode we rely on.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 16 }}>
+            {[
+              ['Resolution', '2064 × 2208 / eye'],
+              ['Tracking', '6 DoF inside-out'],
+              ['Browser', 'Meta Browser (Chromium)'],
+              ['Setup', 'Standalone, wireless'],
+            ].map(([k, v]) => (
+              <div key={k}>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 2 }}>{k}</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg)' }}>{v}</div>
+              </div>
+            ))}
+          </div>
+          <a href="https://www.meta.com/quest/quest-3/" target="_blank" rel="noopener noreferrer" style={{
+            fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--accent)',
+            textDecoration: 'none', borderBottom: '1px solid var(--accent)', paddingBottom: 1,
+          }}>Product details on meta.com →</a>
+        </div>
+      </div>
+
+      {/* Workflow */}
+      <div style={{ marginBottom: 56 }}>
+        <div style={{ ...LABEL, marginBottom: 24 }}>Suggested workflow</div>
+        <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+          {steps.map((s, i) => (
+            <div key={s.n} style={{
+              display: 'grid', gridTemplateColumns: '64px 1fr', gap: 20,
+              padding: '20px 24px',
+              background: i % 2 === 0 ? 'var(--card-bg)' : 'transparent',
+              borderTop: i > 0 ? '1px solid var(--border)' : 'none',
+              alignItems: 'baseline',
+            }}>
+              <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--accent)', letterSpacing: '0.04em' }}>
+                {s.n}
+              </div>
+              <div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 16, color: 'var(--fg)', marginBottom: 6 }}>{s.title}</div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg2)', lineHeight: 1.55 }}>{s.body}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Alternatives */}
+      <div style={{ marginBottom: 56 }}>
+        <div style={{ ...LABEL, marginBottom: 16 }}>Other supported devices</div>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg2)', lineHeight: 1.6, marginBottom: 20 }}>
+          LENS works on any device — but the experience varies. In rough order of immersion:
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+          {[
+            { name: 'Other VR headsets', note: 'Pico 4, Vision Pro, Quest 2 — anything with a Chromium-based browser and 360° YouTube support.' },
+            { name: 'Smartphone + Cardboard', note: 'YouTube mobile app has a native cardboard mode. Inexpensive entry point for individual study.' },
+            { name: 'Phone or tablet', note: 'Drag to pan around the 360° sphere. Works on any phone, no headset required.' },
+            { name: 'Desktop browser', note: 'Click-and-drag panning. Best for previewing or annotating in class discussion.' },
+          ].map(d => (
+            <div key={d.name} style={{
+              padding: '16px 18px', background: 'var(--card-bg)',
+              border: '1px solid var(--border)', borderRadius: 8,
+            }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, color: 'var(--fg)', marginBottom: 6 }}>{d.name}</div>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12.5, color: 'var(--fg3)', lineHeight: 1.5 }}>{d.note}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tips */}
+      <div style={{
+        padding: '24px 26px', background: 'var(--accent-dim)',
+        border: '1px solid oklch(56% 0.17 196 / 0.3)', borderRadius: 12, marginBottom: 56,
+      }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent-bright)', marginBottom: 12 }}>Studio tips</div>
+        <ul style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg2)', lineHeight: 1.65, margin: 0, paddingLeft: 20 }}>
+          <li style={{ marginBottom: 6 }}>Set the headset's video quality to <span style={{ color: 'var(--fg)' }}>4K or higher</span> in the YouTube player gear menu — 360° footage looks soft at lower bitrates.</li>
+          <li style={{ marginBottom: 6 }}>Use a <span style={{ color: 'var(--fg)' }}>swivel chair</span> in studio so students can rotate freely without untracking.</li>
+          <li style={{ marginBottom: 6 }}>For shared sessions, <span style={{ color: 'var(--fg)' }}>cast the headset view</span> to a screen so the rest of the room can see what the wearer sees.</li>
+          <li>Limit individual sessions to <span style={{ color: 'var(--fg)' }}>10–15 minutes</span> to avoid fatigue, especially for first-time users.</li>
+        </ul>
+      </div>
+
+      <div style={{ paddingTop: 32, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg2)' }}>Ready to explore?</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', marginTop: 2 }}>Open LENS in your headset browser, or start on desktop.</div>
+        </div>
+        <button onClick={onBrowse} style={{
+          fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500,
+          background: 'var(--accent)', color: 'oklch(98% 0.005 75)',
+          border: 'none', borderRadius: 99, padding: '12px 24px',
+          cursor: 'pointer', letterSpacing: '0.01em',
+        }}>Browse the catalogue →</button>
+      </div>
+    </div>
+  );
+}
+
+
+function About() {
+  return (
+    <div style={{ padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+      <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.05, marginBottom: 24 }}>Library of Experienceable Landscape Spaces</h1>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.55, fontWeight: 400, marginBottom: 24 }}>
+        LENS is an open-access database of contemporary landscape architecture projects, captured in immersive 360° photography and video. Built for educators and students, it enables remote, embodied engagement with significant built landscapes around the world.
+      </p>
+      <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.55, fontWeight: 400, marginBottom: 32 }}>
+        Each project entry includes basic documentation — designer, location, programme, area — alongside curated VR media accessible through standard web browsers and compatible headsets.
+      </p>
+
+      <div style={{ marginTop: 32, padding: '24px 24px 20px', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 12 }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 14 }}>License &amp; citation</div>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg2)', lineHeight: 1.6, fontWeight: 400, marginBottom: 16 }}>
+          Content on LENS is released under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', borderBottom: '1px solid var(--accent)', paddingBottom: 1 }}>CC BY-NC-ND 4.0</a> — free to view, share, and reference for non-commercial use with attribution. Commercial use, redistribution in modified form, or reproduction in print or other published media requires separate written permission from the project lead.
+        </p>
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 8 }}>Suggested citation (APA)</p>
+        <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12.5, color: 'var(--fg2)', lineHeight: 1.6, padding: '12px 14px', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, margin: 0 }}>
+          Wang, Y. (2026). <em>LENS: Library of Experienceable Landscape Spaces</em> [Online database]. University of Nebraska–Lincoln. https://[lens.unl.edu]
+        </p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginTop: 48 }}>
+        {[
+          ['8+', 'Projects', 'Growing collection of documented spaces'],
+          ['360°', 'Immersive', 'Full spherical photo and video capture'],
+          ['Open', 'Access', 'Free for education and research'],
+        ].map(([val, label, desc]) => (
+          <div key={label} style={{
+            background: 'var(--card-bg)', border: '1px solid var(--border)',
+            borderRadius: 12, padding: '24px',
+          }}>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: 32, color: 'var(--accent)', marginBottom: 4 }}>{val}</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, marginBottom: 8 }}>{label}</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', lineHeight: 1.5 }}>{desc}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ marginTop: 80, paddingTop: 40, borderTop: '1px solid var(--border)' }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 24 }}>About the project</div>
+
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.6, fontWeight: 400, marginBottom: 20 }}>
+          LENS has been developed and maintained since 2025, with the current web version completed in 2026. The project is authored by <span style={{ color: 'var(--fg)', fontWeight: 500 }}>Yujia Wang</span>, with funding support from the College of Architecture, University of Nebraska–Lincoln. Resources on this platform are currently applied in VR-based pedagogical work at <span style={{ color: 'var(--fg)', fontWeight: 500 }}>LARC 210 — Landscape Architecture Studio II</span>.
+        </p>
+
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.6, fontWeight: 400, marginBottom: 20 }}>
+          Yujia Wang is a landscape architect, educator, and researcher. He is Associate Professor of Practice in Landscape Architecture at UNL and a Faculty Fellow at the Daugherty Water for Food Global Institute. His work spans built practice, design pedagogy, and research on the performance of urban public landscapes and human–nature co-benefits. <a href="https://architecture.unl.edu/person/yujia-wang/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', borderBottom: '1px solid var(--accent)', paddingBottom: 1 }}>Full profile →</a>
+        </p>
+
+        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.6, fontWeight: 400, marginBottom: 16 }}>
+          For inquiries, collaboration, or use beyond the CC BY-NC-ND terms, please get in touch.
+        </p>
+        <RevealEmail user="wang" domain="unl.edu" />
+      </div>
+    </div>
+  );
+}
+
+// ─── APP ─────────────────────────────────────────────────────────────────────
+function App() {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const { voted, counts, toggle } = useVotes();
+  const [view, setView] = useState('home');
+  const [selected, setSelected] = useState(null);
+  const [vrOpen, setVrOpen] = useState(false);
+  const [vrCapture, setVrCapture] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [dataSource, setDataSource] = useState('');
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    fetchProjects().then(data => {
+      setProjects(data);
+      setDataSource(data === FALLBACK_PROJECTS ? 'fallback' : 'sheet');
+      setLoading(false);
+    });
+  }, []);
+
+  const navigate = (target) => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    setView(target);
+  };
+
+  const selectProject = (p) => {
+    setSelected(p);
+    navigate('project');
+  };
+
+  const accentStyle = `
+    :root { --accent: #1F8A5B; --accent-dim: rgba(31, 138, 91, 0.12); --accent-bright: #176B47; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  `;
+
+  return (
+    <>
+      <style>{accentStyle}</style>
+      <div
+        id="scroll-root"
+        ref={scrollRef}
+        style={{
+          height: '100vh', overflowY: 'auto', overflowX: 'hidden',
+          scrollBehavior: 'smooth',
+        }}
+      >
+        <Nav view={view} onNav={navigate} onSearch={setSearchQuery} searchQuery={searchQuery} />
+        <div style={{ zIndex: 1, position: 'relative' }} key={view + (selected?.id ?? '')}>
+          {loading && (
+            <div style={{
+              height: '80vh', display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center', gap: 16,
+              color: 'var(--fg3)',
+            }}>
+              <div style={{ animation: 'spin 1.2s linear infinite' }}>
+                <svg width={28} height={28} viewBox="0 0 32 32" fill="none">
+                  <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="2" strokeDasharray="40 20" />
+                </svg>
+              </div>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)' }}>Loading catalogue…</span>
+            </div>
+          )}
+          {!loading && view === 'home' && (
+            <>
+              <Hero featured={getFeatured(projects)} onSelect={selectProject} heroLayout={tweaks.heroLayout} />
+              <div style={{ padding: '0 56px', marginBottom: 96 }}>
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 40 }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 32 }}>
+                    <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: 32, letterSpacing: '-0.02em', margin: 0 }}>Recent additions</h2>
+                    <button onClick={() => navigate('browse')} style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)',
+                      textDecoration: 'underline', textUnderlineOffset: 4,
+                    }}>Browse all projects →</button>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '48px 28px' }}>
+                    {projects.slice(0,4).map(p => (
+                      <ProjectCard key={p.id} project={p} onClick={() => selectProject(p)} showTags={tweaks.showTags} cardStyle="grid" voted={voted} counts={counts} onToggle={toggle} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+          {!loading && view === 'browse' && (
+            <div style={{ paddingTop: 96 }}>
+              <div style={{ padding: '24px 56px 28px' }}>
+                <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 64px)', letterSpacing: '-0.025em', margin: 0, lineHeight: 1.05 }}>The collection</h1>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'var(--fg3)', marginTop: 12, marginBottom: 0, maxWidth: 540, lineHeight: 1.55 }}>A growing index of contemporary landscape architecture documented in immersive 360°.</p>
+              </div>
+              <Browse projects={projects} onSelect={selectProject} tweaks={tweaks} setTweak={setTweak} searchQuery={searchQuery} voted={voted} counts={counts} onToggle={toggle} />
+            </div>
+          )}
+          {!loading && view === 'project' && selected && (
+            <ProjectDetail
+              project={selected}
+              onBack={() => navigate('browse')}
+              onVR={(capture) => { setVrCapture(capture || null); setVrOpen(true); }}
+              voted={voted} counts={counts}
+              onToggle={toggle}
+            />
+          )}
+          {!loading && view === 'atlas' && <Atlas projects={projects} onSelect={selectProject} />}
+          {!loading && view === 'equipment' && <Equipment onBrowse={() => navigate('browse')} />}
+          {!loading && view === 'for educators' && <ForEducators onBrowse={() => navigate('browse')} />}
+          {!loading && view === 'contribute' && <Contribute onNav={navigate} />}
+          {!loading && view === 'about' && <About />}
+        </div>
+      </div>
+
+      {vrOpen && selected && (
+        <VRViewer project={selected} capture={vrCapture} onClose={() => { setVrOpen(false); setVrCapture(null); }} />
+      )}
+
+      <TweaksPanel tweaks={tweaks} setTweak={setTweak}>
+        <TweakSection label="Accent Color">
+          <TweakSlider id="accentHue" label="Hue" min={100} max={350} step={5} />
+        </TweakSection>
+        <TweakSection label="Layout">
+          <TweakRadio id="heroLayout" label="Hero Style" options={[{value:'split',label:'Split'},{value:'full',label:'Centered'}]} />
+          <TweakRadio id="cardStyle" label="Card View" options={[{value:'grid',label:'Grid'},{value:'list',label:'List'}]} />
+        </TweakSection>
+        <TweakSection label="Content">
+          <TweakToggle id="showTags" label="Show Tags" />
+        </TweakSection>
+      </TweaksPanel>
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+</body>
+</html>
