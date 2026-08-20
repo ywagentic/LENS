@@ -1,0 +1,26 @@
+# macOS
+.DS_Store
+Icon?
+.thumbnail
+._*
+.Spotlight-V100
+.Trashes
+
+# Local-only notes / plans (not part of the deployed site)
+TOKEN-PLAN.md
+CLAUDE.md
+SUBMISSIONS-SETUP.md
+
+# Working docs & assets not needed at runtime
+uploads/
+screenshots/
+content/
+archive/
+explorations/
+LENS-archive.html
+LENS-darkarchive-backup.html
+direction-explorations-v2.html
+hero-explorations.html
+design-canvas.jsx
+LENS_catalogue.xlsx
+LENS_sheet_template.csv
