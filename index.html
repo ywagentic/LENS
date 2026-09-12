@@ -708,7 +708,7 @@ function Hero({ featured, onSelect, heroLayout }) {
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', gridColumn: 1, gridRow: 2, marginTop: useSplit ? 0 : 32 }}>
             <button
-              onClick={() => onSelect(featured)}
+              onClick={() => hasRecording(featured) ? openYouTube(featured.captures[0]) : onSelect(featured)}
               style={{
                 background: 'var(--fg)', color: 'var(--bg)', border: '1px solid var(--fg)',
                 padding: '14px 24px', borderRadius: 0, cursor: 'pointer',
@@ -719,7 +719,7 @@ function Hero({ featured, onSelect, heroLayout }) {
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--bg)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'var(--fg)'; e.currentTarget.style.borderColor = 'var(--fg)'; e.currentTarget.style.color = 'var(--bg)'; }}
             >
-              {hasRecording(featured) ? 'Enter VR experience' : 'Explore project'}
+              {hasRecording(featured) ? 'Watch on YouTube' : 'Explore project'}
               <span style={{ fontSize: 14 }}>→</span>
             </button>
             <button
@@ -735,6 +735,9 @@ function Hero({ featured, onSelect, heroLayout }) {
               onMouseLeave={e => { e.currentTarget.style.color = 'var(--fg)'; }}
             >Project details</button>
           </div>
+          {hasRecording(featured) && youtubeDestination(featured.captures[0])?.mobile && (
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--fg3)', marginTop: 12 }}>Open in the YouTube app to look around. If it opens in your browser instead, rotating the 360° view may not work.</p>
+          )}
         </div>
         {useSplit && (
           <div
@@ -989,134 +992,34 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
   );
 }
 
-// ─── VIEWER ──────────────────────────────────────────────────────────────────
-function VRViewer({ project, capture, onClose }) {
-  const [vrMode, setVrMode] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-
-  // Use the active capture's vrId if provided, fall back to legacy project.vrId
-  const vrId = (capture && capture.vrId) || project.vrId;
-  const captureLabel = capture && capture.label;
-  const vrTypeLabel = (project.vrTypes && project.vrTypes.length > 0)
-    ? project.vrTypes.join(' · ')
-    : (project.vrType || '');
-
-  // Build an autoplay 360 embed URL
-  const embedUrl = `https://www.youtube.com/embed/${vrId}?autoplay=0&controls=1&modestbranding=1&rel=0`;
-
-  useEffect(() => {
-    const t = setTimeout(() => setLoaded(true), 800);
-    return () => clearTimeout(t);
-  }, []);
-
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 200,
-      background: 'oklch(8% 0.01 255)',
-      display: 'flex', flexDirection: 'column',
-      animation: 'fadeIn 0.3s ease',
-    }}>
-      {/* Header */}
-      <div style={{
-        padding: '16px 32px', display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between',
-        borderBottom: '1px solid oklch(100% 0 0 / 0.08)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'oklch(100% 0 0 / 0.07)', border: 'none',
-              borderRadius: 8, padding: '8px 14px', cursor: 'pointer',
-              color: 'oklch(100% 0 0 / 0.7)', display: 'flex', alignItems: 'center', gap: 6,
-              fontFamily: 'Inter, sans-serif', fontSize: 13, transition: 'background 0.15s',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = 'oklch(100% 0 0 / 0.12)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'oklch(100% 0 0 / 0.07)'}
-          >
-            <svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-              <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Back
-          </button>
-          <div>
-            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 16, color: 'white' }}>
-              {project.title}{captureLabel ? <span style={{ color: 'oklch(100% 0 0 / 0.55)', fontWeight: 400 }}> · {captureLabel}</span> : null}
-            </div>
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'oklch(100% 0 0 / 0.4)' }}>{project.type} · {project.location}</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {vrTypeLabel && (
-            <span style={{
-              fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500,
-              letterSpacing: '0.08em', textTransform: 'uppercase',
-              color: 'var(--accent)', background: 'var(--accent-dim)',
-              padding: '4px 10px', borderRadius: 99, border: '1px solid oklch(56% 0.17 196 / 0.3)',
-            }}>{vrTypeLabel}</span>
-          )}
-        </div>
-      </div>
-
-      {/* VR Frame */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        {!loaded && (
-          <div style={{
-            position: 'absolute', inset: 0, display: 'flex',
-            flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            gap: 16, color: 'oklch(100% 0 0 / 0.4)',
-          }}>
-            <div style={{ animation: 'spin 1.2s linear infinite' }}>
-              <svg width={32} height={32} viewBox="0 0 32 32" fill="none">
-                <circle cx="16" cy="16" r="13" stroke="currentColor" strokeWidth="2" strokeDasharray="40 20" />
-              </svg>
-            </div>
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13 }}>Loading immersive experience…</span>
-          </div>
-        )}
-        <iframe
-          src={embedUrl}
-          style={{
-            width: '100%', height: '100%', border: 'none',
-            opacity: loaded ? 1 : 0, transition: 'opacity 0.5s',
-          }}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          title={`VR: ${project.title}`}
-        />
-      </div>
-
-      {/* Info strip */}
-      <div style={{
-        padding: '16px 32px',
-        borderTop: '1px solid oklch(100% 0 0 / 0.08)',
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 24, background: 'oklch(12% 0.01 255)',
-      }}>
-        {[
-          ['Designer', project.designer || '—'],
-          ['Location', project.location],
-          ['Year', project.year],
-          ['Area', project.area],
-        ].map(([k, v]) => (
-          <div key={k}>
-            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'oklch(100% 0 0 / 0.35)', marginBottom: 4 }}>{k}</div>
-            <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, color: 'oklch(100% 0 0 / 0.85)' }}>{v}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+// Open the original YouTube video; native links allow mobile app handoff.
+function youtubeDestination(capture, nav = navigator) {
+  const id = capture?.vrId;
+  if (!/^[A-Za-z0-9_-]{11}$/.test(id || '')) return null;
+  const web = `https://www.youtube.com/watch?v=${id}`;
+  const mobile = /Android|iPhone|iPad|iPod/i.test(nav.userAgent) || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1);
+  const android = /Android/i.test(nav.userAgent) && !/OculusBrowser/i.test(nav.userAgent);
+  return {
+    href: android ? `intent://www.youtube.com/watch?v=${id}#Intent;scheme=https;package=com.google.android.youtube;S.browser_fallback_url=${encodeURIComponent(web)};end` : web,
+    target: mobile && !/OculusBrowser/i.test(nav.userAgent) ? '_self' : '_blank',
+    mobile,
+  };
+}
+function openYouTube(capture) {
+  const destination = youtubeDestination(capture);
+  if (!destination) return;
+  if (destination.target === '_self') window.location.assign(destination.href);
+  else window.open(destination.href, '_blank', 'noopener,noreferrer');
 }
 
-// ─── PROJECT DETAIL ───────────────────────────────────────────────────────────
-function ProjectDetail({ project, onBack, onVR, voted, counts, onToggle }) {
+function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
   const [hovered, setHovered] = useState(false);
   const captures = project.captures || [];
   const [activeIdx, setActiveIdx] = useState(0);
   // Reset to first capture when project changes
   useEffect(() => { setActiveIdx(0); }, [project.id]);
   const activeCapture = captures[activeIdx] || null;
+  const destination = youtubeDestination(activeCapture);
   const vrTypeLabel = (project.vrTypes && project.vrTypes.length > 0)
     ? project.vrTypes.join(' · ')
     : (project.vrType || '');
@@ -1167,15 +1070,19 @@ function ProjectDetail({ project, onBack, onVR, voted, counts, onToggle }) {
       </div>
 
       {/* VR preview — large, top of page */}
-      <div
-        onClick={() => activeCapture && onVR(activeCapture)}
+      <a
+        href={destination?.href}
+        target={destination?.target}
+        rel="noopener noreferrer"
+        aria-label={activeCapture ? `Watch ${activeCapture.label} on YouTube` : undefined}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
+          display: 'block', textDecoration: 'none', color: 'inherit',
           position: 'relative', cursor: activeCapture ? 'pointer' : 'default',
           overflow: 'hidden',
           aspectRatio: '16 / 9',
-          marginBottom: captures.length > 1 ? 24 : 64,
+          marginBottom: activeCapture ? 12 : 64,
           transition: 'transform 0.4s ease',
           transform: hovered ? 'scale(1.005)' : 'scale(1)',
         }}
@@ -1201,8 +1108,8 @@ function ProjectDetail({ project, onBack, onVR, voted, counts, onToggle }) {
           }}>
             {activeCapture && <VRIcon size={16} />}
             {!activeCapture ? '360° recording coming soon' : captures.length > 1
-              ? `Enter VR · ${activeCapture.label}`
-              : 'Enter VR experience'}
+              ? `Watch on YouTube · ${activeCapture.label}`
+              : 'Watch on YouTube'}
           </div>
         </div>
         {vrTypeLabel && (
@@ -1215,7 +1122,13 @@ function ProjectDetail({ project, onBack, onVR, voted, counts, onToggle }) {
             padding: '6px 10px',
           }}>{vrTypeLabel}</div>
         )}
-      </div>
+      </a>
+
+      {activeCapture && <p style={{ ...SMALL, marginBottom: captures.length > 1 ? 24 : 48 }}>
+        {destination.mobile
+          ? 'Open in the YouTube app to look around. If the video opens in your browser instead, rotating the 360° view may not work.'
+          : 'Opens the original video on YouTube in a new tab. Drag the video there to look around.'}
+      </p>}
 
       {/* Viewpoints — only when project has multiple capture points */}
       {captures.length > 1 && (
@@ -1225,7 +1138,7 @@ function ProjectDetail({ project, onBack, onVR, voted, counts, onToggle }) {
               Viewpoints · {captures.length}
             </div>
             <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)' }}>
-              Select a capture point to enter VR
+              Select a viewpoint, then open it on YouTube
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--border)', borderRadius: 4, overflow: 'hidden' }}>
@@ -1920,7 +1833,7 @@ function Equipment({ onBrowse }) {
     {
       n: '04',
       title: 'Pick a project, enter VR',
-      body: 'Browse the catalogue, open a project, and tap the large 360° preview. The embedded YouTube player exposes a VR / cardboard icon in the bottom-right of the video — tap it to drop into immersive view.',
+      body: 'Browse the catalogue, open a project, and tap the large 360° preview. Open the recording on YouTube and use the viewing options available on your headset.',
     },
     {
       n: '05',
@@ -2152,8 +2065,6 @@ function App() {
   const { voted, counts, toggle } = useVotes();
   const [view, setView] = useState('home');
   const [selected, setSelected] = useState(null);
-  const [vrOpen, setVrOpen] = useState(false);
-  const [vrCapture, setVrCapture] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -2250,7 +2161,6 @@ function App() {
             <ProjectDetail
               project={selected}
               onBack={() => navigate('browse')}
-              onVR={(capture) => { setVrCapture(capture || null); setVrOpen(true); }}
               voted={voted} counts={counts}
               onToggle={toggle}
             />
@@ -2262,10 +2172,6 @@ function App() {
           {!loading && view === 'about' && <About projectCount={projects.length} />}
         </div>
       </div>
-
-      {vrOpen && selected && (
-        <VRViewer project={selected} capture={vrCapture} onClose={() => { setVrOpen(false); setVrCapture(null); }} />
-      )}
 
       <TweaksPanel tweaks={tweaks} setTweak={setTweak}>
         <TweakSection label="Accent Color">
