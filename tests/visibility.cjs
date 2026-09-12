@@ -7,7 +7,9 @@ const ctx=vm.createContext({AbortController,setTimeout,clearTimeout,fetch:async(
 vm.runInContext('const SHEET_CSV_URL="https://example.com";'+source,ctx);
 const data=ctx.normalizeProjects(ctx.parseCSV(csv));
 assert.deepEqual(Array.from(data,p=>p.id),[9,20]);
-assert.equal(data.every(p=>p.captures.length===0),true);
+if(!process.argv[2]) assert.equal(data.every(p=>p.captures.length===0),true);
+const multiline=ctx.parseCSV('id,title,visible,description\r\n9,Test,1,"Line one, \"\"quoted\"\"\nLine two"');
+assert.equal(multiline[0].description,'Line one, "quoted"\nLine two');
 for(const visible of [0,'0',false,'false','',undefined,'yes']) assert.equal(ctx.isProjectVisible({visible}),false);
 for(const visible of [1,'1',true,'TRUE']) assert.equal(ctx.isProjectVisible({visible}),true);
 assert.equal(ctx.normalizeProjects([{id:1,title:'hidden',visible:0,featured:true,vrId:'abcdefghijk'}]).length,0);

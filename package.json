@@ -1,0 +1,30 @@
+{
+  "name": "lens",
+  "version": "1.0.0",
+  "description": "Library of Experienceable Landscape Spaces \u2014 a VR database for contemporary landscape architecture projects, aimed at educators and students.",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node tests/visibility.cjs && node submissions/check.cjs && node tests/seo.cjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ywagentic/LENS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ywagentic/LENS/issues"
+  },
+  "homepage": "https://github.com/ywagentic/LENS#readme",
+  "dependencies": {
+    "esbuild": "0.28.2",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "private": true
+}

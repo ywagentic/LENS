@@ -24,3 +24,7 @@ hero-explorations.html
 design-canvas.jsx
 LENS_catalogue.xlsx
 LENS_sheet_template.csv
+
+node_modules/
+dist/
+.build/
