@@ -83,19 +83,6 @@ const { useState, useEffect, useRef, useCallback } = React;
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTstt0D318arNWhKhdUAUrxqAgKBClnFyzuwuCHWzTEQIX_uiPGlAEqdigcOdQsBA3ZTCT408dmWa-H/pub?output=csv";
-const CACHE_KEY = "lens_projects_cache";
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-const FALLBACK_PROJECTS = [
-  { id:1, title:"Paley Park", subtitle:"Pocket park with immersive waterfall wall", location:"New York, USA", year:2021, designer:"Zion & Breen Associates", type:"Urban Park", tags:["Urban","Water","Hardscape"], vrType:"360° Video", vrId:"dQw4w9WgXcQ", description:"A seminal vest-pocket park in midtown Manhattan, featuring a cascading waterfall wall that masks urban noise. The gravel floor, honey locust canopy, and moveable seating create an intimate respite within the dense city grid.", area:"390 m²", color:"oklch(72% 0.08 140)" },
-  { id:2, title:"Gardens by the Bay", subtitle:"Supertree Grove & Cloud Forest", location:"Singapore", year:2022, designer:"Grant Associates", type:"Botanical Garden", tags:["Tropical","Infrastructure","Ecological"], vrType:"360° Photo", vrId:"LXb3EKWsInQ", description:"An iconic 101-hectare nature park bridging Singapore's Marina Bay waterfront. The Supertrees are vertical gardens that perform functions including planting, shading, and harvesting of rainwater and solar energy.", area:"101 ha", color:"oklch(68% 0.1 168)" },
-  { id:3, title:"Cheonggyecheon Stream", subtitle:"Urban stream restoration and linear park", location:"Seoul, South Korea", year:2023, designer:"SeoAhn Total Landscape", type:"Urban Restoration", tags:["Water","Urban","Restoration"], vrType:"360° Video", vrId:"J---aiyznGQ", description:"A 5.8 km urban stream restored beneath a former elevated highway. The project transformed a concrete culvert into a rich ecological corridor, dramatically reducing urban heat island effect.", area:"58,000 m²", color:"oklch(62% 0.12 222)" },
-  { id:4, title:"High Line", subtitle:"Elevated linear park on disused railway", location:"New York, USA", year:2022, designer:"James Corner Field Operations", type:"Linear Park", tags:["Urban","Adaptive Reuse","Planting"], vrType:"360° Video", vrId:"oHg5SJYRHA0", description:"A 2.3 km elevated linear park built on a disused freight rail line, threading through Manhattan's West Side. The planting design references the self-seeded vegetation that colonized the tracks during abandonment.", area:"8.7 ha", color:"oklch(58% 0.09 98)" },
-  { id:5, title:"Tanner Springs Park", subtitle:"Urban wetland in the Pearl District", location:"Portland, USA", year:2020, designer:"Atelier Dreiseitl", type:"Urban Wetland", tags:["Water","Ecological","Urban"], vrType:"360° Photo", vrId:"dQw4w9WgXcQ", description:"A constructed urban wetland referencing the historic Tanner Creek that once ran through the site. The park incorporates stormwater management with a naturalistic planting palette.", area:"3,440 m²", color:"oklch(55% 0.13 190)" },
-  { id:6, title:"Zaryadye Park", subtitle:"Nature reserve adjacent to the Kremlin", location:"Moscow, Russia", year:2023, designer:"Diller Scofidio + Renfro", type:"Urban Park", tags:["Ecological","Infrastructure","Hardscape"], vrType:"360° Video", vrId:"LXb3EKWsInQ", description:"A 13-hectare urban nature park in central Moscow, occupying the former site of the Rossiya Hotel. Four Russian landscapes are compressed and layered under a dramatic floating bridge.", area:"13 ha", color:"oklch(52% 0.07 268)" },
-  { id:7, title:"BIG Campus", subtitle:"Living laboratory landscape", location:"Copenhagen, Denmark", year:2024, designer:"Henning Larsen + Tredje Natur", type:"Campus Landscape", tags:["Ecological","Urban","Planting"], vrType:"360° Photo", vrId:"J---aiyznGQ", description:"A demonstrative campus landscape that layers food production, stormwater retention, and biodiversity corridors within a dense urban block, serving as a living laboratory for climate-adaptive design strategies.", area:"4,200 m²", color:"oklch(65% 0.08 55)" },
-  { id:8, title:"Lurie Garden", subtitle:"Prairie-inspired garden in Millennium Park", location:"Chicago, USA", year:2021, designer:"Gustafson Guthrie Nichol", type:"Designed Garden", tags:["Planting","Urban","Prairie"], vrType:"360° Video", vrId:"oHg5SJYRHA0", description:"A 1-hectare garden within Millennium Park celebrating the wild and cultivated landscapes of the Midwest. A dark plate steel hedge contains the garden, opening to a luminous sea of perennials and grasses.", area:"1 ha", color:"oklch(70% 0.11 88)" },
-];
 
 // Parse a CSV string into an array of objects using the first row as headers
 function parseCSV(text) {
@@ -155,35 +142,33 @@ function parseCSV(text) {
 }
 
 async function fetchProjects() {
-  // Check cache first
+  // Always refresh publication flags; never resurrect placeholders from an old cache.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20000);
   try {
-    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    if (cached && Date.now() - cached.ts < CACHE_TTL) return normalizeProjects(cached.data);
-  } catch(e) {}
-  // Fetch fresh
-  try {
-    const res = await fetch(SHEET_CSV_URL);
+    const res = await fetch(SHEET_CSV_URL, { cache: 'no-store', signal: controller.signal });
     if (!res.ok) throw new Error('fetch failed');
     const text = await res.text();
-    const data = parseCSV(text);
-    if (data.length === 0) throw new Error('empty sheet');
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
-    return normalizeProjects(data);
-  } catch(e) {
-    console.warn('LENS: Could not fetch sheet, using fallback data.', e.message);
-    return normalizeProjects(FALLBACK_PROJECTS);
-  }
+    if (!text.split(/\r?\n/, 1)[0].split(',').some(h => h.trim().replace(/^"|"$/g, '') === 'visible')) throw new Error('Publication settings unavailable');
+    return normalizeProjects(parseCSV(text));
+  } finally { clearTimeout(timer); }
 }
 
 // Ensure every project has captures[] and vrTypes[] (back-compat for legacy data)
+function isProjectVisible(project) {
+  return ['1', 'true'].includes(String(project.visible ?? '').trim().toLowerCase());
+}
+function hasRecording(project) { return (project.captures || []).length > 0; }
 function normalizeProjects(data) {
-  return data.map(p => {
+  return data.filter(isProjectVisible).map(source => {
+    const p = { ...source };
     if (!p.captures) {
       p.captures = p.vrId ? [{ label: 'Main view', vrId: p.vrId, description: '', height: '' }] : [];
     }
     if (!p.vrTypes) {
       p.vrTypes = p.vrType ? [p.vrType] : [];
     }
+    p.captures = p.captures.filter(c => /^[A-Za-z0-9_-]{11}$/.test(c.vrId || ''));
     return p;
   });
 }
@@ -459,12 +444,14 @@ function ProjectThumb({ project, size = 'md' }) {
               background: 'oklch(100% 0 0 / 0.7)',
             }}>
               <div style={{
+                display: hasRecording(project) ? 'block' : 'none',
                 width: 0, height: 0,
                 borderTop: (size === 'lg' ? 9 : 5) + 'px solid transparent',
                 borderBottom: (size === 'lg' ? 9 : 5) + 'px solid transparent',
                 borderLeft: (size === 'lg' ? 13 : 7) + 'px solid var(--fg)',
                 marginLeft: 3,
               }} />
+              {!hasRecording(project) && <span style={{ fontSize: 18 }}>+</span>}
             </div>
           </div>
         </>
@@ -666,6 +653,7 @@ function Hero({ featured, onSelect, heroLayout }) {
     return () => window.removeEventListener('resize', onR);
   }, []);
   const useSplit = heroLayout === 'split' && !narrow;
+  if (!featured) return null;
   return (
     <div style={{ padding: 'clamp(96px, 12vw, 120px) clamp(20px, 4vw, 56px) 80px' }}>
       <div style={{
@@ -680,7 +668,7 @@ function Hero({ featured, onSelect, heroLayout }) {
             color: 'var(--fg3)', marginBottom: 40,
           }}>
             <span style={{ color: 'var(--accent)', marginRight: 8 }}>●</span>
-            Currently featured · {featured.year}
+            Currently featured{featured.year ? ` · ${featured.year}` : ''}
           </div>
           <h1 style={{
             fontFamily: 'Inter, sans-serif', fontWeight: 200,
@@ -698,7 +686,7 @@ function Hero({ featured, onSelect, heroLayout }) {
             paddingTop: 20, borderTop: '1px solid var(--border)',
           }}>
             {[
-              ['Designer', featured.designer],
+              ['Designer', featured.designer || '—'],
               ['Location', featured.location],
               ['Type', featured.type],
               ['Site area', featured.area || '—'],
@@ -722,7 +710,7 @@ function Hero({ featured, onSelect, heroLayout }) {
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--bg)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'var(--fg)'; e.currentTarget.style.borderColor = 'var(--fg)'; e.currentTarget.style.color = 'var(--bg)'; }}
             >
-              Enter VR experience
+              {hasRecording(featured) ? 'Enter VR experience' : 'Explore project'}
               <span style={{ fontSize: 14 }}>→</span>
             </button>
             <button
@@ -760,7 +748,8 @@ function Hero({ featured, onSelect, heroLayout }) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'oklch(100% 0 0 / 0.7)',
                 }}>
-                  <div style={{ width: 0, height: 0, borderTop: '10px solid transparent', borderBottom: '10px solid transparent', borderLeft: '15px solid var(--fg)', marginLeft: 4 }} />
+                  <div style={{ display: hasRecording(featured) ? 'block' : 'none', width: 0, height: 0, borderTop: '10px solid transparent', borderBottom: '10px solid transparent', borderLeft: '15px solid var(--fg)', marginLeft: 4 }} />
+                  {!hasRecording(featured) && <span style={{ fontSize: 28 }}>+</span>}
                 </div>
               </div>
             )}
@@ -807,7 +796,7 @@ function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onT
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>{project.type}</div>
-          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', marginTop: 4 }}>{project.year}</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', marginTop: 4 }}>{project.year || '—'}</div>
         </div>
         <div>
           <UpvoteButton projectId={project.id} voted={voted} counts={counts} onToggle={onToggle} size="sm" />
@@ -840,7 +829,7 @@ function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onT
       <div>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
           <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, lineHeight: 1.15, letterSpacing: '-0.015em', color: 'var(--fg)', margin: 0 }}>{project.title}</h3>
-          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', flexShrink: 0 }}>{project.year}</span>
+          <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', flexShrink: 0 }}>{project.year || '—'}</span>
         </div>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', marginBottom: 4, lineHeight: 1.5 }}>
           {project.designer}
@@ -1095,7 +1084,7 @@ function VRViewer({ project, capture, onClose }) {
         gap: 24, background: 'oklch(12% 0.01 255)',
       }}>
         {[
-          ['Designer', project.designer],
+          ['Designer', project.designer || '—'],
           ['Location', project.location],
           ['Year', project.year],
           ['Area', project.area],
@@ -1122,9 +1111,9 @@ function ProjectDetail({ project, onBack, onVR, voted, counts, onToggle }) {
     ? project.vrTypes.join(' · ')
     : (project.vrType || '');
   const meta = [
-    ['Designer', project.designer],
+    ['Designer', project.designer || '—'],
     ['Location', project.location],
-    ['Year documented', project.year],
+    ['Year documented', project.year || '—'],
     ['Type', project.type],
     ['Site area', project.area],
     project.contributor && ['Contributor', project.contributor],
@@ -1153,7 +1142,7 @@ function ProjectDetail({ project, onBack, onVR, voted, counts, onToggle }) {
       {/* Title block */}
       <div style={{ marginBottom: 56, maxWidth: 880 }}>
         <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', marginBottom: 20, letterSpacing: '0.04em' }}>
-          {project.type}{vrTypeLabel ? ` · ${vrTypeLabel}` : ''} · {project.year}
+          {project.type}{vrTypeLabel ? ` · ${vrTypeLabel}` : ''}{project.year ? ` · ${project.year}` : ''}
         </div>
         <h1 style={{
           fontFamily: 'Inter, sans-serif', fontWeight: 200,
@@ -1169,11 +1158,11 @@ function ProjectDetail({ project, onBack, onVR, voted, counts, onToggle }) {
 
       {/* VR preview — large, top of page */}
       <div
-        onClick={() => onVR(activeCapture)}
+        onClick={() => activeCapture && onVR(activeCapture)}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          position: 'relative', cursor: 'pointer',
+          position: 'relative', cursor: activeCapture ? 'pointer' : 'default',
           overflow: 'hidden',
           aspectRatio: '16 / 9',
           marginBottom: captures.length > 1 ? 24 : 64,
@@ -1200,8 +1189,8 @@ function ProjectDetail({ project, onBack, onVR, voted, counts, onToggle }) {
             boxShadow: hovered ? '0 12px 40px oklch(0% 0 0 / 0.18)' : '0 6px 20px oklch(0% 0 0 / 0.12)',
             transition: 'all 0.3s ease',
           }}>
-            <VRIcon size={16} />
-            {captures.length > 1 && activeCapture
+            {activeCapture && <VRIcon size={16} />}
+            {!activeCapture ? '360° recording coming soon' : captures.length > 1
               ? `Enter VR · ${activeCapture.label}`
               : 'Enter VR experience'}
           </div>
@@ -1390,34 +1379,57 @@ function ProjectDetail({ project, onBack, onVR, voted, counts, onToggle }) {
 // ─── CONTRIBUTE ──────────────────────────────────────────────────────────────
 
 // Submission endpoint — Google Apps Script Web App URL (see SUBMISSIONS-SETUP.md)
-const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+// Set after deploying submissions/Code.gs and verifying a browser POST.
+const SUBMIT_ENDPOINT = "https://script.google.com/macros/s/AKfycbz3csOVe1MHFmIB34byNN-hgiURp_bKGERInIQm9K82XWk5yMienvPwA4QPVPg1B1Ur/exec";
+const SUBMISSION_TERMS_VERSION = "2026-09-12";
+const SUBMISSION_TERMS = [
+  "You retain copyright in your recording. By submitting, you confirm that you hold the rights and permissions needed to grant the authorisations below.",
+  "You give LENS non-exclusive permission to download and archive your recording, trim it and make technical adjustments for 360° playback, and publish the resulting version on LENS and its YouTube channel with credit to you. LENS will identify edits and seek your approval for other substantive changes.",
+  "You authorise LENS to release the published version under CC BY-NC-ND 4.0. This allows others to copy and share that version for non-commercial purposes with attribution and a link to the licence; it does not permit them to distribute adapted versions. The public licence remains in effect for recipients who comply with its terms. Uses outside that licence require permission from the relevant rights holder."
+];
+async function sendSubmission(endpoint, data, submissionId) {
+  if (!endpoint || endpoint.includes('YOUR_DEPLOYMENT_ID')) throw new Error('unconfigured');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 30000);
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      body: new URLSearchParams({ ...data, submissionId, consent: 'true', termsVersion: SUBMISSION_TERMS_VERSION }),
+      signal: controller.signal,
+    });
+    if (!response.ok) throw new Error('http');
+    const result = await response.json();
+    if (result.ok !== true || result.submissionId !== submissionId) throw new Error('unconfirmed');
+    return result;
+  } finally { clearTimeout(timer); }
+}
 
 const COLLECTION_PROTOCOL = [
   {
-    step: "01",
-    title: "Equipment",
-    body: "Use a 360° camera such as the Insta360 X5 or equivalent. Mount on a tall tripod at standard eye level height (approximately 1.6 m). Ensure the camera is level and the tripod legs are not visible in the frame.",
+    "step": "01",
+    "title": "Equipment",
+    "body": "Use a 360° camera such as the Insta360 X5 with an adjustable pole and a stable support. The Insta360 Extended Edition Selfie Stick (up to 3 m) is one option: extend it only as far as needed to put the camera at the intended eye level. Keep the camera level and stationary throughout each clip."
   },
   {
-    step: "02",
-    title: "Capture positions",
-    body: "Record at a minimum of two positions: standing eye level (≈1.6 m) and, where seating is present, seated eye level (≈1.1 m). Choose positions that are representative of the primary spatial experience of the project.",
+    "step": "02",
+    "title": "Capture positions",
+    "body": "Record representative viewpoints at standing eye level (approximately 1.6 m above the ground) and, where seating is present, seated eye level (approximately 1.1 m above the ground). Measure to the camera lenses. If the support rests on a bench, subtract the bench height from the target camera height; for example, a 0.45 m bench leaves approximately 0.65 m from the seat to the lenses. Account for the camera and support height when adjusting the pole. Include viewpoints that help explain the layout and connections between parts of the space."
   },
   {
-    step: "03",
-    title: "Duration",
-    body: "Each clip should be 30 seconds to 1 minute in length. Capture during appropriate daylight conditions. Avoid heavy crowds, construction activity, or temporary obstructions where possible.",
+    "step": "03",
+    "title": "Duration & use",
+    "body": "Aim for 1–2 minutes per viewpoint so LENS has room to trim the recording. We prefer to see spaces in use: people sitting, walking, or interacting with the landscape help show both activity and human scale. Daytime and nighttime recordings are welcome; for night scenes, choose a time when the space is being used and its features are visible."
   },
   {
-    step: "04",
-    title: "File format",
-    body: "Export as equirectangular MP4 (for video) or JPEG (for photo), maximum 8K resolution. Upload to YouTube as a 360° video and note the video ID, or share the raw file via Google Drive.",
+    "step": "04",
+    "title": "Export a 360° video",
+    "body": "Use Insta360 Studio or another editor that supports spherical video. In Insta360 Studio 5.6.1 or later, create a project with Aspect Ratio set to 2:1 (360), then export with a suitable 360° preset. If your export panel offers a choice, select 360 Video rather than Reframed Video. Submit a full equirectangular MP4 at the original capture resolution and frame rate, retaining the 360° metadata. Reopen the export in a 360° player to check that you can look in every direction. YouTube needs the file to be identified as spherical video; LENS will check the metadata and playback before publishing."
   },
   {
-    step: "05",
-    title: "Upload to YouTube",
-    body: "Upload your video to YouTube. In the video settings, check 'This video was shot in 360°' under Video Details → More options. Copy the video ID from the URL (the string after ?v=) — you'll need this for submission.",
-  },
+    "step": "05",
+    "title": "Share the file with LENS",
+    "body": "Upload the exported video to Google Drive, Dropbox, WeTransfer, or a similar file-sharing service and send the downloadable link through Submit a Recording. Enable access for anyone with the link and keep it available until we confirm that we have copied the file. Include the project name, location, capture date, viewpoint, camera height, and equipment used. LENS will review and store accepted files, make any agreed edits, and publish them on the LENS YouTube channel with attribution."
+  }
 ];
 
 const WISHLIST = [
@@ -1440,140 +1452,6 @@ const WISHLIST = [
   { id: "w17", title: "Waterloo Wetlands",           city: "London",        country: "UK",           designer: "Kinnear Landscape Architects", type: "Urban Wetland" },
   { id: "w18", title: "Queen Elizabeth Olympic Park", city: "London",       country: "UK",           designer: "Hargreaves Associates",       type: "Urban Park" },
 ];
-
-// ─── CONTRIBUTE SVG DIAGRAMS ─────────────────────────────────────────────────
-function DiagramEquipment() {
-  return (
-    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%'}}>
-      {/* Tripod legs */}
-      <line x1="100" y1="90" x2="60" y2="175" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-      <line x1="100" y1="90" x2="140" y2="175" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-      <line x1="100" y1="90" x2="100" y2="175" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-      {/* Tripod center column */}
-      <line x1="100" y1="90" x2="100" y2="55" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      {/* 360 camera body */}
-      <ellipse cx="100" cy="46" rx="18" ry="12" stroke="currentColor" strokeWidth="2"/>
-      {/* Camera lenses */}
-      <circle cx="87" cy="46" r="5" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="113" cy="46" r="5" stroke="currentColor" strokeWidth="1.5"/>
-      {/* Height arrow */}
-      <line x1="158" y1="46" x2="158" y2="175" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.4"/>
-      <path d="M154 52l4-8 4 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.4"/>
-      <path d="M154 169l4 8 4-8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.4"/>
-      {/* Label */}
-      <text x="100" y="195" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="11" fill="currentColor" opacity="0.5">360° camera on tall tripod</text>
-    </svg>
-  );
-}
-
-function DiagramPositions() {
-  return (
-    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%'}}>
-      {/* Ground line */}
-      <line x1="20" y1="178" x2="180" y2="178" stroke="currentColor" strokeWidth="1.5" opacity="0.3"/>
-      {/* Standing figure */}
-      <circle cx="65" cy="55" r="10" stroke="currentColor" strokeWidth="2"/>
-      <line x1="65" y1="65" x2="65" y2="120" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <line x1="65" y1="80" x2="45" y2="100" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <line x1="65" y1="80" x2="85" y2="100" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <line x1="65" y1="120" x2="50" y2="178" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <line x1="65" y1="120" x2="80" y2="178" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      {/* Standing eye level line */}
-      <line x1="30" y1="58" x2="105" y2="58" stroke="currentColor" strokeWidth="1" strokeDasharray="4 3" opacity="0.45"/>
-      <text x="108" y="62" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0.6">1.6 m</text>
-      {/* Seated figure */}
-      <circle cx="145" cy="90" r="10" stroke="currentColor" strokeWidth="2"/>
-      {/* Body */}
-      <line x1="145" y1="100" x2="145" y2="140" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      {/* Arms */}
-      <line x1="145" y1="112" x2="128" y2="128" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <line x1="145" y1="112" x2="162" y2="128" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      {/* Seat */}
-      <line x1="125" y1="140" x2="165" y2="140" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-      {/* Legs */}
-      <line x1="135" y1="140" x2="128" y2="178" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <line x1="155" y1="140" x2="162" y2="178" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      {/* Seat supports */}
-      <line x1="125" y1="140" x2="125" y2="178" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
-      <line x1="165" y1="140" x2="165" y2="178" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
-      {/* Seated eye level */}
-      <line x1="105" y1="93" x2="175" y2="93" stroke="currentColor" strokeWidth="1" strokeDasharray="4 3" opacity="0.45"/>
-      <text x="32" y="97" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0.6">1.1 m</text>
-      <line x1="30" y1="93" x2="103" y2="93" stroke="currentColor" strokeWidth="1" strokeDasharray="4 3" opacity="0.45"/>
-    </svg>
-  );
-}
-
-function DiagramDuration() {
-  return (
-    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%'}}>
-      {/* Timeline bar background */}
-      <rect x="30" y="90" width="140" height="10" rx="5" stroke="currentColor" strokeWidth="1.5" opacity="0.2" fill="currentColor" fillOpacity="0.05"/>
-      {/* 30s fill */}
-      <rect x="30" y="90" width="70" height="10" rx="5" fill="currentColor" opacity="0.25"/>
-      {/* 1min fill */}
-      <rect x="30" y="90" width="140" height="10" rx="5" fill="none" stroke="currentColor" strokeWidth="1.5" opacity="0.5"/>
-      {/* Tick marks */}
-      {[0,35,70,105,140].map((x,i) => (
-        <line key={i} x1={30+x} y1="104" x2={30+x} y2="110" stroke="currentColor" strokeWidth="1.5" opacity="0.4" strokeLinecap="round"/>
-      ))}
-      {/* Labels */}
-      <text x="30" y="124" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0.5">0s</text>
-      <text x="100" y="124" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0.7">30s</text>
-      <text x="170" y="124" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0.5">60s</text>
-      {/* Bracket */}
-      <path d="M30 78 L30 70 L170 70 L170 78" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.4"/>
-      <text x="100" y="62" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="11" fill="currentColor" opacity="0.6">30s – 1 min per position</text>
-      {/* Sun icon */}
-      <circle cx="100" cy="155" r="12" stroke="currentColor" strokeWidth="1.5" opacity="0.5"/>
-      {[0,45,90,135,180,225,270,315].map((a,i) => {
-        const r1=17, r2=21, rad=a*Math.PI/180;
-        return <line key={i} x1={100+r1*Math.cos(rad)} y1={155+r1*Math.sin(rad)} x2={100+r2*Math.cos(rad)} y2={155+r2*Math.sin(rad)} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/>;
-      })}
-      <text x="100" y="192" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0.5">good daylight conditions</text>
-    </svg>
-  );
-}
-
-function DiagramFormat() {
-  return (
-    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%'}}>
-      {/* Globe/equirectangular icon */}
-      <ellipse cx="100" cy="80" rx="45" ry="45" stroke="currentColor" strokeWidth="2" opacity="0.7"/>
-      <ellipse cx="100" cy="80" rx="20" ry="45" stroke="currentColor" strokeWidth="1.5" opacity="0.35"/>
-      <line x1="55" y1="80" x2="145" y2="80" stroke="currentColor" strokeWidth="1.5" opacity="0.35"/>
-      <line x1="60" y1="60" x2="140" y2="60" stroke="currentColor" strokeWidth="1" opacity="0.25"/>
-      <line x1="60" y1="100" x2="140" y2="100" stroke="currentColor" strokeWidth="1" opacity="0.25"/>
-      {/* Arrow down to flat */}
-      <path d="M100 130 L100 148" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
-      <path d="M95 144 L100 150 L105 144" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
-      {/* Flat rectangle = equirectangular */}
-      <rect x="45" y="155" width="110" height="35" rx="3" stroke="currentColor" strokeWidth="1.5" opacity="0.5"/>
-      <line x1="45" y1="172" x2="155" y2="172" stroke="currentColor" strokeWidth="1" opacity="0.25"/>
-      {[72,99,126].map(x => <line key={x} x1={x} y1="155" x2={x} y2="190" stroke="currentColor" strokeWidth="1" opacity="0.2"/>)}
-      <text x="100" y="200" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0">.</text>
-    </svg>
-  );
-}
-
-function DiagramUpload() {
-  return (
-    <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'100%'}}>
-      {/* File icon */}
-      <rect x="60" y="30" width="80" height="95" rx="6" stroke="currentColor" strokeWidth="2" opacity="0.6"/>
-      <path d="M120 30 L140 50" stroke="currentColor" strokeWidth="2" opacity="0.6" strokeLinecap="round"/>
-      <path d="M120 30 L120 50 L140 50" stroke="currentColor" strokeWidth="2" opacity="0.6" strokeLinecap="round" strokeLinejoin="round"/>
-      {/* Lines in file */}
-      {[65,75,85].map(y => <line key={y} x1="75" y1={y} x2="125" y2={y} stroke="currentColor" strokeWidth="1.5" opacity="0.25" strokeLinecap="round"/>)}
-      {/* Upload arrow */}
-      <path d="M100 138 L100 168" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
-      <path d="M88 148 L100 136 L112 148" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.7"/>
-      {/* Cloud */}
-      <path d="M72 182 Q62 182 62 172 Q62 164 70 163 Q70 153 80 152 Q88 144 98 150 Q104 142 114 145 Q126 145 126 157 Q134 158 134 167 Q134 182 122 182 Z" stroke="currentColor" strokeWidth="1.5" opacity="0.45"/>
-      <text x="100" y="200" textAnchor="middle" fontFamily="DM Sans, sans-serif" fontSize="10" fill="currentColor" opacity="0">.</text>
-    </svg>
-  );
-}
 
 // ─── CONTRIBUTE PAGES ─────────────────────────────────────────────────────────
 
@@ -1688,13 +1566,7 @@ function ContributeIndex({ onSubNav }) {
 }
 
 function ContributeProtocol({ onBack }) {
-  const steps = [
-    { step: '01', title: 'Equipment', Diagram: DiagramEquipment, body: 'Use a 360° camera such as the Insta360 X5 or equivalent. Mount on a tall tripod at standard eye level height (approximately 1.6 m). Ensure the camera is level and the tripod legs are not visible in the frame if possible.' },
-    { step: '02', title: 'Capture positions', Diagram: DiagramPositions, body: 'Record at a minimum of two positions: standing eye level (≈1.6 m) and, where seating is present, seated eye level (≈1.1 m). Choose positions that are representative of the primary spatial experience of the project.' },
-    { step: '03', title: 'Duration & conditions', Diagram: DiagramDuration, body: 'Each clip should be 30 seconds to 1 minute in length. Capture during appropriate daylight conditions. Avoid heavy crowds, construction activity, or temporary obstructions where possible.' },
-    { step: '04', title: 'File format', Diagram: DiagramFormat, body: 'Export as equirectangular MP4 (for video) or JPEG (for photo), maximum 8K resolution. The equirectangular projection is the standard format for 360° content and is what YouTube and most VR platforms expect.' },
-    { step: '05', title: 'Upload to YouTube', Diagram: DiagramUpload, body: 'Upload your video to YouTube. In Video Details → More options, check "This video was shot in 360°". Copy the video ID from the URL — the string after ?v= — and include it in your submission.' },
-  ];
+  const steps = COLLECTION_PROTOCOL;
 
   return (
     <div style={{ padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 880, margin: '0 auto', position: 'relative', zIndex: 1 }}>
@@ -1714,7 +1586,7 @@ function ContributeProtocol({ onBack }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
         {steps.map((item, i) => (
           <div key={item.step} style={{
-            display: 'grid', gridTemplateColumns: '1fr 200px',
+            display: 'block',
             gap: 48, padding: '48px 0',
             borderTop: '1px solid var(--border)',
             borderBottom: i === steps.length - 1 ? '1px solid var(--border)' : 'none',
@@ -1724,9 +1596,7 @@ function ContributeProtocol({ onBack }) {
               <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: 11, color: 'var(--accent)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Step {item.step}</div>
               <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 700, fontSize: 24, letterSpacing: '-0.02em', marginBottom: 16 }}>{item.title}</h2>
               <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'var(--fg2)', lineHeight: 1.75 }}>{item.body}</p>
-            </div>
-            <div style={{ color: 'var(--fg2)', height: 180 }}>
-              <item.Diagram />
+              {item.step === '04' && <p style={{ ...SMALL, marginTop: 12 }}><a href="https://onlinemanual.insta360.com/studio/en-us/operation-guide/file-management/instructions-for-vr-panoramic-video-editing-and-export" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>Insta360 Studio export guide →</a></p>}
             </div>
           </div>
         ))}
@@ -1800,29 +1670,27 @@ function ContributeSubmit({ onBack }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  const pendingSubmission = useRef(null);
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!agreed || submitting) return;
-    setSubmitting(true);
     setError('');
+    if (!SUBMIT_ENDPOINT) {
+      setError('Online submission is not available yet. Please email your file link and details to wang@unl.edu.');
+      return;
+    }
+    setSubmitting(true);
+    const payloadKey = JSON.stringify(formData);
+    if (!pendingSubmission.current || pendingSubmission.current.payloadKey !== payloadKey) {
+      pendingSubmission.current = { payloadKey, id: crypto.randomUUID() };
+    }
     try {
-      // Apps Script endpoints reject preflighted JSON — send as form-encoded text
-      const body = new URLSearchParams({
-        ...formData,
-        timestamp: new Date().toISOString(),
-      }).toString();
-      await fetch(SUBMIT_ENDPOINT, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body,
-      });
+      await sendSubmission(SUBMIT_ENDPOINT, formData, pendingSubmission.current.id);
+      pendingSubmission.current = null;
       setSubmitStep('success');
     } catch (err) {
-      setError('Could not send submission. Please email us directly.');
-    } finally {
-      setSubmitting(false);
-    }
+      setError('We could not confirm receipt. Your entries are still here. You can retry, or email wang@unl.edu to check before sending again.');
+    } finally { setSubmitting(false); }
   };
 
   return (
@@ -1850,6 +1718,7 @@ function ContributeSubmit({ onBack }) {
         </div>
       ) : (
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          {!SUBMIT_ENDPOINT && <p role="status" style={{ ...SMALL }}>Online submission is not available yet. Please email your file link and details to <a href="mailto:wang@unl.edu" style={{ color: 'var(--accent)' }}>wang@unl.edu</a>.</p>}
           {[
             { id: 'name', label: 'Your name', placeholder: 'Jane Smith', type: 'text', required: true },
             { id: 'email', label: 'Email address', placeholder: 'jane@example.com', type: 'email', required: true },
@@ -1880,18 +1749,17 @@ function ContributeSubmit({ onBack }) {
           </div>
           <div style={{ background: 'var(--bg2)', borderRadius: 10, padding: '16px 18px', border: '1px solid var(--border)' }}>
             <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 13, marginBottom: 8 }}>Copyright & Attribution</div>
-            <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', lineHeight: 1.65, marginBottom: 14 }}>
-              By submitting, you confirm that you are the original author of this recording. LENS will credit you by name in the project entry. Any commercial use beyond educational display will be discussed and separately agreed upon with you before proceeding.
-            </p>
+            {SUBMISSION_TERMS.map((text, i) => <p key={i} style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', lineHeight: 1.65, marginBottom: 14 }}>{text}</p>)}
+            <p style={{ ...SMALL, marginBottom: 14 }}><a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>Read CC BY-NC-ND 4.0 →</a></p>
             <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-              <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, accentColor: 'var(--accent)', flexShrink: 0 }} />
-              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', lineHeight: 1.55 }}>I confirm I hold the rights to this recording and agree to the attribution and usage terms above.</span>
+              <input type="checkbox" required checked={agreed} onChange={e => setAgreed(e.target.checked)} style={{ marginTop: 2, accentColor: 'var(--accent)', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', lineHeight: 1.55 }}>I confirm that I have the necessary rights and permissions and agree to the editing, publication, and CC BY-NC-ND 4.0 terms above.</span>
             </label>
           </div>
-          <button type="submit" disabled={!agreed || submitting} style={{ background: (agreed && !submitting) ? 'var(--accent)' : 'var(--bg2)', color: (agreed && !submitting) ? 'white' : 'var(--fg3)', border: 'none', borderRadius: 8, padding: '13px 24px', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, cursor: (agreed && !submitting) ? 'pointer' : 'not-allowed', transition: 'all 0.18s ease', boxShadow: (agreed && !submitting) ? '0 4px 16px var(--accent-dim)' : 'none', alignSelf: 'flex-start' }}>
-            {submitting ? 'Sending…' : 'Submit Recording'}
+          <button type="submit" disabled={!SUBMIT_ENDPOINT || !agreed || submitting} style={{ background: (SUBMIT_ENDPOINT && agreed && !submitting) ? 'var(--accent)' : 'var(--bg2)', color: (SUBMIT_ENDPOINT && agreed && !submitting) ? 'white' : 'var(--fg3)', border: 'none', borderRadius: 8, padding: '13px 24px', fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 500, cursor: (SUBMIT_ENDPOINT && agreed && !submitting) ? 'pointer' : 'not-allowed', transition: 'all 0.18s ease', boxShadow: (SUBMIT_ENDPOINT && agreed && !submitting) ? '0 4px 16px var(--accent-dim)' : 'none', alignSelf: 'flex-start' }}>
+            {!SUBMIT_ENDPOINT ? 'Online submission unavailable' : submitting ? 'Sending…' : 'Submit Recording'}
           </button>
-          {error && <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#c64545', marginTop: -4 }}>{error}</div>}
+          {error && <div role="alert" style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#c64545', marginTop: -4 }}>{error}</div>}
         </form>
       )}
     </div>
@@ -1906,140 +1774,6 @@ function Contribute({ onNav }) {
   return <ContributeIndex onSubNav={setSubView} />;
 }
 // ─── FOR EDUCATORS ──────────────────────────────────────────────────────────
-
-function DrawingDiagram() {
-  const items = [
-    {
-      label: 'Plan',
-      caption: 'Spatial organisation from above — anchored to a body placed inside it',
-      svg: (
-        <svg viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%', height:'100%'}}>
-          {/* Boundary */}
-          <rect x="12" y="12" width="136" height="136" stroke="currentColor" strokeWidth="1.2" opacity="0.9"/>
-          {/* Path through space */}
-          <path d="M12 80 Q50 80 70 60 Q90 40 110 40 L148 40" stroke="currentColor" strokeWidth="1" strokeDasharray="3 2" opacity="0.4"/>
-          {/* Water body */}
-          <ellipse cx="48" cy="110" rx="22" ry="14" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
-          <ellipse cx="48" cy="110" rx="16" ry="9" stroke="currentColor" strokeWidth="0.5" opacity="0.25"/>
-          {/* Planting masses */}
-          <circle cx="110" cy="100" r="16" stroke="currentColor" strokeWidth="1" opacity="0.45"/>
-          <circle cx="130" cy="115" r="10" stroke="currentColor" strokeWidth="1" opacity="0.35"/>
-          <circle cx="95" cy="118" r="8" stroke="currentColor" strokeWidth="1" opacity="0.35"/>
-          {/* Hard surface */}
-          <rect x="60" y="55" width="55" height="38" stroke="currentColor" strokeWidth="1" opacity="0.5"/>
-          {/* Seating */}
-          <line x1="68" y1="62" x2="106" y2="62" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
-          <line x1="68" y1="70" x2="106" y2="70" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
-          {/* Human figure — top down */}
-          <circle cx="82" cy="86" r="4" stroke="oklch(56% 0.17 196)" strokeWidth="1.5"/>
-          <line x1="82" y1="90" x2="82" y2="100" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="78" y1="94" x2="82" y2="90" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="86" y1="94" x2="82" y2="90" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
-          {/* North arrow */}
-          <line x1="140" y1="130" x2="140" y2="118" stroke="currentColor" strokeWidth="1" opacity="0.4" strokeLinecap="round"/>
-          <path d="M137 122 L140 118 L143 122" stroke="currentColor" strokeWidth="1" opacity="0.4" strokeLinecap="round" strokeLinejoin="round"/>
-          <text x="140" y="136" textAnchor="middle" fontFamily="monospace" fontSize="7" fill="currentColor" opacity="0.35">N</text>
-        </svg>
-      ),
-    },
-    {
-      label: 'Section',
-      caption: 'Vertical scale — the eye-level line already known from standing inside',
-      svg: (
-        <svg viewBox="0 0 160 130" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%', height:'100%'}}>
-          {/* Ground line */}
-          <line x1="8" y1="108" x2="152" y2="108" stroke="currentColor" strokeWidth="1.5" opacity="0.6"/>
-          {/* Ground hatch */}
-          {[0,8,16,24,32,40,48,56,64,72,80,88,96,104,112,120,128,136,144].map(x => (
-            <line key={x} x1={x+8} y1="108" x2={x+4} y2="116" stroke="currentColor" strokeWidth="0.7" opacity="0.25" strokeLinecap="round"/>
-          ))}
-          {/* Terrain — gentle steps */}
-          <path d="M8 108 L8 92 L40 92 L40 78 L80 78 L80 108" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.55"/>
-          {/* Retaining wall */}
-          <rect x="78" y="78" width="4" height="30" stroke="currentColor" strokeWidth="1" fill="currentColor" fillOpacity="0.08" opacity="0.6"/>
-          {/* Upper level continues */}
-          <line x1="82" y1="78" x2="152" y2="78" stroke="currentColor" strokeWidth="1.2" opacity="0.35"/>
-          {/* Tree on upper level */}
-          <line x1="112" y1="78" x2="112" y2="52" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
-          <path d="M96 58 Q112 38 128 58 Q128 74 112 72 Q96 74 96 58Z" stroke="currentColor" strokeWidth="1" opacity="0.4"/>
-          {/* Shrub lower level */}
-          <path d="M28 92 Q36 80 44 92" stroke="currentColor" strokeWidth="1" opacity="0.35"/>
-          {/* Human figure */}
-          <circle cx="55" cy="70" r="5" stroke="oklch(56% 0.17 196)" strokeWidth="1.5"/>
-          <line x1="55" y1="75" x2="55" y2="92" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="55" y1="81" x2="47" y2="87" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="55" y1="81" x2="63" y2="87" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="55" y1="92" x2="50" y2="108" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
-          <line x1="55" y1="92" x2="60" y2="108" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round"/>
-          {/* Eye level line */}
-          <line x1="8" y1="70" x2="152" y2="70" stroke="oklch(56% 0.17 196)" strokeWidth="0.8" strokeDasharray="5 3" opacity="0.35"/>
-          <text x="150" y="68" textAnchor="end" fontFamily="DM Sans, sans-serif" fontSize="7" fill="oklch(56% 0.17 196)" opacity="0.5">EL</text>
-          {/* Height dimension */}
-          <line x1="16" y1="92" x2="16" y2="70" stroke="currentColor" strokeWidth="0.8" opacity="0.3" strokeDasharray="2 2"/>
-          <text x="18" y="83" fontFamily="DM Sans, sans-serif" fontSize="7" fill="currentColor" opacity="0.35">1.6m</text>
-        </svg>
-      ),
-    },
-    {
-      label: 'Perspective',
-      caption: 'The view experienced — drawn with intention and selective framing',
-      svg: (
-        <svg viewBox="0 0 160 130" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%', height:'100%'}}>
-          {/* VP */}
-          <circle cx="80" cy="52" r="2" fill="oklch(56% 0.17 196)" opacity="0.6"/>
-          {/* Ground plane lines to VP */}
-          <line x1="8" y1="118" x2="80" y2="52" stroke="currentColor" strokeWidth="0.8" opacity="0.2"/>
-          <line x1="50" y1="118" x2="80" y2="52" stroke="currentColor" strokeWidth="0.8" opacity="0.15"/>
-          <line x1="110" y1="118" x2="80" y2="52" stroke="currentColor" strokeWidth="0.8" opacity="0.15"/>
-          <line x1="152" y1="118" x2="80" y2="52" stroke="currentColor" strokeWidth="0.8" opacity="0.2"/>
-          {/* Horizon line */}
-          <line x1="8" y1="52" x2="152" y2="52" stroke="currentColor" strokeWidth="0.8" strokeDasharray="4 3" opacity="0.25"/>
-          {/* Ground */}
-          <line x1="8" y1="118" x2="152" y2="118" stroke="currentColor" strokeWidth="1.2" opacity="0.4"/>
-          {/* Left wall receding */}
-          <path d="M8 20 L8 118 L80 52" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.45"/>
-          {/* Right wall receding */}
-          <path d="M152 20 L152 118 L80 52" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.45"/>
-          {/* Tree in perspective */}
-          <line x1="110" y1="82" x2="116" y2="52" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" opacity="0.45"/>
-          <ellipse cx="113" cy="62" rx="12" ry="9" stroke="currentColor" strokeWidth="1" opacity="0.35" transform="rotate(-5 113 62)"/>
-          {/* Bench */}
-          <path d="M40 96 L65 88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.4"/>
-          {/* Ground texture lines */}
-          <line x1="25" y1="104" x2="135" y2="104" stroke="currentColor" strokeWidth="0.6" opacity="0.15"/>
-          <line x1="15" y1="112" x2="145" y2="112" stroke="currentColor" strokeWidth="0.6" opacity="0.15"/>
-          {/* 360 indicator */}
-          <circle cx="80" cy="52" r="22" stroke="oklch(56% 0.17 196)" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.4"/>
-          <text x="80" y="56" textAnchor="middle" fontFamily="monospace" fontSize="7" fill="oklch(56% 0.17 196)" opacity="0.6">360°</text>
-        </svg>
-      ),
-    },
-  ];
-  return (
-    <div style={{display:'grid', gridTemplateColumns:'1fr 32px 1fr 32px 1fr', alignItems:'start'}}>
-      {items.map((item, i) => (
-        <React.Fragment key={item.label}>
-          <div style={{display:'flex', flexDirection:'column', gap:14}}>
-            <div style={{background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:10, padding:'16px', aspectRatio:'1/1', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--fg)'}}>
-              {item.svg}
-            </div>
-            <div style={{textAlign:'center'}}>
-              <div style={{fontFamily: 'Inter, sans-serif', fontWeight:600, fontSize:12, letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:5}}>{item.label}</div>
-              <div style={{fontFamily: 'Inter, sans-serif', fontSize:12, color:'var(--fg3)', lineHeight:1.55}}>{item.caption}</div>
-            </div>
-          </div>
-          {i < 2 && (
-            <div style={{display:'flex', alignItems:'center', justifyContent:'center', paddingBottom:52}}>
-              <svg width="20" height="12" viewBox="0 0 20 12" fill="none">
-                <path d="M2 6h14M12 2l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
-              </svg>
-            </div>
-          )}
-        </React.Fragment>
-      ))}
-    </div>
-  );
-}
 
 // Typography tokens — used consistently throughout this page
 const H1 = { fontFamily: 'Inter, sans-serif', fontWeight:200, fontSize:'clamp(40px, 5vw, 56px)', lineHeight:1.05, letterSpacing:'-0.025em', color:'var(--fg)' };
@@ -2056,121 +1790,45 @@ function ForEducators({ onBrowse }) {
         <div style={{paddingBottom:64}}>
           <h1 style={{...H1, marginBottom:24}}>A photograph is relative to the camera.<br/><span style={{color:'var(--accent)'}}>A VR experience is relative to the body.</span></h1>
           <p style={{...BODY, }}>
-            Most students of landscape architecture will never stand inside the projects they study. They encounter them through plans, through photographs — mediated, edited, always someone else's view. The precedent becomes an abstraction. The space never lands.
+            Students beginning landscape design often study projects through photographs found on Pinterest, award websites, and landscape architecture publications. While they are still developing a sense of scale and learning to connect two-dimensional images with three-dimensional space, it can be difficult to judge how large a place is or how its parts fit together. Opportunities to visit these projects in person are often limited. LENS provides immersive 360° views to help students study them from an eye-level position within the space.
           </p>
         </div>
 
-        {/* 2 — LIMITATIONS OF TRADITIONAL PRECEDENT RESEARCH */}
+        {/* 2 — READING SPACE THROUGH PHOTOGRAPHS */}
         <div style={{borderTop:'1px solid var(--border)', paddingTop:56, paddingBottom:64}}>
-          <h2 style={{...H2, marginBottom:20}}>Limitations of traditional precedent research</h2>
-          <p style={{...BODY, marginBottom:36}}>
-            Precedent research typically relies on plan drawings, sections, and photographs selected by the designer or photographer. Each is a curated position — cropped, lit, and timed deliberately. For a student trying to understand how a space actually works — its scale, its movement, its atmosphere — this is partial information. The further a student is from first-hand access to significant built work, the more these limitations compound.
+          <h2 style={{...H2, marginBottom:20}}>Understanding space from selected images</h2>
+          <p style={{...BODY, marginBottom:20}}>
+            Published photographs tend to focus on selected views: a carefully chosen angle, a distinctive form, or a particularly successful part of a project. These images can leave students with only a partial understanding of the layout, the sequence of spaces, and the relationships between foreground, middle ground, and background.
           </p>
-          <div style={{display:'flex', flexDirection:'column', border:'1px solid var(--border)', borderRadius:10, overflow:'hidden'}}>
-            <div style={{...LABEL, padding:'12px 16px', borderBottom:'1px solid var(--border)', background:'var(--bg2)'}}>What traditional precedent research gives you</div>
-            {[
-              {label:"The designer's best angle", has:true},
-              {label:'Ideal lighting conditions', has:true},
-              {label:'An emptied-out space', has:true},
-              {label:'Cropped edges', has:true},
-              {label:'Your scale in the space', has:false},
-              {label:"What's behind you", has:false},
-              {label:'The transition between zones', has:false},
-              {label:'How the ground feels underfoot', has:false},
-            ].map((item, i, arr) => (
-              <div key={i} style={{display:'flex', alignItems:'center', gap:12, padding:'9px 16px', borderBottom: i<arr.length-1 ? '1px solid var(--border)' : 'none', background: item.has ? 'var(--bg2)' : 'transparent'}}>
-                <span style={{fontSize:11, color: item.has ? 'var(--fg2)' : 'var(--fg3)', flexShrink:0, width:12, textAlign:'center', fontWeight:500}}>{item.has ? '✓' : '–'}</span>
-                <span style={{...SMALL, color: item.has ? 'var(--fg2)' : 'var(--fg3)', textDecoration: item.has ? 'none' : 'line-through'}}>{item.label}</span>
-              </div>
-            ))}
-          </div>
+          <p style={{...BODY}}>
+            The available documentation also varies considerably. Projects with award coverage or a well-maintained website may have a substantial set of images and drawings. Others may be represented online by just one or two photographs, leaving much of the space difficult to study.
+          </p>
         </div>
 
-      {/* 3 — BODY AS INSTRUMENT: full-bleed dark */}
+      {/* 3 — USING THE BODY AS A REFERENCE */}
         <div style={{borderTop:'1px solid var(--border)', paddingTop:56, paddingBottom:64}}>
-          <h2 style={{...H2, marginBottom:20}}>The body is the first instrument of scale</h2>
+          <h2 style={{...H2, marginBottom:20}}>Using the body as a reference</h2>
           <p style={{...BODY, marginBottom:16}}>
-            A person understands space from the inside out. Scale begins with the body — the reach of an arm, the height of an eye, the distance a voice carries. These are felt, not measured.
+            Students already have everyday experience of judging their surroundings in relation to their bodies: how far away a wall feels, how high a tree canopy appears, or how much room there is around a seat. Viewing a landscape at eye level in a headset gives them a familiar starting point for considering its dimensions, proportions, and degree of enclosure.
           </p>
           <p style={{...BODY, marginBottom:40}}>
-            LENS places a student at eye level — standing or seated — inside a documented landscape. The 360° view is not cinematic or composed. It is the view a body would have. That is the point.
+            A 360° recording lets students turn to look around from the capture position and examine how elements relate across the surrounding view. Where several viewpoints are available, they can also consider how these relationships change from one part of the project to another. Reading these views alongside plans and photographs can help students connect the layout of a landscape with the space they perceive within it.
           </p>
-          <div style={{borderTop:'1px solid var(--border)', paddingTop:32}}>
-            <svg viewBox="0 0 820 180" fill="none" xmlns="http://www.w3.org/2000/svg" style={{width:'100%'}}>
-              {/* Ground line */}
-              <line x1="0" y1="162" x2="820" y2="162" stroke="oklch(60% 0.008 255)" strokeWidth="1" opacity="0.3"/>
-              {/* Ground hatch */}
-              {[...Array(42)].map((_,i) => (
-                <line key={i} x1={i*20} y1="162" x2={i*20-6} y2="170" stroke="oklch(60% 0.008 255)" strokeWidth="0.7" opacity="0.18" strokeLinecap="round"/>
-              ))}
 
-              {/* HUMAN FIGURE */}
-              <circle cx="80" cy="72" r="10" stroke="oklch(56% 0.17 196)" strokeWidth="2"/>
-              <line x1="80" y1="82" x2="80" y2="130" stroke="oklch(56% 0.17 196)" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="80" y1="100" x2="62" y2="116" stroke="oklch(56% 0.17 196)" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="80" y1="100" x2="98" y2="116" stroke="oklch(56% 0.17 196)" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="80" y1="130" x2="68" y2="162" stroke="oklch(56% 0.17 196)" strokeWidth="2" strokeLinecap="round"/>
-              <line x1="80" y1="130" x2="92" y2="162" stroke="oklch(56% 0.17 196)" strokeWidth="2" strokeLinecap="round"/>
-              {/* Height dimension */}
-              <line x1="108" y1="72" x2="108" y2="162" stroke="oklch(60% 0.008 255)" strokeWidth="1" strokeDasharray="3 3" opacity="0.5"/>
-              <path d="M104 79l4-9 4 9" stroke="oklch(60% 0.008 255)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
-              <path d="M104 155l4 9 4-9" stroke="oklch(60% 0.008 255)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity="0.5"/>
-              <text x="118" y="122" fontFamily="DM Sans, sans-serif" fontSize="12" fill="oklch(60% 0.008 255)" opacity="0.7">1.6 m</text>
-
-              {/* EYE LEVEL LINE */}
-              <line x1="0" y1="72" x2="820" y2="72" stroke="oklch(56% 0.17 196)" strokeWidth="0.8" strokeDasharray="8 5" opacity="0.2"/>
-              <text x="730" y="68" fontFamily="DM Sans, sans-serif" fontSize="10" fill="oklch(56% 0.17 196)" opacity="0.45">eye level</text>
-
-              {/* TREE — canopy + trunk */}
-              <line x1="320" y1="162" x2="320" y2="96" stroke="oklch(60% 0.008 255)" strokeWidth="4" opacity="0.35" strokeLinecap="round"/>
-              <circle cx="320" cy="68" r="44" stroke="oklch(60% 0.008 255)" strokeWidth="1.2" opacity="0.3"/>
-              <circle cx="300" cy="80" r="26" stroke="oklch(60% 0.008 255)" strokeWidth="0.8" opacity="0.18"/>
-              <circle cx="340" cy="75" r="30" stroke="oklch(60% 0.008 255)" strokeWidth="0.8" opacity="0.18"/>
-              {/* Tree height dim */}
-              <line x1="380" y1="24" x2="380" y2="162" stroke="oklch(60% 0.008 255)" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.3"/>
-              <path d="M376 31l4-9 4 9" stroke="oklch(60% 0.008 255)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
-              <path d="M376 155l4 9 4-9" stroke="oklch(60% 0.008 255)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
-              <text x="390" y="98" fontFamily="DM Sans, sans-serif" fontSize="11" fill="oklch(60% 0.008 255)" opacity="0.45">~9 m</text>
-
-              {/* WALL */}
-              <rect x="548" y="18" width="22" height="144" stroke="oklch(60% 0.008 255)" strokeWidth="1.5" opacity="0.4" fill="oklch(60% 0.008 255)" fillOpacity="0.06"/>
-              {/* Wall height dim */}
-              <line x1="588" y1="18" x2="588" y2="162" stroke="oklch(60% 0.008 255)" strokeWidth="0.8" strokeDasharray="3 3" opacity="0.3"/>
-              <path d="M584 25l4-9 4 9" stroke="oklch(60% 0.008 255)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
-              <path d="M584 155l4 9 4-9" stroke="oklch(60% 0.008 255)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
-              <text x="598" y="96" fontFamily="DM Sans, sans-serif" fontSize="11" fill="oklch(60% 0.008 255)" opacity="0.45">~12 m</text>
-
-              {/* SEATED FIGURE */}
-              <circle cx="700" cy="108" r="8" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" opacity="0.7"/>
-              <line x1="700" y1="116" x2="700" y2="140" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-              <line x1="700" y1="126" x2="688" y2="134" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-              <line x1="700" y1="126" x2="712" y2="134" stroke="oklch(56% 0.17 196)" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
-              {/* Seat */}
-              <line x1="682" y1="140" x2="720" y2="140" stroke="oklch(60% 0.008 255)" strokeWidth="2.5" opacity="0.4" strokeLinecap="round"/>
-              <line x1="684" y1="140" x2="680" y2="162" stroke="oklch(60% 0.008 255)" strokeWidth="1.5" opacity="0.3" strokeLinecap="round"/>
-              <line x1="718" y1="140" x2="722" y2="162" stroke="oklch(60% 0.008 255)" strokeWidth="1.5" opacity="0.3" strokeLinecap="round"/>
-              {/* Seated eye level */}
-              <line x1="640" y1="108" x2="760" y2="108" stroke="oklch(56% 0.17 196)" strokeWidth="0.8" strokeDasharray="5 3" opacity="0.25"/>
-              <text x="764" y="111" fontFamily="DM Sans, sans-serif" fontSize="9" fill="oklch(56% 0.17 196)" opacity="0.35">1.1 m</text>
-            </svg>
-          </div>
         </div>
 
-        {/* 4 — FROM SENSATION TO DRAWING */}
+        {/* 4 — POSSIBLE USES */}
         <div style={{borderTop:'1px solid var(--border)', paddingTop:56, paddingBottom:64}}>
-          <h2 style={{...H2, marginBottom:16}}>From sensation to drawing</h2>
+          <h2 style={{...H2, marginBottom:16}}>Possible uses</h2>
           <p style={{...BODY, marginBottom:48}}>
-            The exercise connects what a student felt inside the space to the three drawing types they will use as designers. Each drawing becomes a reconstruction of a real experience, not an application of a convention.
+            LENS can support introductory studio exercises and precedent study. The following activities connect observation in VR with drawing, dimension estimates, and discussion of design decisions.
           </p>
-          <DrawingDiagram/>
           <div style={{marginTop:48}}>
-            <div style={{...LABEL, marginBottom:20}}>Possible teaching directions</div>
             <div style={{display:'flex', flexDirection:'column'}}>
               {[
-                { title: 'Drawing from experience', body: 'Ask students to produce a plan, section, and perspective freehand — from memory, after the VR session. The drawings become a direct record of spatial recall rather than a copying exercise.' },
-                { title: 'Linking moves to atmosphere', body: 'Use the 360° view as a reference during desk crits. Ask: which specific design decisions — a change in level, a material boundary, a planted edge — produced what you felt standing there?' },
-                { title: 'Scale calibration', body: 'Ask students to estimate dimensions from within the VR experience, then verify against the project data. The gap between felt scale and measured scale is itself a design lesson.' },
-                { title: 'Comparative reading', body: 'Place two projects of the same typology side by side. What does each designer prioritise? How do the spatial sequences differ? The shared point of entry — eye level, same height — makes comparison more reliable.' },
+                { title: "Drawing from a first-person view", body: "Ask students to translate what they observe in VR into a plan, section, or perspective. They can return to the recording as they draw, checking the positions of elements, changes in level, and relationships between near and distant features. The exercise helps them connect an eye-level view with different forms of spatial representation." },
+                { title: "Developing a sense of scale", body: "As part of the drawing exercise, or as a separate study, ask students to estimate a space's width, a wall's height, or the distance between elements. They can use perceived relationships to their own bodies as an initial reference, then check their estimates against dimensioned drawings or other reliable measurements where available. Discussing the differences helps students refine their judgement of scale." },
+                { title: "Exploring design decisions", body: "Use the collection's types and tags to select related projects, or choose spaces of a similar size. Ask students to examine how different layouts, wall heights, planting arrangements, and overhead elements affect enclosure and the sense of openness. Drawings and annotations can help them explain how different design decisions produce different spatial results." },
               ].map((item, i, arr) => (
                 <div key={i} style={{display:'flex', gap:20, alignItems:'flex-start', padding:'16px 0', borderBottom: i<arr.length-1 ? '1px solid var(--border)' : 'none'}}>
                   <span style={{fontFamily: 'Inter, sans-serif', fontWeight:700, fontSize:11, color:'var(--accent)', flexShrink:0, lineHeight:1.9, opacity:0.5, letterSpacing:'0.06em', minWidth:24}}>0{i+1}</span>
@@ -2186,12 +1844,6 @@ function ForEducators({ onBrowse }) {
 
         {/* 5 — CLOSING */}
         <div style={{borderTop:'1px solid var(--border)', paddingTop:56}}>
-          <p style={{fontFamily: 'Inter, sans-serif', fontWeight:600, fontSize:20, lineHeight:1.45, letterSpacing:'-0.015em', color:'var(--fg)', marginBottom:16, }}>
-            "The goal is not to simulate the visit. It is to make the drawing true."
-          </p>
-          <p style={{...SMALL, color:'var(--fg3)', marginBottom:28}}>
-            Plans, sections and perspectives are ways of seeing. LENS gives students a real spatial experience to draw from.
-          </p>
           <button onClick={onBrowse} style={{background:'var(--fg)', color:'var(--bg)', border:'none', borderRadius:8, padding:'12px 24px', fontFamily: 'Inter, sans-serif', fontSize:14, fontWeight:500, cursor:'pointer', transition:'background 0.18s', display:'inline-flex', alignItems:'center', gap:8}}
             onMouseEnter={e => e.currentTarget.style.background='var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.background='var(--fg)'}
@@ -2261,7 +1913,7 @@ function Equipment({ onBrowse }) {
     {
       n: '05',
       title: 'Look around',
-      body: 'Use head movement to look around the captured space. Some projects include multiple viewpoints — return to the project page and select another viewpoint to teleport between them.',
+      body: 'Each recording is captured from a fixed position. Stay in place and turn to look around; walking will not move you through the recorded space. Stand for a standing-eye-level capture and sit for a seated capture, so your posture corresponds to the recorded viewpoint. To view another position, return to the project page and select another capture.',
     },
   ];
 
@@ -2387,10 +2039,23 @@ function Equipment({ onBrowse }) {
         <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent-bright)', marginBottom: 12 }}>Studio tips</div>
         <ul style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg2)', lineHeight: 1.65, margin: 0, paddingLeft: 20 }}>
           <li style={{ marginBottom: 6 }}>Set the headset's video quality to <span style={{ color: 'var(--fg)' }}>4K or higher</span> in the YouTube player gear menu — 360° footage looks soft at lower bitrates.</li>
-          <li style={{ marginBottom: 6 }}>Use a <span style={{ color: 'var(--fg)' }}>swivel chair</span> in studio so students can rotate freely without untracking.</li>
-          <li style={{ marginBottom: 6 }}>For shared sessions, <span style={{ color: 'var(--fg)' }}>cast the headset view</span> to a screen so the rest of the room can see what the wearer sees.</li>
-          <li>Limit individual sessions to <span style={{ color: 'var(--fg)' }}>10–15 minutes</span> to avoid fatigue, especially for first-time users.</li>
+          <li style={{ marginBottom: 6 }}>Leave a <span style={{ color: 'var(--fg)' }}>small, clear area</span> around each viewer, with enough room to turn without hitting furniture, other people, or nearby objects. Keep the headset's safety boundary enabled.</li>
+          <li style={{ marginBottom: 6 }}><span style={{ color: 'var(--fg)' }}>Match your posture to the capture:</span> stand for standing viewpoints and sit for seated viewpoints. This helps relate your body position to the recorded eye level.</li>
+          <li>For seated viewpoints, use a stable swivel chair with enough clearance to turn comfortably.</li>
         </ul>
+      </div>
+
+      <div style={{ marginBottom: 56 }}>
+        <h2 style={{ ...H2, marginBottom: 16 }}>Sharing the headset view</h2>
+        <p style={{ ...SMALL, marginBottom: 16 }}>For a class discussion, cast the Quest view to a computer and connect that computer to the classroom display or projector. Casting is a Quest system feature.</p>
+        <ol style={{ ...SMALL, paddingLeft: 20 }}>
+          <li style={{ marginBottom: 8 }}>Connect the headset and computer to the same Wi-Fi network.</li>
+          <li style={{ marginBottom: 8 }}>On the computer, open <a href="https://horizon.meta.com/casting/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)' }}>Meta's casting page</a> in Chrome or Edge and sign in with the Meta account used on the headset.</li>
+          <li style={{ marginBottom: 8 }}>In the headset, press the Meta button and find Cast in Quick Settings or Camera, depending on your system version. Select the computer or web destination and follow the prompts.</li>
+          <li>Once the headset view appears in the browser, display that window on the classroom screen and open the LENS recording in the headset.</li>
+        </ol>
+        <p style={{ ...SMALL, marginTop: 16 }}>Try the recording and casting setup before class. The headset and computer must be able to communicate over the network; if the connection fails on campus Wi-Fi, ask IT whether device-to-device connections are allowed.</p>
+        <a href="https://www.youtube.com/watch?v=GPZP56VunvY" target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: 'var(--accent)' }}>Meta Quest casting tutorial →</a>
       </div>
 
       <div style={{ paddingTop: 32, borderTop: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
@@ -2410,7 +2075,7 @@ function Equipment({ onBrowse }) {
 }
 
 
-function About() {
+function About({ projectCount }) {
   return (
     <div style={{ padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}>
       <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.05, marginBottom: 24 }}>Library of Experienceable Landscape Spaces</h1>
@@ -2424,7 +2089,7 @@ function About() {
       <div style={{ marginTop: 32, padding: '24px 24px 20px', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 12 }}>
         <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 14 }}>License &amp; citation</div>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg2)', lineHeight: 1.6, fontWeight: 400, marginBottom: 16 }}>
-          Content on LENS is released under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', borderBottom: '1px solid var(--accent)', paddingBottom: 1 }}>CC BY-NC-ND 4.0</a> — free to view, share, and reference for non-commercial use with attribution. Commercial use, redistribution in modified form, or reproduction in print or other published media requires separate written permission from the project lead.
+          Content on LENS is released under <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', textDecoration: 'none', borderBottom: '1px solid var(--accent)', paddingBottom: 1 }}>CC BY-NC-ND 4.0</a> — you may copy and share the material in any medium for non-commercial purposes with appropriate attribution and a link to the licence. You may not distribute adapted versions under this licence. Uses outside these terms require permission from the relevant rights holder. Third-party material is covered only where indicated; other rights and applicable exceptions remain unaffected.
         </p>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 8 }}>Suggested citation (APA)</p>
         <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12.5, color: 'var(--fg2)', lineHeight: 1.6, padding: '12px 14px', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, margin: 0 }}>
@@ -2434,7 +2099,7 @@ function About() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginTop: 48 }}>
         {[
-          ['8+', 'Projects', 'Growing collection of documented spaces'],
+          [String(projectCount), 'Projects', 'Growing collection of documented spaces'],
           ['360°', 'Immersive', 'Full spherical photo and video capture'],
           ['Open', 'Access', 'Free for education and research'],
         ].map(([val, label, desc]) => (
@@ -2480,15 +2145,15 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [dataSource, setDataSource] = useState('');
+  const [catalogueError, setCatalogueError] = useState('');
   const scrollRef = useRef(null);
 
   useEffect(() => {
     fetchProjects().then(data => {
       setProjects(data);
-      setDataSource(data === FALLBACK_PROJECTS ? 'fallback' : 'sheet');
-      setLoading(false);
-    });
+    }).catch(() => {
+      setCatalogueError('The collection could not be loaded. Please refresh to try again.');
+    }).finally(() => setLoading(false));
   }, []);
 
   const navigate = (target) => {
@@ -2535,6 +2200,9 @@ function App() {
               <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)' }}>Loading catalogue…</span>
             </div>
           )}
+          {!loading && projects.length === 0 && ['home', 'browse', 'atlas'].includes(view) && (
+            <p role="status" style={{ padding: '120px 56px 24px', color: 'var(--fg3)' }}>{catalogueError || 'No projects are published yet.'}</p>
+          )}
           {!loading && view === 'home' && (
             <>
               <Hero featured={getFeatured(projects)} onSelect={selectProject} heroLayout={tweaks.heroLayout} />
@@ -2579,7 +2247,7 @@ function App() {
           {!loading && view === 'equipment' && <Equipment onBrowse={() => navigate('browse')} />}
           {!loading && view === 'for educators' && <ForEducators onBrowse={() => navigate('browse')} />}
           {!loading && view === 'contribute' && <Contribute onNav={navigate} />}
-          {!loading && view === 'about' && <About />}
+          {!loading && view === 'about' && <About projectCount={projects.length} />}
         </div>
       </div>
 
