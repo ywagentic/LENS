@@ -415,13 +415,15 @@ function getFeatured(projects) {
 }
 
 function ProjectThumb({ project, size = 'md' }) {
-  const h = size === 'lg' ? 320 : size === 'sm' ? 120 : 180;
+  const h = size === 'lg' ? '100%' : size === 'sm' ? 120 : 180;
   const hasThumb = !!project.thumb;
   return (
     <div style={{
       width: '100%', height: h,
       background: project.thumbIllustration ? '#fff' : 'var(--bg2)',
-      position: 'relative', overflow: 'hidden', flexShrink: 0,
+      position: size === 'lg' ? 'absolute' : 'relative',
+      inset: size === 'lg' ? 0 : undefined,
+      overflow: 'hidden', flexShrink: 0,
     }}>
       {hasThumb ? (
         <img
