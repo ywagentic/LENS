@@ -14,7 +14,14 @@ Production origin: https://lens-vr.com/
 - Only published rows are included; failed catalogue fetches stop deployment.
 - Production React bundle replaces browser Babel and development CDN scripts.
 
-## Search Console (account setup)
+## Search Console status
+
+On 2026-09-12, the URL-prefix property `https://lens-vr.com/` was verified through
+Google's HTML meta tag in the signed-in account. `/sitemap.xml` was successfully
+submitted. Keep the verification meta tag in `index.html`. Indexing/performance
+reports are still processing; submission is not confirmation that pages are indexed.
+
+## Search Console (setup reference)
 
 1. Open https://search.google.com/search-console/ and add URL-prefix property
    `https://lens-vr.com/` (or use Domain property if DNS access is available).
