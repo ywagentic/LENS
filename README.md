@@ -1,23 +1,37 @@
 # LENS
 
-Library of Experienceable Landscape Spaces — a VR database for contemporary landscape architecture projects, aimed at educators and students.
+Library of Experienceable Landscape Spaces — a landscape architecture collection for educators and students.
 
-Live: https://ywagentic.github.io/LENS/
+Live: https://lens-vr.com/
 
-Draft in progress.
+## Build and publish
 
-## Project visibility
+Use Node 22 or later. `npm ci`, `npm run build`, then `npm test`.
+The build reads the public Projects sheet and creates production HTML and bundled
+JavaScript in `dist/`. Preview with `python3 -m http.server 8766 --directory dist`.
+GitHub Actions publishes only `dist/` on pushes to main or a manual **Publish LENS** run.
+The source `index.html` remains editable; production does not use browser Babel.
+
+## Project visibility and updates
 
 In the Projects sheet, column AD (`visible`) controls publication: `1` shows a
-project; `0` or blank hides it. Hidden rows remain in the sheet. The homepage,
-collection, search, filters and Atlas all use this setting. Google may take a
-short time to refresh published CSV data; reload the site after changing it.
-The browser fetches fresh data on page load and never restores sample projects
-when loading fails. This is a display control; the published sheet remains public.
+project; `0` or blank hides it. Hidden rows remain in the public sheet; this is a
+publication control, not a privacy control. The build includes only visible rows
+in project pages, embedded data and the sitemap. Each deployment replaces the full
+artifact, removing previously generated pages for hidden projects.
 
-Current selection: Yongqing Fang Renewal (9) and Huacheng Square (20). Neither
-entry currently has a recording. Add a real YouTube video ID to `vrId` when ready;
-until then, the detail page shows “360° recording coming soon”. `year` remains the
-capture year, not the project's opening year.
+After editing the sheet, wait for Google's published CSV to refresh, then run
+[Publish LENS](https://github.com/ywagentic/LENS/actions/workflows/pages.yml) →
+**Run workflow** on main. This updates static content used by search engines and
+link previews. Browsers also refresh the catalogue on load; that alone does not
+update the static HTML. On network failure they retain the last published snapshot.
+Search engine caches can take longer to reflect a removed page.
 
-Checks: `node tests/visibility.cjs` (or pass a downloaded CSV path to check live data).
+Current projects: Yongqing Fang Renewal (9), completed 2017, and Huacheng Square
+(20), completed 2010. See `docs/project-years.md` for sources. `year` means project
+completion year; `dateCollected` records documentation date. The former has one
+YouTube viewpoint and the latter two. Videos open externally on YouTube.
+Project URLs use stable slugs for these two projects and `project-ID` for future
+rows, so editing a title does not break a URL.
+
+See `docs/search-optimization.md` for indexing setup and maintenance.

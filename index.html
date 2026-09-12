@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="google-site-verification" content="tjCfltOoARTL7ovLwcY1XzBtuBmsQPhfPzl__w6eTbk" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LENS — Library of Experienceable Landscape Spaces</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -31,6 +32,8 @@
       --glass: rgba(255, 255, 255, 0.92);
     }
     html { font-size: 16px; }
+    a { color: inherit; text-decoration: none; }
+    a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
@@ -86,22 +89,26 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTstt0D31
 
 // Parse a CSV string into an array of objects using the first row as headers
 function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  return lines.slice(1).map(line => {
-    // Handle quoted fields containing commas
-    const fields = [];
-    let cur = '', inQuote = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') { inQuote = !inQuote; }
-      else if (ch === ',' && !inQuote) { fields.push(cur.trim()); cur = ''; }
-      else { cur += ch; }
-    }
-    fields.push(cur.trim());
+  const rows = [];
+  let row = [], field = '', quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') {
+      if (quoted && text[i + 1] === '"') { field += '"'; i++; }
+      else quoted = !quoted;
+    } else if (ch === ',' && !quoted) { row.push(field); field = ''; }
+    else if ((ch === '\n' || ch === '\r') && !quoted) {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      row.push(field); rows.push(row); row = []; field = '';
+    } else field += ch;
+  }
+  if (quoted) throw new Error('Invalid quoted CSV field');
+  if (field || row.length) { row.push(field); rows.push(row); }
+  if (rows.length < 2) return [];
+  const headers = rows.shift().map(h => h.trim());
+  return rows.map(fields => {
     const obj = {};
-    headers.forEach((h, i) => { obj[h] = (fields[i] || '').replace(/^"|"$/g, ''); });
+    headers.forEach((h, i) => { obj[h] = (fields[i] || '').trim(); });
     // Coerce types
     obj.id = parseInt(obj.id) || 0;
     obj.year = parseInt(obj.year) || 0;
@@ -162,7 +169,7 @@ function hasRecording(project) { return (project.captures || []).length > 0; }
 function normalizeProjects(data) {
   return data.filter(isProjectVisible).map(source => {
     const p = { ...source };
-    const illustrations = { 9: 'assets/projects/yongqing-fang.jpg', 20: 'assets/projects/huacheng-square.jpg' };
+    const illustrations = { 9: '/assets/projects/yongqing-fang.jpg', 20: '/assets/projects/huacheng-square.jpg' };
     if (illustrations[p.id]) {
       p.thumb = illustrations[p.id];
       p.thumbIllustration = true;
@@ -540,8 +547,7 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
       gap: 16, flexWrap: 'nowrap',
       height: 64,
     }}>
-      <button
-        onClick={() => onNav('home')}
+      <a href="/"
         style={{
           background: 'none', border: 'none', cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 14,
@@ -554,16 +560,16 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
           fontSize: 13, letterSpacing: '0.08em', color: 'var(--fg)',
           whiteSpace: 'nowrap',
         }}>L · E · N · S</span>
-      </button>
+      </a>
 
       {!isNarrow && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(14px, 2.2vw, 32px)', flexShrink: 1, minWidth: 0, overflow: 'hidden' }}>
           {links.map(({ key, label }) => {
             const active = view === key;
             return (
-              <button
+              <a
                 key={key}
-                onClick={() => onNav(key)}
+                href={PAGE_PATHS[key]}
                 style={{
                   background: 'none', border: 'none', cursor: 'pointer',
                   fontFamily: 'Inter, sans-serif', fontSize: 12,
@@ -575,7 +581,7 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
                 }}
                 onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'var(--accent)'; }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'var(--fg3)'; }}
-              >{label}</button>
+              >{label}</a>
             );
           })}
         </div>
@@ -797,7 +803,7 @@ function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onT
           <ProjectThumb project={project} size="sm" />
         </div>
         <div>
-          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, marginBottom: 6, letterSpacing: '-0.015em', lineHeight: 1.15 }}>{project.title}</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, marginBottom: 6, letterSpacing: '-0.015em', lineHeight: 1.15 }}><a href={projectPath(project)} onClick={e => e.stopPropagation()}>{project.title}</a></div>
           <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)' }}>{project.designer?.trim() || 'Multiple'} · {project.location}</div>
           {showTags && (
             <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
@@ -841,7 +847,7 @@ function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onT
       </div>
       <div>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
-          <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, lineHeight: 1.15, letterSpacing: '-0.015em', color: 'var(--fg)', margin: 0 }}>{project.title}</h3>
+          <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, lineHeight: 1.15, letterSpacing: '-0.015em', color: 'var(--fg)', margin: 0 }}><a href={projectPath(project)} onClick={e => e.stopPropagation()}>{project.title}</a></h3>
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', flexShrink: 0 }}>{project.year || '—'}</span>
         </div>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', marginBottom: 4, lineHeight: 1.5 }}>
@@ -993,7 +999,7 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
 }
 
 // Open the original YouTube video; native links allow mobile app handoff.
-function youtubeDestination(capture, nav = navigator) {
+function youtubeDestination(capture, nav = (typeof navigator !== 'undefined' ? navigator : {})) {
   const id = capture?.vrId;
   if (!/^[A-Za-z0-9_-]{11}$/.test(id || '')) return null;
   const web = `https://www.youtube.com/watch?v=${id}`;
@@ -1026,7 +1032,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
   const meta = [
     ['Designer', project.designer || '—'],
     ['Location', project.location],
-    ['Year documented', project.year || '—'],
+    ['Year completed', project.year || '—'],
     ['Type', project.type],
     ['Site area', project.area],
     project.contributor && ['Contributor', project.contributor],
@@ -2060,33 +2066,46 @@ function About({ projectCount }) {
 }
 
 // ─── APP ─────────────────────────────────────────────────────────────────────
-function App() {
+const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/' };
+function projectPath(project) {
+  const slug = { 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
+  return `/projects/${slug}/`;
+}
+function resolveRoute(path, projects) {
+  const normalized = path === '/' ? '/' : path.replace(/\/+$/, '') + '/';
+  const selected = projects.find(p => projectPath(p) === normalized);
+  return selected ? { view: 'project', selected } : { view: Object.keys(PAGE_PATHS).find(key => PAGE_PATHS[key] === normalized) || 'missing', selected: null };
+}
+
+function App({ initialProjects = null, initialPath = '/' }) {
+  const route = resolveRoute(initialPath, initialProjects || []);
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const { voted, counts, toggle } = useVotes();
-  const [view, setView] = useState('home');
-  const [selected, setSelected] = useState(null);
+  const [view, setView] = useState(route.view);
+  const [selected, setSelected] = useState(route.selected);
   const [searchQuery, setSearchQuery] = useState('');
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState(initialProjects || []);
+  const [loading, setLoading] = useState(initialProjects === null);
   const [catalogueError, setCatalogueError] = useState('');
   const scrollRef = useRef(null);
 
   useEffect(() => {
     fetchProjects().then(data => {
       setProjects(data);
+      const nextRoute = resolveRoute(initialPath, data);
+      setView(nextRoute.view);
+      setSelected(nextRoute.selected);
     }).catch(() => {
       setCatalogueError('The collection could not be loaded. Please refresh to try again.');
     }).finally(() => setLoading(false));
   }, []);
 
   const navigate = (target) => {
-    if (scrollRef.current) scrollRef.current.scrollTop = 0;
-    setView(target);
+    window.location.assign(PAGE_PATHS[target] || '/');
   };
 
   const selectProject = (p) => {
-    setSelected(p);
-    navigate('project');
+    window.location.assign(projectPath(p));
   };
 
   const accentStyle = `
@@ -2157,6 +2176,7 @@ function App() {
               <Browse projects={projects} onSelect={selectProject} tweaks={tweaks} setTweak={setTweak} searchQuery={searchQuery} voted={voted} counts={counts} onToggle={toggle} />
             </div>
           )}
+          {!loading && view === 'missing' && <main style={{padding:'140px 56px'}}><h1>Page not found</h1><p>This project may no longer be published.</p><a href="/browse/">Browse the collection</a></main>}
           {!loading && view === 'project' && selected && (
             <ProjectDetail
               project={selected}
@@ -2190,7 +2210,7 @@ function App() {
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+root.render(<App initialPath={window.location.pathname} />);
 </script>
 </body>
 </html>

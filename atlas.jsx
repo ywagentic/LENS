@@ -629,4 +629,4 @@ function Atlas({ projects, onSelect }) {
   );
 }
 
-Object.assign(window, { Atlas });
+if (typeof window !== 'undefined') Object.assign(window, { Atlas });
