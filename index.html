@@ -792,7 +792,7 @@ function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onT
         </div>
         <div>
           <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, marginBottom: 6, letterSpacing: '-0.015em', lineHeight: 1.15 }}>{project.title}</div>
-          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)' }}>{project.designer} · {project.location}</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)' }}>{project.designer?.trim() || 'Multiple'} · {project.location}</div>
           {showTags && (
             <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
               {project.tags.slice(0,3).map(t => (
@@ -839,7 +839,7 @@ function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onT
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', flexShrink: 0 }}>{project.year || '—'}</span>
         </div>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', marginBottom: 4, lineHeight: 1.5 }}>
-          {project.designer}
+          {project.designer?.trim() || 'Multiple'}
         </p>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)', marginBottom: 0, lineHeight: 1.5 }}>
           {project.location}
