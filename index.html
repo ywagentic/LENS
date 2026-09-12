@@ -1788,14 +1788,15 @@ const SMALL = { fontFamily: 'Inter, sans-serif', fontSize:14, lineHeight:1.6, co
 const LABEL = { fontFamily: 'Inter, sans-serif', fontSize:11, fontWeight:500, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--fg3)' };
 
 function ForEducators({ onBrowse }) {
-  const sectionStyle = { borderTop: '1px solid var(--border)', paddingBlock: 'clamp(32px, 5vw, 48px)' };
+  const educatorBody = { ...BODY, textWrap: 'pretty', margin: 0 };
+  const sectionStyle = { borderTop: '1px solid var(--border)', paddingBlock: 'clamp(24px, 3vw, 32px)' };
   return (
     <div style={{padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position:'relative', zIndex:1}}>
 
         {/* 1 — OPENER */}
-        <div style={{paddingBottom:'clamp(32px, 5vw, 48px)'}}>
+        <div style={{paddingBottom:'clamp(24px, 3vw, 32px)'}}>
           <h1 style={{...H1, marginBottom:24}}>A photograph is relative to the camera.<br/><span style={{color:'var(--accent)'}}>A VR experience is relative to the body.</span></h1>
-          <p style={{...BODY, }}>
+          <p style={{...educatorBody, }}>
             Students beginning landscape design often study projects through photographs found on Pinterest, award websites, and landscape architecture publications. While they are still developing a sense of scale and learning to connect two-dimensional images with three-dimensional space, it can be difficult to judge how large a place is or how its parts fit together. Opportunities to visit these projects in person are often limited. LENS provides immersive 360° views to help students study them from an eye-level position within the space.
           </p>
         </div>
@@ -1803,10 +1804,10 @@ function ForEducators({ onBrowse }) {
         {/* 2 — READING SPACE THROUGH PHOTOGRAPHS */}
         <div style={sectionStyle}>
           <h2 style={{...H2, marginBottom:20}}>Understanding space from selected images</h2>
-          <p style={{...BODY, marginBottom:20}}>
+          <p style={{...educatorBody, marginBottom:20}}>
             Published photographs tend to focus on selected views: a carefully chosen angle, a distinctive form, or a particularly successful part of a project. These images can leave students with only a partial understanding of the layout, the sequence of spaces, and the relationships between foreground, middle ground, and background.
           </p>
-          <p style={{...BODY}}>
+          <p style={{...educatorBody}}>
             The available documentation also varies considerably. Projects with award coverage or a well-maintained website may have a substantial set of images and drawings. Others may be represented online by just one or two photographs, leaving much of the space difficult to study.
           </p>
         </div>
@@ -1814,10 +1815,10 @@ function ForEducators({ onBrowse }) {
       {/* 3 — USING THE BODY AS A REFERENCE */}
         <div style={sectionStyle}>
           <h2 style={{...H2, marginBottom:20}}>Using the body as a reference</h2>
-          <p style={{...BODY, marginBottom:20}}>
+          <p style={{...educatorBody, marginBottom:20}}>
             Students already have everyday experience of judging their surroundings in relation to their bodies: how far away a wall feels, how high a tree canopy appears, or how much room there is around a seat. Viewing a landscape at eye level in a headset gives them a familiar starting point for considering its dimensions, proportions, and degree of enclosure.
           </p>
-          <p style={{...BODY}}>
+          <p style={{...educatorBody}}>
             A 360° recording lets students turn to look around from the capture position and examine how elements relate across the surrounding view. Where several viewpoints are available, they can also consider how these relationships change from one part of the project to another. Reading these views alongside plans and photographs can help students connect the layout of a landscape with the space they perceive within it.
           </p>
 
@@ -1826,7 +1827,7 @@ function ForEducators({ onBrowse }) {
         {/* 4 — POSSIBLE USES */}
         <div style={sectionStyle}>
           <h2 style={{...H2, marginBottom:20}}>Possible uses</h2>
-          <p style={{...BODY, marginBottom:28}}>
+          <p style={{...educatorBody, marginBottom:28}}>
             LENS can support introductory studio exercises and precedent study. The following activities connect observation in VR with drawing, dimension estimates, and discussion of design decisions.
           </p>
           <div>
@@ -1840,7 +1841,7 @@ function ForEducators({ onBrowse }) {
                   <span style={{fontFamily: 'Inter, sans-serif', fontWeight:700, fontSize:11, color:'var(--accent)', flexShrink:0, lineHeight:1.9, opacity:0.5, letterSpacing:'0.06em', minWidth:24}}>0{i+1}</span>
                   <div>
                     <div style={{fontFamily: 'Inter, sans-serif', fontWeight:600, fontSize:16, lineHeight:1.4, marginBottom:8}}>{item.title}</div>
-                    <span style={{...SMALL}}>{item.body}</span>
+                    <p style={{...SMALL, margin:0, textWrap:'pretty'}}>{item.body}</p>
                   </div>
                 </div>
               ))}
@@ -1849,7 +1850,7 @@ function ForEducators({ onBrowse }) {
         </div>
 
         {/* 5 — CLOSING */}
-        <div style={{borderTop:'1px solid var(--border)', paddingTop:'clamp(32px, 5vw, 48px)'}}>
+        <div style={{borderTop:'1px solid var(--border)', paddingTop:'clamp(24px, 3vw, 32px)'}}>
           <button onClick={onBrowse} style={{background:'var(--fg)', color:'var(--bg)', border:'none', borderRadius:8, padding:'12px 24px', fontFamily: 'Inter, sans-serif', fontSize:14, fontWeight:500, cursor:'pointer', transition:'background 0.18s', display:'inline-flex', alignItems:'center', gap:8}}
             onMouseEnter={e => e.currentTarget.style.background='var(--accent)'}
             onMouseLeave={e => e.currentTarget.style.background='var(--fg)'}
