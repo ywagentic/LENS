@@ -2052,7 +2052,7 @@ function Equipment({ onBrowse }) {
 
 function About({ projectCount }) {
   return (
-    <div style={{ padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+    <div className="about-page" style={{ overflowWrap: 'anywhere', minWidth: 0, padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}>
       <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.05, marginBottom: 24 }}>Library of Experienceable Landscape Spaces</h1>
       <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.55, fontWeight: 400, marginBottom: 24 }}>
         LENS is an open-access database of contemporary landscape architecture projects, captured in immersive 360° photography and video. Built for educators and students, it enables remote, embodied engagement with significant built landscapes around the world.
@@ -2072,7 +2072,7 @@ function About({ projectCount }) {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginTop: 48 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 20, marginTop: 48 }}>
         {[
           [String(projectCount), 'Projects', 'Growing collection of documented spaces'],
           ['360°', 'Immersive', 'Full spherical photo and video capture'],
@@ -2080,7 +2080,7 @@ function About({ projectCount }) {
         ].map(([val, label, desc]) => (
           <div key={label} style={{
             background: 'var(--card-bg)', border: '1px solid var(--border)',
-            borderRadius: 12, padding: '24px',
+            borderRadius: 12, padding: '24px', minWidth: 0,
           }}>
             <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: 32, color: 'var(--accent)', marginBottom: 4 }}>{val}</div>
             <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, marginBottom: 8 }}>{label}</div>
