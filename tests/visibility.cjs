@@ -35,3 +35,9 @@ assert.equal(ctx.upcomingTiming({expectedRelease:'2026-09-26'},new Date('2026-09
 assert.equal(ctx.upcomingTiming({expectedRelease:'2026-09-11'},new Date('2026-09-12T12:00:00Z')),'Recording in preparation · date to be updated');
 assert.equal(ctx.upcomingTiming({expectedRelease:'2026-02-30'}),'Recording coming soon');
 assert.equal(ctx.upcomingTiming({}),'Recording coming soon');
+
+// Stable viewpoint identifiers survive gaps; older four-field rows still parse.
+const numbered=ctx.parseCSV('id,title,visible,captures\n17,Smale,1,Water Features::zkgIGKo52ME::Water view::::0501-04')[0];
+assert.equal(numbered.captures[0].code,'0501-04');
+assert.equal(numbered.captures[0].height,'');
+assert.equal(ctx.parseCSV('id,title,visible,captures\n20,Huacheng,1,Main::0_J7l3HbcX0::Test::1.6m')[0].captures[0].code,'');

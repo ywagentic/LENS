@@ -28,3 +28,6 @@ LENS_sheet_template.csv
 node_modules/
 dist/
 .build/
+
+# Local project previews
+.preview/
