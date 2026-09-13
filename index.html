@@ -679,7 +679,7 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
 }
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
-function Hero({ featured, onSelect, heroLayout }) {
+function Hero({ featured, heroLayout }) {
   const [narrow, setNarrow] = useState(typeof window !== 'undefined' && window.innerWidth < 880);
   useEffect(() => {
     const onR = () => setNarrow(window.innerWidth < 880);
@@ -734,8 +734,8 @@ function Hero({ featured, onSelect, heroLayout }) {
           </div>
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', gridColumn: 1, gridRow: 2, marginTop: useSplit ? 0 : 32 }}>
-            <button
-              onClick={() => hasRecording(featured) ? openYouTube(featured.captures[0]) : onSelect(featured)}
+            <a
+              href={projectPath(featured)}
               style={{
                 background: 'var(--fg)', color: 'var(--bg)', border: '1px solid var(--fg)',
                 padding: '14px 24px', borderRadius: 0, cursor: 'pointer',
@@ -746,34 +746,20 @@ function Hero({ featured, onSelect, heroLayout }) {
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--bg)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'var(--fg)'; e.currentTarget.style.borderColor = 'var(--fg)'; e.currentTarget.style.color = 'var(--bg)'; }}
             >
-              {hasRecording(featured) ? 'Watch on YouTube' : 'Explore project'}
+              View project
               <span style={{ fontSize: 14 }}>→</span>
-            </button>
-            <button
-              onClick={() => onSelect(featured)}
-              style={{
-                background: 'transparent', color: 'var(--fg)', border: 'none',
-                padding: '14px 8px', borderRadius: 0, cursor: 'pointer',
-                fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 400,
-                textDecoration: 'underline', textUnderlineOffset: 4,
-                transition: 'color 0.15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent)'; }}
-              onMouseLeave={e => { e.currentTarget.style.color = 'var(--fg)'; }}
-            >Project details</button>
+            </a>
           </div>
-          {hasRecording(featured) && youtubeDestination(featured.captures[0])?.mobile && (
-            <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--fg3)', marginTop: 12 }}>Open in the YouTube app to look around. If it opens in your browser instead, rotating the 360° view may not work.</p>
-          )}
         </div>
         {useSplit && (
-          <div
+          <a
+            href={projectPath(featured)}
+            aria-label={`View ${featured.title} project details`}
             style={{
               position: 'relative', cursor: 'pointer', overflow: 'hidden',
               gridColumn: 2, gridRow: 1, alignSelf: 'end',
               aspectRatio: featured.thumbIllustration ? '16/9' : '4/5',
             }}
-            onClick={() => onSelect(featured)}
           >
             {featured.thumb ? (
               <img
@@ -788,12 +774,11 @@ function Hero({ featured, onSelect, heroLayout }) {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   background: 'oklch(100% 0 0 / 0.7)',
                 }}>
-                  <div style={{ display: hasRecording(featured) ? 'block' : 'none', width: 0, height: 0, borderTop: '10px solid transparent', borderBottom: '10px solid transparent', borderLeft: '15px solid var(--fg)', marginLeft: 4 }} />
-                  {!hasRecording(featured) && <span style={{ fontSize: 28 }}>+</span>}
+                  <span aria-hidden="true" style={{ fontSize: 28 }}>→</span>
                 </div>
               </div>
             )}
-          </div>
+          </a>
         )}
       </div>
     </div>
@@ -1062,13 +1047,6 @@ function youtubeDestination(capture, nav = (typeof navigator !== 'undefined' ? n
     mobile,
   };
 }
-function openYouTube(capture) {
-  const destination = youtubeDestination(capture);
-  if (!destination) return;
-  if (destination.target === '_self') window.location.assign(destination.href);
-  else window.open(destination.href, '_blank', 'noopener,noreferrer');
-}
-
 function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
   const [hovered, setHovered] = useState(false);
   const captures = project.captures || [];
@@ -2201,7 +2179,7 @@ function App({ initialProjects = null, initialPath = '/' }) {
           )}
           {!loading && view === 'home' && (
             <>
-              <Hero featured={getFeatured(published)} onSelect={selectProject} heroLayout={tweaks.heroLayout} />
+              <Hero featured={getFeatured(published)} heroLayout={tweaks.heroLayout} />
               <div style={{ padding: published.length ? '0 clamp(20px, 4vw, 56px)' : '120px clamp(20px, 4vw, 56px) 0', marginBottom: 96 }}>
                 {!published.length && <h1 style={{ fontSize: 40, fontWeight: 300, marginBottom: 32 }}>The collection</h1>}
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 40 }}>
