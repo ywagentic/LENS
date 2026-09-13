@@ -1,0 +1,96 @@
+{
+  "id": 17,
+  "title": "Smale Riverfront Park",
+  "subtitle": "Swings, play and public space along the Ohio River",
+  "location": "Cincinnati, Ohio, USA",
+  "year": 2015,
+  "designer": "Sasaki",
+  "type": "Urban Park",
+  "vrType": "360° Video",
+  "vrTypes": [
+    "360° Video"
+  ],
+  "vrId": "kYic2jDx61s",
+  "captures": [
+    {
+      "label": "Swing Pergola",
+      "code": "0501-01",
+      "vrId": "kYic2jDx61s",
+      "height": "",
+      "description": "A fixed 360° view at the swing pergola. Look around to study how the overhead structure and seating frame the surrounding space.",
+      "youtubeTitle": "Cincinnati Smale Riverfront Park / Swing Pergola | 360° VR | 0501-01"
+    },
+    {
+      "label": "Sculpture Area",
+      "code": "0501-02",
+      "vrId": "pgxcavf846k",
+      "height": "",
+      "description": "A fixed 360° view in the sculpture area. Look around to study the sculpture’s scale, its setting and the space available around it.",
+      "youtubeTitle": "Cincinnati Smale Riverfront Park / Sculpture Area | 360° VR | 0501-02"
+    },
+    {
+      "label": "Water Features",
+      "code": "0501-04",
+      "vrId": "zkgIGKo52ME",
+      "height": "",
+      "description": "A fixed 360° view in the water feature area. Look around to study the relationship between water, ground surfaces and the surrounding space.",
+      "youtubeTitle": "Cincinnati Smale Riverfront Park / Water Features | 360° VR | 0501-04"
+    }
+  ],
+  "visible": "0",
+  "area": "13 ha (Sasaki project scope)",
+  "color": "oklch(60% 0.1 60)",
+  "thumb": "/assets/projects/smale-riverfront-park.jpg",
+  "thumbIllustration": true,
+  "featured": false,
+  "dateCollected": "",
+  "contributor": "",
+  "coordinates": "39.09667,-84.51167",
+  "tags": [
+    "Urban",
+    "Water",
+    "Planting",
+    "Infrastructure"
+  ],
+  "links": [
+    {
+      "label": "Sasaki — project",
+      "url": "https://www.sasaki.com/projects/cincinnati-john-g-and-phyllis-w-smale-riverfront-park/"
+    },
+    {
+      "label": "Sasaki — playscapes opened in 2015",
+      "url": "https://www.sasaki.com/voices/where-work-meets-play/"
+    },
+    {
+      "label": "Cincinnati Parks",
+      "url": "https://www.cincinnati-oh.gov/cincyparks/visit-a-park/find-a-parkfacility/smale-riverfront-park/"
+    }
+  ],
+  "description": "Designed by Sasaki, Smale Riverfront Park connects downtown Cincinnati with the Ohio River. Lawns, planted terraces, walking routes, swings and play spaces sit alongside the Roebling Suspension Bridge. The park was developed in phases; its adventure and water playscapes opened in 2015. This collection documents three fixed viewpoints: the swing pergola, a sculpture area and a water feature area.",
+  "plannedCaptures": [
+    {
+      "label": "Swing Pergola",
+      "code": "0501-01",
+      "vrId": "kYic2jDx61s",
+      "height": "",
+      "description": "A fixed 360° view at the swing pergola. Look around to study how the overhead structure and seating frame the surrounding space.",
+      "youtubeTitle": "Cincinnati Smale Riverfront Park / Swing Pergola | 360° VR | 0501-01"
+    },
+    {
+      "label": "Sculpture Area",
+      "code": "0501-02",
+      "vrId": "pgxcavf846k",
+      "height": "",
+      "description": "A fixed 360° view in the sculpture area. Look around to study the sculpture’s scale, its setting and the space available around it.",
+      "youtubeTitle": "Cincinnati Smale Riverfront Park / Sculpture Area | 360° VR | 0501-02"
+    },
+    {
+      "label": "Water Features",
+      "code": "0501-04",
+      "vrId": "zkgIGKo52ME",
+      "height": "",
+      "description": "A fixed 360° view in the water feature area. Look around to study the relationship between water, ground surfaces and the surrounding space.",
+      "youtubeTitle": "Cincinnati Smale Riverfront Park / Water Features | 360° VR | 0501-04"
+    }
+  ]
+}

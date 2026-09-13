@@ -14,11 +14,13 @@ CC identifies a city globally; PP identifies a project within that city; VV iden
 | 02 | Shanghai | China |
 | 03 | Guangzhou | China |
 | 04 | Shenzhen | China |
+| 05 | Cincinnati | USA |
 
 | Project code | Project | Database ID |
 | --- | --- | --- |
 | 0301 | Yongqing Fang | 9 |
 | 0302 | Huacheng Square | 20 |
+| 0501 | Smale Riverfront Park | 17 |
 
 Shenzhen's city code is reserved; its project and viewpoint codes have not yet been assigned. International cities receive their own global city codes, with country recorded in the registry. Reserve a format extension before any two-digit range is exhausted; do not silently change existing codes.
 
@@ -35,3 +37,7 @@ Verified against YouTube oEmbed on 2026-09-13 after the user's title updates. Th
 Keep titles within 100 characters. After a YouTube title change, verify the exact title and update the website mapping. Preserve viewpoint codes when replacing recordings of the same viewpoint; allocate a new code for a new viewpoint.
 
 Quest test result: all three experimental browser intents failed on the user's headset. Native YouTube VR playback is clear while the browser path starts blurry. Browse's temporary test entry has been removed; /quest-test/ remains unlisted for reference. Do not promote the failed intents to production playback links.
+
+## Reserved Smale viewpoints
+
+0501-01 Swing Pergola; 0501-02 Sculpture Area; 0501-03 Children's Play Area; 0501-04 Water Features. Prepared titles and descriptions: [upload copy](smale-riverfront-park-youtube.md). Publishing 0501-01, 0501-02 and 0501-04. The user withheld 0501-03 (children’s area); keep its code reserved and omit it from public views and upcoming placeholders.

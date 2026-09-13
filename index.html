@@ -145,12 +145,12 @@ function parseCSV(text) {
     obj.vrTypes = obj.vrTypes
       ? obj.vrTypes.split('|').map(t => t.trim()).filter(Boolean)
       : (obj.vrType ? [obj.vrType] : []);
-    // Parse captures: "label::vrId::description::height" pipe-separated
+    // Parse captures: "label::vrId::description::height::code" pipe-separated (code optional)
     // Fallback: legacy single vrId/vrType becomes one capture
     if (obj.captures) {
       obj.captures = obj.captures.split('|').map(c => {
-        const [label, vrId, description, height] = c.split('::').map(s => (s || '').trim());
-        return vrId ? { label: label || 'View', vrId, description: description || '', height: height || '' } : null;
+        const [label, vrId, description, height, code] = c.split('::').map(s => (s || '').trim());
+        return vrId ? { label: label || 'View', vrId, description: description || '', height: height || '', code: code || '' } : null;
       }).filter(Boolean);
     } else if (obj.vrId) {
       obj.captures = [{ label: 'Main view', vrId: obj.vrId, description: '', height: '' }];
@@ -201,7 +201,7 @@ function hasRecording(project) { return (project.captures || []).length > 0; }
 function normalizeProjects(data) {
   return data.filter(isProjectVisible).map(source => {
     const p = { ...source };
-    const illustrations = { 9: '/assets/projects/yongqing-fang.jpg', 20: '/assets/projects/huacheng-square.jpg', 21: '/assets/projects/shenzhen-talent-park-phase-ii.jpg' };
+    const illustrations = { 17: '/assets/projects/smale-riverfront-park.jpg', 9: '/assets/projects/yongqing-fang.jpg', 20: '/assets/projects/huacheng-square.jpg', 21: '/assets/projects/shenzhen-talent-park-phase-ii.jpg' };
     if (illustrations[p.id]) {
       p.thumb = illustrations[p.id];
       p.thumbIllustration = true;
@@ -1064,6 +1064,9 @@ function youtubeDestination(capture, nav = (typeof navigator !== 'undefined' ? n
   };
 }
 const YOUTUBE_SEARCH_TITLES = {
+  'zkgIGKo52ME': 'Cincinnati Smale Riverfront Park / Water Features | 360° VR | 0501-04',
+  'pgxcavf846k': 'Cincinnati Smale Riverfront Park / Sculpture Area | 360° VR | 0501-02',
+  'kYic2jDx61s': 'Cincinnati Smale Riverfront Park / Swing Pergola | 360° VR | 0501-01',
   '0_J7l3HbcX0': 'Guangzhou Zhujiang Xincheng Central Axis - Huacheng Plaza | 360° VR | 0302-01',
   'sFw9p5A91HY': 'Guangzhou Zhujiang Xincheng Central Axis - Huacheng Plaza / Sunken | 360° VR | 0302-02',
   'BP5CdxPtXYo': 'Guangzhou Yongqing Fang | 360° VR | 0301-01',
@@ -1097,7 +1100,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
   ].filter(Boolean);
 
   return (
-    <div style={{ padding: '120px 56px 96px', maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+    <div style={{ padding: '120px clamp(20px, 4vw, 56px) 96px', maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
       <button
         onClick={onBack}
         style={{
@@ -1253,7 +1256,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
                     color: isActive ? 'var(--accent)' : 'var(--fg3)',
                     letterSpacing: '0.04em',
                   }}>
-                    {String(i + 1).padStart(2, '0')}
+                    {c.code ? c.code.slice(-2) : String(i + 1).padStart(2, '0')}
                   </div>
                   <div>
                     <div style={{
@@ -1285,8 +1288,23 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
         </div>
       )}
 
+      {project.plannedCaptures?.some(c => !c.vrId) && (
+        <section aria-label="Planned viewpoints" style={{ marginBottom: 64 }}>
+          <div style={{ ...SMALL, marginBottom: 16 }}>Viewpoints · {project.plannedCaptures.filter(c => !c.vrId).length} · Recordings in preparation</div>
+          {project.plannedCaptures.filter(c => !c.vrId).map((capture, i) => (
+            <div key={capture.code} style={{ display: 'grid', gridTemplateColumns: '28px minmax(0, 1fr)', gap: 16, padding: '20px 0', borderTop: '1px solid var(--border)' }}>
+              <span style={SMALL}>{capture.code.slice(-2)}</span>
+              <div>
+                <div style={{ fontSize: 16, marginBottom: 6 }}>{capture.label}</div>
+                <p style={{ ...SMALL, margin: 0 }}>{capture.description}</p>
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
       {/* Body — two-column: description + metadata */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(280px, 1fr)', gap: 96, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(32px, 6vw, 96px)', alignItems: 'start' }}>
         <div>
           <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 24 }}>About this space</div>
           <p style={{
@@ -2144,7 +2162,7 @@ function About({ projectCount }) {
 // ─── APP ─────────────────────────────────────────────────────────────────────
 const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/' };
 function projectPath(project) {
-  const slug = { 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
+  const slug = { 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
   return `/projects/${slug}/`;
 }
 function resolveRoute(path, projects) {
@@ -2153,7 +2171,7 @@ function resolveRoute(path, projects) {
   return selected ? { view: 'project', selected } : { view: Object.keys(PAGE_PATHS).find(key => PAGE_PATHS[key] === normalized) || 'missing', selected: null };
 }
 
-function App({ initialProjects = null, initialPath = '/' }) {
+function App({ initialProjects = null, initialPath = '/', freezeCatalogue = false }) {
   const route = resolveRoute(initialPath, initialProjects || []);
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const { voted, counts, toggle } = useVotes();
@@ -2166,6 +2184,7 @@ function App({ initialProjects = null, initialPath = '/' }) {
   const scrollRef = useRef(null);
 
   useEffect(() => {
+    if (freezeCatalogue) return;
     fetchProjects().then(data => {
       setProjects(data);
       const nextRoute = resolveRoute(initialPath, data);
