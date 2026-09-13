@@ -1197,7 +1197,14 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
 
       {activeCapture && <details open={destination.quest || undefined} style={{ marginBottom: 32, padding: 16, border: '1px solid var(--border)', overflowWrap: 'anywhere' }}>
         <summary style={{ cursor: 'pointer', fontSize: 14, color: 'var(--accent)' }}>Watching on Meta Quest?</summary>
-        <p style={{ ...SMALL, marginTop: 12 }}>Open YouTube VR from your app library. Search for this recording, or find it on our <a href="https://www.youtube.com/@360Landscape" target="_blank" rel="noopener noreferrer">YouTube channel</a>. Website links may remain in the browser.</p>
+        <p style={{ ...SMALL, marginTop: 12 }}>There is a known playback issue with our YouTube recordings in Oculus Browser (Meta Quest Browser): videos may appear grainy or blurry for an extended period, sometimes for more than the first half of the video.</p>
+        <p style={{ ...SMALL, marginTop: 12 }}>If you encounter this issue, please follow these steps:</p>
+        <ol style={{ ...SMALL, paddingLeft: 20, marginTop: 8 }}>
+          <li>Copy the video title below.</li>
+          <li>Open the YouTube VR app from your headset’s app library.</li>
+          <li>Paste the title into Search and open the matching recording. You can also find it on our <a href="https://www.youtube.com/@360Landscape" target="_blank" rel="noopener noreferrer">YouTube channel</a>.</li>
+        </ol>
+        <p style={{ ...SMALL, marginTop: 12 }}>Open the app manually; clicking a YouTube link in the browser may keep you on the website.</p>
         {searchTitle ? <>
           <p style={{ ...SMALL, marginTop: 12, userSelect: 'text' }}>{searchTitle}</p>
           <button onClick={copySearchTitle} style={{ marginTop: 12, padding: '10px 14px', border: '1px solid var(--border)', background: 'var(--card-bg)', color: 'var(--fg)', cursor: 'pointer' }}>Copy video title</button>
