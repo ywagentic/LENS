@@ -96,7 +96,7 @@ function positionsForMap(projects) {
   projects.forEach(p => {
     if (!p.coordinates) return;
     const [lat, lng] = p.coordinates.split(',').map(s => parseFloat(s));
-    if (isNaN(lat) || isNaN(lng)) return;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return;
     const px = (lng + 180) / 360;       // 0..1 in map
     const py = (90 - lat) / 180;         // 0..1 in map
     out[p.id] = {
@@ -271,7 +271,7 @@ function MapBackdrop() {
           <line x1={FW/2} y1="0" x2={FW/2} y2="500" />
         </g>
         <g fill="none" stroke="var(--fg2)" strokeWidth="0.7" strokeLinejoin="round" strokeLinecap="round" opacity="0.75">
-          {usePaths.map((d, i) => <path key={i} d={d} />)}
+          {usePaths.map((d, i) => <path key={i} d={d} vectorEffect="non-scaling-stroke" />)}
         </g>
         <g fill="var(--fg)" opacity="0.035">
           {usePaths.map((d, i) => <path key={'fill' + i} d={d} />)}
@@ -317,6 +317,145 @@ function ColumnBackdrop({ columns, axisLabel }) {
 // MAIN ATLAS COMPONENT
 // ──────────────────────────────────────────────────────────────────────
 
+function atlasMercatorPositions(projects) {
+  const out = {};
+  for (const p of projects) {
+    if (!p.coordinates) continue;
+    const parts = p.coordinates.split(',');
+    if (parts.length !== 2 || parts.some(v => !v.trim())) continue;
+    const [lat,lng] = parts.map(Number);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat)>90 || Math.abs(lng)>180) continue;
+    const sin = Math.sin(Math.max(-85.051129,Math.min(85.051129,lat))*Math.PI/180);
+    out[p.id] = {x:(lng+180)/360,y:.5-Math.log((1+sin)/(1-sin))/(4*Math.PI)};
+  }
+  return out;
+}
+
+function atlasTiles(camera,width,height) {
+  const world = width*camera.zoom;
+  const z = Math.max(0,Math.min(19,Math.floor(Math.log2(world/256))));
+  const n = 2**z, tile = world/n;
+  const left = width/2-camera.x*world, top = height/2-camera.y*world;
+  const out = [];
+  for(let x=Math.max(0,Math.floor(-left/tile));x<=Math.min(n-1,Math.floor((width-left)/tile));x++) {
+    for(let y=Math.max(0,Math.floor(-top/tile));y<=Math.min(n-1,Math.floor((height-top)/tile));y++) {
+      out.push({key:`${z}/${x}/${y}`,left:left+x*tile,top:top+y*tile,size:tile});
+    }
+  }
+  return out;
+}
+
+// Cluster in screen pixels, so the separation threshold stays useful on phones.
+function atlasClusters(projects, positions, camera, width, height) {
+  const points = projects.filter(p => positions[p.id]).map(p => ({
+    project: p,
+    x: .5 + (positions[p.id].x - camera.x) * camera.zoom,
+    y: .5 + (positions[p.id].y - camera.y) * camera.zoom * width / height,
+  })).filter(p => p.x >= 0 && p.x <= 1 && p.y >= 0 && p.y <= 1);
+  const groups = [];
+  const remaining = new Set(points);
+  for (const seed of points) {
+    if (!remaining.delete(seed)) continue;
+    const members = [seed];
+    for (let i = 0; i < members.length; i++) {
+      for (const p of remaining) {
+        if (Math.hypot((p.x - members[i].x) * width, (p.y - members[i].y) * height) < 48) {
+          remaining.delete(p); members.push(p);
+        }
+      }
+    }
+    groups.push({ members, x: members.reduce((s,p) => s+p.x,0)/members.length,
+      y: members.reduce((s,p) => s+p.y,0)/members.length });
+  }
+  return groups;
+}
+
+function AtlasMap({ projects, onSelect, setView }) {
+  const [camera, setCamera] = React.useState({x:.5,y:.5,zoom:1});
+  const [filter, setFilter] = React.useState('all');
+  const [selection, setSelection] = React.useState(null);
+  const [tileError, setTileError] = React.useState(false);
+  const [size, setSize] = React.useState({width:1000,height:500});
+  const field = React.useRef(null);
+  const drag = React.useRef(null);
+  React.useEffect(() => {
+    const observer = new ResizeObserver(([entry]) => setSize({width:entry.contentRect.width,height:entry.contentRect.height}));
+    observer.observe(field.current);
+    return () => observer.disconnect();
+  }, []);
+  const filtered = React.useMemo(() => projects.filter(p => filter === 'all' || p.type === filter), [projects,filter]);
+  const positions = React.useMemo(() => atlasMercatorPositions(filtered), [filtered]);
+  const groups = React.useMemo(() => atlasClusters(filtered,positions,camera,size.width,size.height), [filtered,positions,camera,size]);
+  const tiles = React.useMemo(() => atlasTiles(camera,size.width,size.height),[camera,size]);
+  const inView = groups.flatMap(g => g.members.map(m => m.project));
+  const listed = (selection ? inView.filter(p => selection.includes(p.id)) : inView).sort((a,b) => a.title.localeCompare(b.title));
+  const move = next => { setSelection(null); setCamera(current => { const value = typeof next === 'function' ? next(current) : next; return {...value,x:Math.max(0,Math.min(1,value.x)),y:Math.max(0,Math.min(1,value.y))}; }); };
+  const zoom = factor => move(c => ({...c,zoom:Math.max(1,Math.min(4096,c.zoom*factor))}));
+  const openGroup = group => {
+    if (group.members.length === 1) { onSelect(group.members[0].project); return; }
+    const ps = group.members.map(m => positions[m.project.id]);
+    const minX = Math.min(...ps.map(p=>p.x)), maxX = Math.max(...ps.map(p=>p.x));
+    const minY = Math.min(...ps.map(p=>p.y)), maxY = Math.max(...ps.map(p=>p.y));
+    const nextZoom = Math.min(4096, Math.max(camera.zoom*2, Math.min(.55/Math.max(maxX-minX,1e-9), .55*size.height/size.width/Math.max(maxY-minY,1e-9))));
+    move({x:(minX+maxX)/2,y:(minY+maxY)/2,zoom:nextZoom});
+    setSelection(group.members.map(m=>m.project.id));
+  };
+  const button = {border:'1px solid var(--border)',background:'var(--card-bg)',color:'var(--fg)',padding:'10px 14px',cursor:'pointer',font:'inherit'};
+  return <main className="atlas-map-page" style={{padding:'120px 56px 40px'}}>
+    <style>{`
+      .atlas-map-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:22px 0 14px}
+      .atlas-map-layout{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px}
+      .atlas-map-field{height:clamp(360px,60vh,680px)}
+      .atlas-map-marker:focus-visible{outline:3px solid var(--fg);outline-offset:3px}
+      @media(max-width:760px){.atlas-map-page{padding:110px 20px 28px!important}.atlas-map-layout{grid-template-columns:1fr}.atlas-map-field{height:420px}}
+    `}</style>
+    <h1 style={{fontWeight:200,fontSize:'clamp(40px,5vw,64px)',margin:0,letterSpacing:'-.025em'}}>Atlas</h1>
+    <p style={{color:'var(--fg3)',lineHeight:1.6}}>Select a numbered circle to explore nearby projects. Drag to move the map.</p>
+    <div className="atlas-map-toolbar">
+      <span>Arrange by</span>
+      {['map','year','type'].map(v=><button key={v} style={{...button,background:v==='map'?'var(--fg)':'var(--card-bg)',color:v==='map'?'var(--bg)':'var(--fg)'}} onClick={()=>setView(v)}>{v==='map'?'Geography':v==='year'?'Year':'Type'}</button>)}
+      <label style={{marginLeft:8}}>Filter <select aria-label="Filter projects by type" value={filter} onChange={e=>{setFilter(e.target.value);setSelection(null);}} style={button}>
+        <option value="all">All types</option>
+        {[...new Set(projects.map(p=>p.type).filter(Boolean))].sort().map(t=><option key={t}>{t}</option>)}
+      </select></label>
+    </div>
+    <div className="atlas-map-layout">
+      <div ref={field} className="atlas-map-field" aria-label="Project map; use arrow keys to pan" tabIndex={0} onKeyDown={e=>{if(e.target!==e.currentTarget)return;const deltas={ArrowLeft:[-.15,0],ArrowRight:[.15,0],ArrowUp:[0,-.15],ArrowDown:[0,.15]};if(deltas[e.key]){e.preventDefault();const [x,y]=deltas[e.key];move(c=>({...c,x:c.x+x/c.zoom,y:c.y+y/c.zoom}));}}} style={{position:'relative',overflow:'hidden',border:'1px solid var(--border)',background:'var(--card-bg)',touchAction:'none',cursor:'grab'}}
+        onPointerDown={e=>{if(e.target.closest('button,a'))return;drag.current={x:e.clientX,y:e.clientY,camera};e.currentTarget.setPointerCapture(e.pointerId);}}
+        onPointerMove={e=>{if(!drag.current)return;const d=drag.current;move({...d.camera,x:d.camera.x-(e.clientX-d.x)/size.width/d.camera.zoom,y:d.camera.y-(e.clientY-d.y)/size.width/d.camera.zoom});}}
+        onPointerUp={()=>{drag.current=null;}} onPointerCancel={()=>{drag.current=null;}}>
+        {tiles.map(t=><img key={t.key} src={`https://tile.openstreetmap.org/${t.key}.png`} alt="" draggable="false" onError={()=>setTileError(true)} referrerPolicy="strict-origin-when-cross-origin" style={{position:'absolute',left:t.left,top:t.top,width:t.size+.5,height:t.size+.5,maxWidth:'none',pointerEvents:'none',filter:'saturate(.3)',opacity:.8}} />)}
+        <div style={{position:'absolute',bottom:0,right:0,zIndex:2,background:'rgba(255,255,255,.95)',padding:'4px 7px',fontSize:11,color:'#333'}}><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></div>
+        {groups.map(g=>{
+          const count=g.members.length, p=g.members[0].project;
+          const diameter=count>1?Math.min(54,34+Math.log2(count)*3):16;
+          return <button key={g.members.map(m=>m.project.id).sort().join('-')} className="atlas-map-marker" aria-label={count>1?`Explore ${count} nearby projects`:`Open ${p.title}`} title={count>1?`${count} projects — click to explore`:p.title}
+            onClick={()=>openGroup(g)} style={{position:'absolute',left:`${g.x*100}%`,top:`${g.y*100}%`,transform:'translate(-50%,-50%)',width:Math.max(44,diameter),height:Math.max(44,diameter),display:'grid',placeItems:'center',border:0,padding:0,background:'transparent',cursor:'pointer'}}>
+            <span style={{display:'grid',placeItems:'center',width:diameter,height:diameter,borderRadius:'50%',background:'var(--accent)',color:'#fff',fontSize:14,fontWeight:600,boxShadow:'0 0 0 3px var(--card-bg)'}}>{count>1?count:''}</span>
+          </button>;
+        })}
+        <div style={{position:'absolute',top:12,left:12,display:'flex',gap:4}}>
+          <button style={button} aria-label="Zoom in" onClick={()=>zoom(2)} disabled={camera.zoom>=4096}>+</button>
+          <button style={button} aria-label="Zoom out" onClick={()=>zoom(.5)} disabled={camera.zoom<=1}>−</button>
+          <button style={button} onClick={()=>move({x:.5,y:.5,zoom:1})}>Reset map</button>
+        </div>
+      </div>
+      <aside style={{border:'1px solid var(--border)',padding:16,maxHeight:680,overflowY:'auto'}} aria-label="Projects in map area">
+        <div aria-live="polite" style={{fontSize:13,color:'var(--fg3)',marginBottom:12}}>{selection?'Selected group':'In this map area'} · {listed.length} projects</div>
+        {selection && <button style={{...button,marginBottom:12}} onClick={()=>setSelection(null)}>Show all in this area</button>}
+        {listed.map(p=><button key={p.id} onClick={()=>onSelect(p)} style={{display:'block',width:'100%',textAlign:'left',padding:'14px 0',border:0,borderBottom:'1px solid var(--border)',background:'transparent',color:'var(--fg)',cursor:'pointer'}}>
+          <span style={{display:'block',fontSize:16,lineHeight:1.35}}>{p.title} →</span>
+          <span style={{display:'block',fontSize:12,color:'var(--fg3)',marginTop:6}}>{p.location}{p.year?` · ${p.year}`:''}</span>
+        </button>)}
+        {!listed.length && <p style={{color:'var(--fg3)',fontSize:13}}>No projects in this area. Zoom out or reset the map.</p>}
+        {selection && listed.length>1 && <p style={{fontSize:12,color:'var(--fg3)',lineHeight:1.5}}>Choose any project here, including projects sharing the same location.</p>}
+      </aside>
+    </div>
+    {tileError && <p role="status" style={{fontSize:12,color:'var(--fg3)'}}>Some map details could not load. Project points and the list are still available.</p>}
+    <p style={{fontSize:12,color:'var(--fg3)'}}>Showing {inView.length} of {filtered.length} projects{filtered.length>Object.keys(positions).length?` · ${filtered.length-Object.keys(positions).length} lack coordinates`:''}</p>
+  </main>;
+}
+
 function Atlas({ projects, onSelect }) {
   const [view, setView] = React.useState('map');     // 'map' | 'year' | 'type'
   const [active, setActive] = React.useState(null);
@@ -341,6 +480,8 @@ function Atlas({ projects, onSelect }) {
 
   // Projects without positions in current view (e.g. no coords on map) — show offscreen
   const visibleProjects = filtered.filter(p => positions[p.id]);
+
+  if (view === 'map') return <AtlasMap projects={projects} onSelect={onSelect} setView={setView} />;
 
   return (
     <>
