@@ -317,18 +317,30 @@ function ColumnBackdrop({ columns, axisLabel }) {
 // MAIN ATLAS COMPONENT
 // ──────────────────────────────────────────────────────────────────────
 
-// Editorial regional backdrops: intentionally schematic, with no administrative boundaries.
-function AtlasRegionBackdrop({level}) {
-  const coast = level === 'china'
-    ? 'M 730,-30 L 748,48 L 720,95 L 760,144 L 730,192 L 754,230 L 710,278 L 700,328 L 648,355 L 602,390 L 540,403 L 486,440 L 398,450 L 326,486 L 260,590'
-    : 'M -30,405 L 80,390 L 160,355 L 248,370 L 328,334 L 414,346 L 478,300 L 526,326 L 590,286 L 664,300 L 730,260 L 800,276 L 870,232 L 1030,212';
-  return <svg aria-hidden="true" viewBox="0 0 1000 560" preserveAspectRatio="none" style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}}>
+// Hand-generalized coastlines: increasing detail by level, no political borders.
+const ATLAS_COASTS = {
+  china: [[135,49],[134,46],[132,43],[130,42],[129,39],[129,36],[127,34.5],[126,35],[125,38],[124,39.5],[122,40],[121,41],[119.5,40],[118,39],[119,38],[121,38],[122,37],[120,36],[120,34],[121.5,32],[122,30],[121,28],[120,26],[118,24.5],[116,23],[114,22.5],[113.5,23],[113,22],[111,21.5],[110.3,21],[110,20.2],[109.6,20.3],[109.8,21.3],[108.5,21.7],[107,21],[106,19.5],[105.5,18],[107,16],[109,13],[109,10],[106,8]],
+  guangdong: [[105,20],[107,21],[108,21.6],[108.8,21.7],[109.7,21.4],[109.6,20.5],[109.9,20.2],[110.3,20.4],[110.4,20.9],[110.2,21.2],[110.7,21.4],[111,21.5],[111.5,21.5],[112,21.8],[112.4,21.8],[112.7,22.1],[113.05,22.05],[113.25,22.2],[113.35,22.55],[113.25,22.8],[113.48,23.05],[113.65,22.85],[113.55,22.6],[113.8,22.4],[113.95,22.5],[114.15,22.3],[114.35,22.4],[114.5,22.65],[114.8,22.6],[115.1,22.8],[115.5,22.75],[115.8,22.9],[116.25,23.05],[116.6,23.3],[116.9,23.4],[117.2,23.65],[117.6,23.75],[118,24.1],[118.5,24.4],[119,25],[120,26],[121,28]],
+};
+const ATLAS_COAST_ISLANDS = [
+  [[108.7,19.8],[109.4,20.1],[110.5,19.8],[111,19.1],[110.5,18.4],[109.6,18.1],[108.8,18.5],[108.5,19.2]],
+  [[121.5,25.2],[122,24.6],[121.5,23.4],[120.8,22],[120.2,22.5],[120.3,23.7],[120.8,24.7]],
+];
+function AtlasRegionBackdrop({level,bounds}) {
+  const coast=ATLAS_COASTS[level];
+  const path=points=>'M'+points.map(([x,y])=>`${x},${-y}`).join(' L');
+  const edge=path(coast);
+  const land=level==='china'?edge+' L 65,-8 L 65,-65 L 145,-65 Z':edge+' L 130,-60 L 65,-60 L 65,-15 Z';
+  return <svg aria-hidden="true" viewBox={`${bounds[0]} ${-bounds[3]} ${bounds[2]-bounds[0]} ${bounds[3]-bounds[1]}`} style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}}>
     <g stroke="var(--border)" strokeWidth=".5" opacity=".6">
-      {[140,280,420].map(y=><line key={'y'+y} x1="0" y1={y} x2="1000" y2={y} strokeDasharray="2 5"/>)}
-      {[200,400,600,800].map(x=><line key={'x'+x} x1={x} y1="0" x2={x} y2="560" strokeDasharray="2 5"/>)}
+      {[1,2,3].map(i=>{const y=bounds[1]+(bounds[3]-bounds[1])*i/4;return <line key={'y'+i} x1={bounds[0]} y1={-y} x2={bounds[2]} y2={-y} strokeDasharray="2 5" vectorEffect="non-scaling-stroke"/>;})}
+      {[1,2,3,4].map(i=>{const x=bounds[0]+(bounds[2]-bounds[0])*i/5;return <line key={'x'+i} x1={x} y1={-bounds[1]} x2={x} y2={-bounds[3]} strokeDasharray="2 5" vectorEffect="non-scaling-stroke"/>;})}
     </g>
-    <path d={coast+(level==='china'?' L -100,660 L -100,-100 Z':' L 1100,-100 L -100,-100 Z')} fill="var(--fg)" opacity=".035"/>
-    <path d={coast} fill="none" stroke="var(--fg2)" strokeWidth=".7" strokeLinejoin="round" strokeLinecap="round" opacity=".75" vectorEffect="non-scaling-stroke"/>
+    <path d={land} fill="var(--fg)" opacity=".035"/>
+    <g fill="none" stroke="var(--fg2)" strokeWidth=".7" strokeLinejoin="round" strokeLinecap="round" opacity=".75">
+      <path d={edge} vectorEffect="non-scaling-stroke"/>
+      {ATLAS_COAST_ISLANDS.map((points,i)=><path key={i} d={path(points)+' Z'} fill="var(--fg)" fillOpacity=".035" vectorEffect="non-scaling-stroke"/>)}
+    </g>
   </svg>;
 }
 
@@ -411,7 +423,7 @@ function AtlasMap({projects,onSelect,setView}) {
     {level!=='world'&&<p style={{fontSize:11,color:'var(--fg3)',marginBottom:12}}>Schematic view · relative project locations</p>}
     <div className="atlas-map-layout">
       <div ref={field} className="atlas-map-field" aria-label={`${ATLAS_LEVELS[level].label} project map`} style={{position:'relative',overflow:'hidden',border:'1px solid var(--border)',background:'var(--card-bg)'}}>
-        {level==='world'?<MapBackdrop/>:<AtlasRegionBackdrop level={level}/>}
+        {level==='world'?<MapBackdrop/>:<AtlasRegionBackdrop level={level} bounds={bounds}/>}
         {groups.map(g=>{const next=destination(g),count=g.members.length,label=next?`Explore ${ATLAS_LEVELS[next].label}`:count>1?`Choose from ${count} projects`:`Open ${g.members[0].title}`;return <button className="atlas-map-marker" key={g.members.map(p=>p.id).join('-')} aria-label={label} title={label} onClick={()=>open(g)} style={{position:'absolute',left:`${g.x*100}%`,top:`${g.y*100}%`,transform:'translate(-50%,-50%)',display:'grid',placeItems:'center',width:44,height:44,border:0,padding:0,background:'transparent',cursor:'pointer'}}>
           <span style={{display:'grid',placeItems:'center',width:count>1?36:13,height:count>1?36:13,borderRadius:'50%',background:'var(--accent)',color:'white',fontSize:13,boxShadow:'0 0 0 3px var(--card-bg)'}}>{count>1?count:''}</span>
           {next&&<span style={{position:'absolute',top:43,fontSize:11,color:'var(--fg2)',whiteSpace:'nowrap'}}>{ATLAS_LEVELS[next].label}</span>}
