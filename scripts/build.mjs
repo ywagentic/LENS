@@ -25,6 +25,7 @@ await writeFile('.build/client.jsx',`import React from 'react';import {createRoo
 const built = await build({entryPoints:['.build/client.jsx'],outdir:'dist/assets',entryNames:'app-[hash]',bundle:true,minify:true,metafile:true,define:{'process.env.NODE_ENV':'"production"'}});
 const js = '/'+Object.keys(built.metafile.outputs).find(p=>p.endsWith('.js')).replace(/^dist\//,'');
 await cp('assets/projects','dist/assets/projects',{recursive:true});
+await cp('assets/brand','dist/assets/brand',{recursive:true});
 await cp('CNAME','dist/CNAME');
 try { await cp('public','dist',{recursive:true}); } catch(error) { if(error.code !== 'ENOENT') throw error; }
 const escape = s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
@@ -43,12 +44,12 @@ for(const p of projects.filter(isPublished)) routes.push({path:projectPath(p),pr
 let head = source.split('<head>')[1].split('</head>')[0].replace(/<title>[\s\S]*?<\/title>/,'').replace(/<script[\s\S]*?<\/script>/g,'');
 for(const route of [...routes,{path:'/404/',title:'Page not found | LENS',description:'This page is unavailable.',missing:true}]) {
  const url = origin+route.path;
- const picture = origin+(route.project?.thumb || '/assets/projects/yongqing-fang.jpg');
+ const picture = origin+(route.project?.thumb || '/assets/brand/lens-youtube-avatar.png');
  const schema = {'@context':'https://schema.org','@graph':[
   {'@type':'WebSite','@id':origin+'/#website',url:origin+'/',name:'LENS',alternateName:'Library of Experienceable Landscape Spaces',inLanguage:'en'},
   {'@type':route.project?'WebPage':(['home','browse','atlas'].includes(route.view)?'CollectionPage':'WebPage'),'@id':url+'#webpage',url,name:route.title,description:route.description,isPartOf:{'@id':origin+'/#website'},...(route.project?{about:{'@type':'Place',name:route.project.title,address:route.project.location,url,...(route.project.coordinates?{geo:{'@type':'GeoCoordinates',latitude:Number(route.project.coordinates.split(',')[0]),longitude:Number(route.project.coordinates.split(',')[1])}}:{})}}:{})}
  ]};
- const metadata = `<title>${escape(route.title)}</title><meta name="description" content="${escape(route.description)}"><link rel="canonical" href="${url}"><meta name="robots" content="${route.missing?'noindex, follow':'index, follow'}"><meta property="og:type" content="website"><meta property="og:site_name" content="LENS"><meta property="og:title" content="${escape(route.title)}"><meta property="og:description" content="${escape(route.description)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${escape(picture)}"><meta name="twitter:card" content="summary_large_image"><script type="application/ld+json">${json(schema)}</script>`;
+ const metadata = `<title>${escape(route.title)}</title><meta name="description" content="${escape(route.description)}"><link rel="canonical" href="${url}"><meta name="robots" content="${route.missing?'noindex, follow':'index, follow'}"><meta property="og:type" content="website"><meta property="og:site_name" content="LENS"><meta property="og:title" content="${escape(route.title)}"><meta property="og:description" content="${escape(route.description)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${escape(picture)}"><meta name="twitter:card" content="${route.project?'summary_large_image':'summary'}"><script type="application/ld+json">${json(schema)}</script>`;
  const html = `<!DOCTYPE html><html lang="en"><head>${head}${metadata}</head><body><div id="root">${renderToString(React.createElement(App,{initialProjects:projects,initialPath:route.path}))}</div><script id="catalogue-data" type="application/json">${json(projects)}</script><script defer src="${js}"></script></body></html>`;
  const file = route.missing?'dist/404.html':`dist${route.path}index.html`;
  await mkdir(file.slice(0,file.lastIndexOf('/')),{recursive:true});await writeFile(file,html);
