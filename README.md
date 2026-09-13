@@ -54,7 +54,7 @@ rows, so editing a title does not break a URL.
 See `docs/search-optimization.md` for indexing setup and maintenance.
 
 First upcoming project: Shenzhen Talent Park Phase II — Children’s Play Area (21).
-Completion year 2024; designer AUBE Conception. The release date is not yet set.
+Completion year 2024; designer AUBE Conception. Target release: 2026-09-26 (within two weeks of 2026-09-12). Editing is complete; publication is pending headset testing. Keep the upcoming state until the viewing test is approved.
 Sources: https://www.sz.gov.cn/cn/xxgk/zfxxgj/zwdt/content/post_11970344.html and
 https://www.archiposition.com/items/20250617102853 (text provided by the designer).
 This record covers the play area; no area or precise coordinates are guessed.
