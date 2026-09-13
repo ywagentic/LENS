@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>YouTube VR launch test | LENS</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#fff;color:#202320;font:17px/1.6 system-ui,sans-serif}main{max-width:800px;margin:auto;padding:40px 24px 80px}h1{font-size:32px;font-weight:400;line-height:1.2}h2{font-size:20px;font-weight:500}a{color:#176b47}select{display:block;width:100%;font:inherit;padding:14px;border:1px solid #ccc;background:white;color:inherit;margin:12px 0 24px}section{padding:20px 0;border-top:1px solid #ddd}.launch{display:block;padding:16px 20px;border:1px solid #1f8a5b;text-decoration:none;font-weight:500}.launch:focus-visible{outline:3px solid #222;outline-offset:3px}p{margin:12px 0}.muted{color:#667066;font-size:14px}#status{padding:16px;background:#f0f5f1;border:1px solid #c8d8cb;overflow-wrap:anywhere}summary{cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}</style></head>
+<body><main><a href="/">LENS</a><h1>YouTube VR launch test</h1>
+<p>Open this page in the browser inside your Quest. Install YouTube VR and open it once before testing.</p>
+<p>Try A, then B, then C. After each attempt, return here and note whether the app opened, whether the correct video played, and whether the first seconds were clear.</p>
+<label for="video">Recording</label><select id="video"><option value="0_J7l3HbcX0">Huacheng Square — View 1</option><option value="sFw9p5A91HY">Huacheng Square — View 2</option><option value="BP5CdxPtXYo">Yongqing Fang</option></select>
+<p id="status" role="status" aria-live="polite">Ready. These are experimental links; app launch is not yet verified.</p>
+<section><h2>A · Video URL → YouTube VR</h2><a class="launch" id="a" data-test="A">Try A</a><p class="muted">Requests the Quest YouTube VR app with a standard video URL.</p></section>
+<section><h2>B · Video scheme → YouTube VR</h2><a class="launch" id="b" data-test="B">Try B</a><p class="muted">Requests the same VR app using a different video-link format.</p></section>
+<section><h2>C · Let the headset choose the app</h2><a class="launch" id="c" data-test="C">Try C</a><p class="muted">Uses the video scheme without specifying an app. If a chooser appears, select YouTube VR.</p></section>
+<section><h2>Browser comparison</h2><a class="launch" id="web" target="_blank" rel="noopener">Open the same video on the YouTube website</a><p class="muted">Opening a webpage or the app home screen does not count as successful video handoff.</p></section>
+<p>Report a result like: “A: no response; B: app opened and correct video played clearly; C: not tested.” If none work, include any error message you see.</p>
+<details><summary>Technical details</summary><pre id="details"></pre><p class="muted">Results are not automatically sent or uploaded. A click alone cannot confirm whether another app opened.</p></details>
+</main><script>
+const video=document.getElementById('video'), status=document.getElementById('status');
+const params=new URLSearchParams(location.search);
+if([...video.options].some(o=>o.value===params.get('video')))video.value=params.get('video');
+function update(){
+ const id=video.value, pkg='com.google.android.apps.youtube.vr.oculus';
+ const fallback=test=>{const u=new URL(location.pathname,location.origin);u.searchParams.set('fallback',test);u.searchParams.set('video',id);return encodeURIComponent(u.href);};
+ const tail=test=>`action=android.intent.action.VIEW;category=android.intent.category.BROWSABLE;S.browser_fallback_url=${fallback(test)};end`;
+ document.getElementById('a').href=`intent://www.youtube.com/watch?v=${id}#Intent;scheme=https;package=${pkg};${tail('A')}`;
+ document.getElementById('b').href=`intent://${id}#Intent;scheme=vnd.youtube;package=${pkg};${tail('B')}`;
+ document.getElementById('c').href=`intent://${id}#Intent;scheme=vnd.youtube;${tail('C')}`;
+ document.getElementById('web').href=`https://www.youtube.com/watch?v=${id}`;
+ document.getElementById('details').textContent=`Browser: ${navigator.userAgent}\n\n`+['a','b','c'].map(k=>`${k.toUpperCase()}: ${document.getElementById(k).href}`).join('\n\n');
+}
+video.addEventListener('change',()=>{update();status.textContent='Recording changed. Ready to test.';});
+document.querySelectorAll('[data-test]').forEach(a=>a.addEventListener('click',()=>{status.textContent=`Attempt ${a.dataset.test} requested. Please check whether YouTube VR opens and plays the selected recording.`;}));
+update();
+if(['A','B','C'].includes(params.get('fallback')))status.textContent=`Attempt ${params.get('fallback')} returned to the fallback page. This link did not hand off to the app through this browser.`;
+</script></body></html>
