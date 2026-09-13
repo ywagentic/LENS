@@ -19,3 +19,7 @@ assert.ok(!source.includes('tile.openstreetmap.org'));
 assert.ok(!source.includes('onPointerMove'));
 assert.ok(!source.includes('Zoom in'));
 console.log('PASS: fixed World/China/Guangdong views, mobile positions, clustering, no free zoom or raster tiles.');
+
+assert.ok(!source.includes('ATLAS_REGION_PATHS'));
+assert.ok(!source.includes('DataV'));
+assert.ok(source.includes('Schematic view'));
