@@ -28,6 +28,11 @@ for(const url of urls){
   assert(sitemap.includes(`${site}/projects/${slug}/`));
   if(path==='/browse/') assert(html.includes(`href="/projects/${slug}/"`));
  }
+ if(path==='/') {
+  assert(html.includes('View project'));
+  assert(!html.includes('Watch on YouTube'));
+  assert(!/href="https:\/\/(?:www\.)?youtube\.com/.test(html));
+ }
  if(path.startsWith('/projects/')){
   assert(html.includes('Year completed'));
   assert(html.includes('https://www.youtube.com/watch?v='));
