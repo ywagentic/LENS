@@ -188,7 +188,7 @@ function hasRecording(project) { return (project.captures || []).length > 0; }
 function normalizeProjects(data) {
   return data.filter(isProjectVisible).map(source => {
     const p = { ...source };
-    const illustrations = { 9: '/assets/projects/yongqing-fang.jpg', 20: '/assets/projects/huacheng-square.jpg' };
+    const illustrations = { 9: '/assets/projects/yongqing-fang.jpg', 20: '/assets/projects/huacheng-square.jpg', 21: '/assets/projects/shenzhen-talent-park-phase-ii.jpg' };
     if (illustrations[p.id]) {
       p.thumb = illustrations[p.id];
       p.thumbIllustration = true;
