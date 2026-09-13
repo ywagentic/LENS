@@ -21,3 +21,17 @@ assert.equal(ctx.normalizeProjects([{visible:1,vrId:'YOUTUBE_ID_HERE'}])[0].capt
  ctx.fetch=async()=>{throw Error('offline')};await assert.rejects(ctx.fetchProjects());
  console.log('PASS: CSV has only IDs 9 and 20 visible; default hidden, invalid media, all hidden, missing switch, fresh fetch and network failure checked.');
 })().catch(e=>{console.error(e);process.exitCode=1});
+
+// Publication lifecycle: preview visibility never enables recordings or auto-publishes.
+for(const visible of ['upcoming','UPCOMING',2,'2']) {
+ assert.equal(ctx.publicationStatus({visible}),'upcoming');
+ assert.equal(ctx.isProjectVisible({visible}),true);
+ assert.equal(ctx.isPublished({visible}),false);
+ const preview=ctx.normalizeProjects([{id:21,title:'Preview',visible,vrId:'abcdefghijk',captures:[{vrId:'abcdefghijk'}]}])[0];
+ assert.equal(preview.captures.length,0);assert.equal(preview.vrId,'');
+}
+assert.equal(ctx.upcomingTiming({expectedRelease:'2026-09-19'},new Date('2026-09-12T12:00:00Z')),'Expected within 1 week · by Sep 19, 2026');
+assert.equal(ctx.upcomingTiming({expectedRelease:'2026-09-26'},new Date('2026-09-12T12:00:00Z')),'Expected within 2 weeks · by Sep 26, 2026');
+assert.equal(ctx.upcomingTiming({expectedRelease:'2026-09-11'},new Date('2026-09-12T12:00:00Z')),'Recording in preparation · date to be updated');
+assert.equal(ctx.upcomingTiming({expectedRelease:'2026-02-30'}),'Recording coming soon');
+assert.equal(ctx.upcomingTiming({}),'Recording coming soon');

@@ -162,8 +162,27 @@ async function fetchProjects() {
 }
 
 // Ensure every project has captures[] and vrTypes[] (back-compat for legacy data)
-function isProjectVisible(project) {
-  return ['1', 'true'].includes(String(project.visible ?? '').trim().toLowerCase());
+function publicationStatus(project) {
+  const value = String(project.visible ?? '').trim().toLowerCase();
+  if (['1', 'true', 'on', 'published'].includes(value)) return 'published';
+  if (['2', 'upcoming'].includes(value)) return 'upcoming';
+  return 'hidden';
+}
+function isProjectVisible(project) { return publicationStatus(project) !== 'hidden'; }
+function isPublished(project) { return publicationStatus(project) === 'published'; }
+function isUpcoming(project) { return publicationStatus(project) === 'upcoming'; }
+function upcomingTiming(project, now = new Date()) {
+  const raw = String(project.expectedRelease || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return 'Recording coming soon';
+  const date = new Date(raw + 'T00:00:00Z');
+  if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== raw) return 'Recording coming soon';
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const days = Math.round((date.getTime() - today) / 86400000);
+  if (days < 0) return 'Recording in preparation · date to be updated';
+  const formatted = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  if (days === 0) return `Expected today · ${formatted}`;
+  const weeks = Math.ceil(days / 7);
+  return `Expected within ${weeks} ${weeks === 1 ? 'week' : 'weeks'} · by ${formatted}`;
 }
 function hasRecording(project) { return (project.captures || []).length > 0; }
 function normalizeProjects(data) {
@@ -180,6 +199,7 @@ function normalizeProjects(data) {
     if (!p.vrTypes) {
       p.vrTypes = p.vrType ? [p.vrType] : [];
     }
+    if (isUpcoming(p)) { p.captures = []; p.vrId = ''; }
     p.captures = p.captures.filter(c => /^[A-Za-z0-9_-]{11}$/.test(c.vrId || ''));
     return p;
   });
@@ -414,6 +434,7 @@ function cn(...classes) { return classes.filter(Boolean).join(' '); }
 // 1. Manually flagged (featured === true), or
 // 2. Auto: rotates weekly by index based on ISO week number
 function getFeatured(projects) {
+  projects = projects.filter(isPublished);
   if (!projects.length) return null;
   const manual = projects.find(p => p.featured);
   if (manual) return manual;
@@ -779,6 +800,32 @@ function Hero({ featured, onSelect, heroLayout }) {
   );
 }
 
+function UpcomingSection({ projects, cardStyle = 'grid' }) {
+  if (!projects.length) return null;
+  return (
+    <section aria-label="Upcoming recordings" style={{ borderTop: '1px solid var(--border)', paddingTop: 32, marginTop: 48 }}>
+      <h2 style={{ fontSize: 28, fontWeight: 300, letterSpacing: '-0.02em', marginBottom: 10 }}>Upcoming</h2>
+      <p style={{ fontSize: 14, color: 'var(--fg3)', lineHeight: 1.6, marginBottom: 28 }}>360° recordings being prepared for the collection.</p>
+      <div style={{ display: 'grid', gridTemplateColumns: cardStyle === 'list' ? '1fr' : 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: 28 }}>
+        {projects.map(project => (
+          <article key={project.id} data-publication="upcoming" style={{ minWidth: 0, maxWidth: cardStyle === 'list' ? undefined : 520 }}>
+            <div style={{ position: 'relative', background: 'var(--bg2)', marginBottom: 16, overflow: 'hidden' }}>
+              <div style={{ opacity: 0.5, filter: 'grayscale(1)' }}>
+                {project.thumb ? <ProjectThumb project={project} /> : <div aria-hidden="true" style={{ height: 180, backgroundImage: 'repeating-linear-gradient(135deg, transparent 0, transparent 16px, #ddd 16px, #ddd 17px)' }} />}
+              </div>
+              <span style={{ position: 'absolute', top: 14, left: 14, background: '#fff', padding: '6px 10px', color: 'var(--fg3)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Upcoming</span>
+            </div>
+            <h3 style={{ fontSize: 21, fontWeight: 400, lineHeight: 1.25, color: 'var(--fg3)', marginBottom: 8 }}>{project.title}</h3>
+            {project.subtitle && <p style={{ fontSize: 13, color: 'var(--fg3)', lineHeight: 1.5, marginBottom: 6 }}>{project.subtitle}</p>}
+            <p style={{ fontSize: 13, color: 'var(--fg3)', marginBottom: 12 }}>{project.designer?.trim() || 'Multiple'} · {project.location}</p>
+            <p style={{ fontSize: 12, color: 'var(--fg2)', lineHeight: 1.5 }}>{upcomingTiming(project)}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // ─── PROJECT CARD ─────────────────────────────────────────────────────────────
 function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onToggle }) {
   const [hovered, setHovered] = useState(false);
@@ -881,7 +928,7 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
   const ALL_TAGS = getTagsFromProjects(projects);
   const ALL_TYPES = getTypesFromProjects(projects);
 
-  const filtered = projects.filter(p => {
+  const matches = projects.filter(p => {
     const matchTag = activeTag === 'All' || p.tags.includes(activeTag);
     const matchType = activeType === 'All Types' || p.type === activeType;
     const matchSearch = !searchQuery || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.location.toLowerCase().includes(searchQuery.toLowerCase()) || p.designer.toLowerCase().includes(searchQuery.toLowerCase());
@@ -896,6 +943,9 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
     }
     return 0;
   });
+
+  const filtered = matches.filter(isPublished);
+  const upcoming = matches.filter(isUpcoming);
 
   return (
     <div style={{ padding: '0 56px 96px', position: 'relative', zIndex: 1 }}>
@@ -973,7 +1023,7 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
         marginBottom: 32,
         display: 'flex', alignItems: 'center', gap: 8,
       }}>
-        <span>{filtered.length} {filtered.length === 1 ? 'project' : 'projects'}</span>
+        <span>{filtered.length} available {filtered.length === 1 ? 'project' : 'projects'}{upcoming.length > 0 ? ` · ${upcoming.length} upcoming` : ''}</span>
         {searchQuery && <span style={{ color: 'var(--fg2)' }}>· matching "{searchQuery}"</span>}
       </div>
       {/* Grid */}
@@ -994,6 +1044,7 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
           ))}
         </div>
       )}
+      <UpcomingSection projects={upcoming} cardStyle={tweaks.cardStyle} />
     </div>
   );
 }
@@ -2073,7 +2124,7 @@ function projectPath(project) {
 }
 function resolveRoute(path, projects) {
   const normalized = path === '/' ? '/' : path.replace(/\/+$/, '') + '/';
-  const selected = projects.find(p => projectPath(p) === normalized);
+  const selected = projects.find(p => isPublished(p) && projectPath(p) === normalized);
   return selected ? { view: 'project', selected } : { view: Object.keys(PAGE_PATHS).find(key => PAGE_PATHS[key] === normalized) || 'missing', selected: null };
 }
 
@@ -2107,6 +2158,9 @@ function App({ initialProjects = null, initialPath = '/' }) {
   const selectProject = (p) => {
     window.location.assign(projectPath(p));
   };
+
+  const published = projects.filter(isPublished);
+  const upcoming = projects.filter(isUpcoming);
 
   const accentStyle = `
     :root { --accent: #1F8A5B; --accent-dim: rgba(31, 138, 91, 0.12); --accent-bright: #176B47; }
@@ -2147,8 +2201,9 @@ function App({ initialProjects = null, initialPath = '/' }) {
           )}
           {!loading && view === 'home' && (
             <>
-              <Hero featured={getFeatured(projects)} onSelect={selectProject} heroLayout={tweaks.heroLayout} />
-              <div style={{ padding: '0 56px', marginBottom: 96 }}>
+              <Hero featured={getFeatured(published)} onSelect={selectProject} heroLayout={tweaks.heroLayout} />
+              <div style={{ padding: published.length ? '0 clamp(20px, 4vw, 56px)' : '120px clamp(20px, 4vw, 56px) 0', marginBottom: 96 }}>
+                {!published.length && <h1 style={{ fontSize: 40, fontWeight: 300, marginBottom: 32 }}>The collection</h1>}
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 40 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 32 }}>
                     <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: 32, letterSpacing: '-0.02em', margin: 0 }}>Recent additions</h2>
@@ -2159,11 +2214,12 @@ function App({ initialProjects = null, initialPath = '/' }) {
                     }}>Browse all projects →</button>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '48px 28px' }}>
-                    {projects.slice(0,4).map(p => (
+                    {published.slice(0,4).map(p => (
                       <ProjectCard key={p.id} project={p} onClick={() => selectProject(p)} showTags={tweaks.showTags} cardStyle="grid" voted={voted} counts={counts} onToggle={toggle} />
                     ))}
                   </div>
                 </div>
+                <UpcomingSection projects={upcoming} />
               </div>
             </>
           )}
@@ -2185,11 +2241,11 @@ function App({ initialProjects = null, initialPath = '/' }) {
               onToggle={toggle}
             />
           )}
-          {!loading && view === 'atlas' && <Atlas projects={projects} onSelect={selectProject} />}
+          {!loading && view === 'atlas' && <Atlas projects={published} onSelect={selectProject} />}
           {!loading && view === 'equipment' && <Equipment onBrowse={() => navigate('browse')} />}
           {!loading && view === 'for educators' && <ForEducators onBrowse={() => navigate('browse')} />}
           {!loading && view === 'contribute' && <Contribute onNav={navigate} />}
-          {!loading && view === 'about' && <About projectCount={projects.length} />}
+          {!loading && view === 'about' && <About projectCount={published.length} />}
         </div>
       </div>
 

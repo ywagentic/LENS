@@ -11,10 +11,10 @@ await rm('.build', {recursive:true, force:true});
 await rm('dist', {recursive:true, force:true});
 await mkdir('.build', {recursive:true});
 await mkdir('dist', {recursive:true});
-const common = `import React from 'react';\n${await readFile('tweaks-panel.jsx','utf8')}\n${await readFile('atlas.jsx','utf8')}\n${app}\nexport {App, parseCSV, normalizeProjects, projectPath, PAGE_PATHS, SHEET_CSV_URL};`;
+const common = `import React from 'react';\n${await readFile('tweaks-panel.jsx','utf8')}\n${await readFile('atlas.jsx','utf8')}\n${app}\nexport {App, parseCSV, normalizeProjects, projectPath, PAGE_PATHS, SHEET_CSV_URL, isPublished};`;
 await writeFile('.build/app.jsx', common);
 await build({entryPoints:['.build/app.jsx'], outfile:'.build/server.cjs',bundle:true,platform:'node',format:'cjs',packages:'external',define:{'process.env.NODE_ENV':'"production"'}});
-const {App,parseCSV,normalizeProjects,projectPath,PAGE_PATHS,SHEET_CSV_URL} = require('../.build/server.cjs');
+const {App,parseCSV,normalizeProjects,projectPath,PAGE_PATHS,SHEET_CSV_URL,isPublished} = require('../.build/server.cjs');
 const response = process.env.LENS_CSV_FILE ? null : await fetch(SHEET_CSV_URL,{signal:AbortSignal.timeout(30000)});
 if (response && !response.ok) throw new Error(`Catalogue fetch failed: ${response.status}`);
 const csv = response ? await response.text() : await readFile(process.env.LENS_CSV_FILE,'utf8');
@@ -39,7 +39,7 @@ const pages = {
  about:['About LENS | Landscape Architecture and VR','LENS is the Library of Experienceable Landscape Spaces. Learn about the collection, educational purpose, attribution and licensing.']
 };
 const routes = Object.entries(PAGE_PATHS).map(([view,path])=>({view,path,title:pages[view][0],description:pages[view][1]}));
-for(const p of projects) routes.push({path:projectPath(p),project:p,title:`${p.title}, ${p.location} — 360° Landscape | LENS`,description:`${p.title} in ${p.location}${p.year?`, completed ${p.year}`:''}. ${p.subtitle || 'Explore project information and 360° recordings.'}`});
+for(const p of projects.filter(isPublished)) routes.push({path:projectPath(p),project:p,title:`${p.title}, ${p.location} — 360° Landscape | LENS`,description:`${p.title} in ${p.location}${p.year?`, completed ${p.year}`:''}. ${p.subtitle || 'Explore project information and 360° recordings.'}`});
 let head = source.split('<head>')[1].split('</head>')[0].replace(/<title>[\s\S]*?<\/title>/,'').replace(/<script[\s\S]*?<\/script>/g,'');
 for(const route of [...routes,{path:'/404/',title:'Page not found | LENS',description:'This page is unavailable.',missing:true}]) {
  const url = origin+route.path;
@@ -56,4 +56,4 @@ for(const route of [...routes,{path:'/404/',title:'Page not found | LENS',descri
 await writeFile('dist/robots.txt',`User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`);
 await writeFile('dist/sitemap.xml',`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${routes.map(r=>`<url><loc>${origin+r.path}</loc></url>`).join('')}</urlset>`);
 await writeFile('dist/.nojekyll','');
-console.log(`Built ${routes.length} pages for ${projects.length} published projects.`);
+console.log(`Built ${routes.length} pages for ${projects.filter(isPublished).length} published and ${projects.filter(p=>!isPublished(p)).length} upcoming projects.`);
