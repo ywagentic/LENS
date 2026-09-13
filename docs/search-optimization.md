@@ -11,7 +11,9 @@ Production origin: https://lens-vr.com/
 - Conservative WebSite, CollectionPage/WebPage and Place structured data.
   External YouTube links are not represented as locally hosted video files.
 - `/robots.txt`, `/sitemap.xml`, and a noindex 404 page.
-- Only published rows are included; failed catalogue fetches stop deployment.
+- Only published rows get detail pages and sitemap entries. Upcoming rows appear
+  as previews on the homepage and Browse, with recording IDs suppressed. Hidden
+  rows are excluded. Failed catalogue fetches stop deployment.
 - Production React bundle replaces browser Babel and development CDN scripts.
 
 ## Search Console status

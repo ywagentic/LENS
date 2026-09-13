@@ -11,10 +11,20 @@ for(const url of urls){
  assert(!html.includes('text/babel'));
  assert(!html.includes('react.development'));
  const data=JSON.parse(html.match(/id="catalogue-data" type="application\/json">(.*?)<\/script>/s)[1]);
- assert(data.every(p=>['1','true'].includes(String(p.visible).toLowerCase())));
+ assert(data.every(p=>['1','true','on','published','2','upcoming'].includes(String(p.visible).toLowerCase())));
  assert.doesNotThrow(()=>JSON.parse(html.match(/type="application\/ld\+json">(.*?)<\/script>/s)[1]));
  for(const p of data){
   const slug=({9:'yongqing-fang',20:'huacheng-square'})[p.id]||`project-${p.id}`;
+  if (['2','upcoming'].includes(String(p.visible).toLowerCase())) {
+   assert(!sitemap.includes(`${site}/projects/${slug}/`));
+   assert.equal(p.captures.length, 0);
+   if(path==='/' || path==='/browse/') {
+    assert(html.includes('data-publication="upcoming"'));
+    assert(html.includes(p.title));
+    assert(!html.includes(`href="/projects/${slug}/"`));
+   }
+   continue;
+  }
   assert(sitemap.includes(`${site}/projects/${slug}/`));
   if(path==='/browse/') assert(html.includes(`href="/projects/${slug}/"`));
  }
