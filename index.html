@@ -947,10 +947,6 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
 
   return (
     <div className="browse-content" style={{ padding: '0 clamp(20px, 4vw, 56px) 96px', position: 'relative', zIndex: 1 }}>
-      <a href="/quest-test/" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '14px 16px', marginBottom: 24, border: '1px solid var(--border)', background: 'var(--accent-dim)', color: 'var(--accent-bright)', textDecoration: 'none', fontSize: 14, lineHeight: 1.5 }}>
-        <span>YouTube VR launch test</span>
-        <span style={{ fontSize: 12 }}>Test on your Quest →</span>
-      </a>
       {/* Filters */}
       <div style={{
         display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
@@ -1064,8 +1060,14 @@ function youtubeDestination(capture, nav = (typeof navigator !== 'undefined' ? n
     href: android ? `intent://www.youtube.com/watch?v=${id}#Intent;scheme=https;package=com.google.android.youtube;S.browser_fallback_url=${encodeURIComponent(web)};end` : web,
     target: mobile && !/OculusBrowser/i.test(nav.userAgent) ? '_self' : '_blank',
     mobile,
+    quest: /OculusBrowser|Quest/i.test(nav.userAgent || ''),
   };
 }
+const YOUTUBE_SEARCH_TITLES = {
+  '0_J7l3HbcX0': 'Guangzhou Zhujiang Xincheng Central Axis - Huacheng Plaza',
+  'sFw9p5A91HY': 'Guangzhou Zhujiang Xincheng Central Axis - Huacheng Plaza / Sunken',
+  'BP5CdxPtXYo': 'Guangzhou Yongqing Fang Plaza',
+};
 function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
   const [hovered, setHovered] = useState(false);
   const captures = project.captures || [];
@@ -1073,6 +1075,13 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
   // Reset to first capture when project changes
   useEffect(() => { setActiveIdx(0); }, [project.id]);
   const activeCapture = captures[activeIdx] || null;
+  const [copyStatus, setCopyStatus] = useState('');
+  useEffect(() => setCopyStatus(''), [activeCapture?.vrId]);
+  const searchTitle = YOUTUBE_SEARCH_TITLES[activeCapture?.vrId] || '';
+  const copySearchTitle = async () => {
+    try { await navigator.clipboard.writeText(searchTitle); setCopyStatus('Copied. Switch to YouTube VR and paste into Search.'); }
+    catch { setCopyStatus('Copy is unavailable here. Select and copy the title below, or type it into YouTube VR Search.'); }
+  };
   const destination = youtubeDestination(activeCapture);
   const vrTypeLabel = (project.vrTypes && project.vrTypes.length > 0)
     ? project.vrTypes.join(' · ')
@@ -1179,10 +1188,22 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
       </a>
 
       {activeCapture && <p style={{ ...SMALL, marginBottom: captures.length > 1 ? 24 : 48 }}>
-        {destination.mobile
+        {destination.quest
+          ? 'For clearer playback on Quest, open YouTube VR from your app library and find this recording there. This link opens the YouTube website.'
+          : destination.mobile
           ? 'Open in the YouTube app to look around. If the video opens in your browser instead, rotating the 360° view may not work.'
           : 'Opens the original video on YouTube in a new tab. Drag the video there to look around.'}
       </p>}
+
+      {activeCapture && <details open={destination.quest || undefined} style={{ marginBottom: 32, padding: 16, border: '1px solid var(--border)', overflowWrap: 'anywhere' }}>
+        <summary style={{ cursor: 'pointer', fontSize: 14, color: 'var(--accent)' }}>Watching on Meta Quest?</summary>
+        <p style={{ ...SMALL, marginTop: 12 }}>Open YouTube VR from your app library. Search for this recording, or find it on our <a href="https://www.youtube.com/@360Landscape" target="_blank" rel="noopener noreferrer">YouTube channel</a>. Website links may remain in the browser.</p>
+        {searchTitle ? <>
+          <p style={{ ...SMALL, marginTop: 12, userSelect: 'text' }}>{searchTitle}</p>
+          <button onClick={copySearchTitle} style={{ marginTop: 12, padding: '10px 14px', border: '1px solid var(--border)', background: 'var(--card-bg)', color: 'var(--fg)', cursor: 'pointer' }}>Copy video title</button>
+          <p role="status" style={{ ...SMALL, marginTop: 8 }}>{copyStatus}</p>
+        </> : <p style={{ ...SMALL, marginTop: 12 }}>Search for “{project.title}” on the channel.</p>}
+      </details>}
 
       {/* Viewpoints — only when project has multiple capture points */}
       {captures.length > 1 && (
