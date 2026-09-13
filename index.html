@@ -947,6 +947,10 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
 
   return (
     <div className="browse-content" style={{ padding: '0 clamp(20px, 4vw, 56px) 96px', position: 'relative', zIndex: 1 }}>
+      <a href="/quest-test/" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '14px 16px', marginBottom: 24, border: '1px solid var(--border)', background: 'var(--accent-dim)', color: 'var(--accent-bright)', textDecoration: 'none', fontSize: 14, lineHeight: 1.5 }}>
+        <span>YouTube VR launch test</span>
+        <span style={{ fontSize: 12 }}>Test on your Quest →</span>
+      </a>
       {/* Filters */}
       <div style={{
         display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
