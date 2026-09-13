@@ -1,22 +1,37 @@
 # YouTube recording titles
 
-Format: `Project name — City | [Viewpoint description |] 360° VR | LENS-PPP-VV`
+Approved format: `City Project name [/ Viewpoint] | 360° VR | CCPP-VV`
 
-- Lead with recognizable project and city names for viewers finding the video directly on YouTube.
-- Add a short descriptive viewpoint when useful (e.g. Sunken Plaza), rather than leading with technical IDs.
-- Put the stable database identifier only at the end. PPP is the project ID padded to at least three digits; VV is a permanently assigned capture number padded to at least two digits.
-- Assign capture numbers once; do not change them when reordering viewpoints. Do not reuse retired numbers.
-- Keep titles within YouTube's 100-character limit; shorten the descriptive part first.
-- Use the same project spelling in the website and YouTube. Language translations belong in translated metadata or the description.
+Use natural-language titles with the city first. Preserve established video names, including Zhujiang Xincheng Central Axis - Huacheng Plaza. The identifier belongs at the end only.
 
-Proposed replacements (not yet applied on YouTube):
+## Internal numbering registry
+
+CC identifies a city globally; PP identifies a project within that city; VV identifies a fixed viewpoint within that project. Assign once, never renumber when sorting, never reuse retired codes. These public recording codes are independent of the database's numeric row IDs. Record new assignments in this registry before publishing; no automatic numbering from display order.
+
+| City code | City | Country |
+| --- | --- | --- |
+| 01 | Beijing | China |
+| 02 | Shanghai | China |
+| 03 | Guangzhou | China |
+| 04 | Shenzhen | China |
+
+| Project code | Project | Database ID |
+| --- | --- | --- |
+| 0301 | Yongqing Fang | 9 |
+| 0302 | Huacheng Square | 20 |
+
+Shenzhen's city code is reserved; its project and viewpoint codes have not yet been assigned. International cities receive their own global city codes, with country recorded in the registry. Reserve a format extension before any two-digit range is exhausted; do not silently change existing codes.
+
+## Published titles
+
+Verified against YouTube oEmbed on 2026-09-13 after the user's title updates. The website's YOUTUBE_SEARCH_TITLES mapping supplies these exact titles to the copy button.
 
 | Video ID | Title |
 | --- | --- |
-| 0_J7l3HbcX0 | Huacheng Square — Guangzhou \| 360° VR \| LENS-020-01 |
-| sFw9p5A91HY | Huacheng Square — Guangzhou \| Sunken Plaza \| 360° VR \| LENS-020-02 |
-| BP5CdxPtXYo | Yongqing Fang — Guangzhou \| 360° VR \| LENS-009-01 |
+| BP5CdxPtXYo | Guangzhou Yongqing Fang \| 360° VR \| 0301-01 |
+| 0_J7l3HbcX0 | Guangzhou Zhujiang Xincheng Central Axis - Huacheng Plaza \| 360° VR \| 0302-01 |
+| sFw9p5A91HY | Guangzhou Zhujiang Xincheng Central Axis - Huacheng Plaza / Sunken \| 360° VR \| 0302-02 |
 
-Current titles were checked through YouTube oEmbed on 2026-09-13. The website's YOUTUBE_SEARCH_TITLES map uses those actual titles until YouTube metadata is updated. Update that map with the exact new titles after renaming each video, so the copy button always supplies searchable text.
+Keep titles within 100 characters. After a YouTube title change, verify the exact title and update the website mapping. Preserve viewpoint codes when replacing recordings of the same viewpoint; allocate a new code for a new viewpoint.
 
 Quest test result: all three experimental browser intents failed on the user's headset. Native YouTube VR playback is clear while the browser path starts blurry. Browse's temporary test entry has been removed; /quest-test/ remains unlisted for reference. Do not promote the failed intents to production playback links.
