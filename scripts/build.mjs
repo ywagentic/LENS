@@ -34,22 +34,22 @@ try { await cp('public','dist',{recursive:true}); } catch(error) { if(error.code
 const escape = s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const json = value=>JSON.stringify(value).replaceAll('<','\\u003c');
 const pages = {
- home:['LENS — Landscape Architecture in 360°','Explore landscape architecture through a growing collection of 360° recordings, project information and resources for design education.'],
- browse:['Browse Landscape Projects | LENS','Browse landscape architecture projects with 360° recordings, locations, completion years and spatial characteristics.'],
- atlas:['Landscape Project Atlas | LENS','Explore the LENS landscape architecture collection by location, completion year and project characteristics.'],
- equipment:['Viewing 360° Landscapes: Equipment Guide | LENS','Learn how to view LENS landscape recordings on YouTube and VR headsets, with practical guidance for classroom viewing.'],
- 'for educators':['360° Landscape Architecture for Educators | LENS','Use first-person landscape recordings to develop spatial understanding, draw observed spaces and discuss scale and design decisions.'],
- contribute:['Contribute a 360° Landscape Recording | LENS','Help document built landscapes for design education. Read the capture protocol and submit your recording and project information to LENS.'],
- about:['About LENS | Landscape Architecture and VR','LENS is the Library of Experienceable Landscape Spaces. Learn about the collection, educational purpose, attribution and licensing.']
+ home:['LENS — Landscape Architecture VR Archive','LENS is a VR digital archive of contemporary urban public spaces for landscape architecture education and research. Explore parks, plazas and waterfronts in 360°.'],
+ browse:['Explore Public Spaces in 360° VR | LENS','Browse contemporary urban public spaces in the LENS archive. Explore landscape architecture projects through 360° recordings, design information and sources.'],
+ atlas:['Map of Urban Public Spaces in VR | LENS','Locate projects in the LENS VR archive of contemporary urban public spaces. Explore the collection by location, completion year and spatial characteristics.'],
+ equipment:['How to View 360° Public Spaces in VR | LENS','Learn how to explore the LENS public space archive using YouTube and VR headsets, including Meta Quest, with practical guidance for classroom viewing.'],
+ 'for educators':['VR Resources for Landscape Architecture Education | LENS','Use 360° recordings of contemporary urban public spaces to study landscape architecture: spatial scale, drawing from observation and design decisions.'],
+ contribute:['Contribute to the Public Space VR Archive | LENS','Document contemporary urban public spaces for landscape architecture education. Read the 360° capture protocol and contribute recordings to LENS.'],
+ about:['About LENS — A VR Archive of Urban Public Spaces','LENS is a VR digital archive of contemporary urban public spaces for landscape architecture education and research. Learn about its authorship and licensing.']
 };
 const routes = Object.entries(PAGE_PATHS).map(([view,path])=>({view,path,title:pages[view][0],description:pages[view][1]}));
-for(const p of projects.filter(isPublished)) routes.push({path:projectPath(p),project:p,title:`${p.title}, ${p.location} — 360° Landscape | LENS`,description:`${p.title} in ${p.location}${p.year?`, completed ${p.year}`:''}. ${p.subtitle || 'Explore project information and 360° recordings.'}`});
+for(const p of projects.filter(isPublished)) routes.push({path:projectPath(p),project:p,title:`${p.title}, ${p.location} — 360° VR | LENS`,description:`Explore ${p.title} in ${p.location} through ${(p.captures || []).length} 360° VR recording${(p.captures || []).length === 1 ? '' : 's'}. View project information and sources in the LENS public space archive.`});
 let head = source.split('<head>')[1].split('</head>')[0].replace(/<title>[\s\S]*?<\/title>/,'').replace(/<script[\s\S]*?<\/script>/g,'');
 for(const route of [...routes,{path:'/404/',title:'Page not found | LENS',description:'This page is unavailable.',missing:true}]) {
  const url = origin+route.path;
  const picture = origin+(route.project?.thumb || '/assets/brand/lens-youtube-avatar.png');
  const schema = {'@context':'https://schema.org','@graph':[
-  {'@type':'WebSite','@id':origin+'/#website',url:origin+'/',name:'LENS',alternateName:'Library of Experienceable Landscape Spaces',inLanguage:'en'},
+  {'@type':'WebSite','@id':origin+'/#website',url:origin+'/',name:'LENS',description:'A VR digital archive of contemporary urban public spaces for landscape architecture education and research',inLanguage:'en'},
   {'@type':route.project?'WebPage':(['home','browse','atlas'].includes(route.view)?'CollectionPage':'WebPage'),'@id':url+'#webpage',url,name:route.title,description:route.description,isPartOf:{'@id':origin+'/#website'},...(route.project?{about:{'@type':'Place',name:route.project.title,address:route.project.location,url,...(route.project.coordinates?{geo:{'@type':'GeoCoordinates',latitude:Number(route.project.coordinates.split(',')[0]),longitude:Number(route.project.coordinates.split(',')[1])}}:{})}}:{})}
  ]};
  const metadata = `<title>${escape(route.title)}</title><meta name="description" content="${escape(route.description)}"><link rel="canonical" href="${url}"><meta name="robots" content="${route.missing?'noindex, follow':'index, follow'}"><meta property="og:type" content="website"><meta property="og:site_name" content="LENS"><meta property="og:title" content="${escape(route.title)}"><meta property="og:description" content="${escape(route.description)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${escape(picture)}"><meta name="twitter:card" content="${route.project?'summary_large_image':'summary'}"><script type="application/ld+json">${json(schema)}</script>`;
