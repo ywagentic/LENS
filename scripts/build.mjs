@@ -2,9 +2,12 @@ import { readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { build } from 'esbuild';
 import React from 'react';
+import { analyticsMarkup } from './analytics.mjs';
 import { renderToString } from 'react-dom/server';
 const require = createRequire(import.meta.url);
 const origin = 'https://lens-vr.com';
+const analyticsConfig = JSON.parse(await readFile('config/analytics.json', 'utf8'));
+const analytics = analyticsMarkup(analyticsConfig.cloudflareToken, origin);
 const source = await readFile('index.html', 'utf8');
 const app = source.split('<script type="text/babel">')[1].split('const root = ReactDOM.createRoot')[0];
 await rm('.build', {recursive:true, force:true});
@@ -50,7 +53,7 @@ for(const route of [...routes,{path:'/404/',title:'Page not found | LENS',descri
   {'@type':route.project?'WebPage':(['home','browse','atlas'].includes(route.view)?'CollectionPage':'WebPage'),'@id':url+'#webpage',url,name:route.title,description:route.description,isPartOf:{'@id':origin+'/#website'},...(route.project?{about:{'@type':'Place',name:route.project.title,address:route.project.location,url,...(route.project.coordinates?{geo:{'@type':'GeoCoordinates',latitude:Number(route.project.coordinates.split(',')[0]),longitude:Number(route.project.coordinates.split(',')[1])}}:{})}}:{})}
  ]};
  const metadata = `<title>${escape(route.title)}</title><meta name="description" content="${escape(route.description)}"><link rel="canonical" href="${url}"><meta name="robots" content="${route.missing?'noindex, follow':'index, follow'}"><meta property="og:type" content="website"><meta property="og:site_name" content="LENS"><meta property="og:title" content="${escape(route.title)}"><meta property="og:description" content="${escape(route.description)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${escape(picture)}"><meta name="twitter:card" content="${route.project?'summary_large_image':'summary'}"><script type="application/ld+json">${json(schema)}</script>`;
- const html = `<!DOCTYPE html><html lang="en"><head>${head}${metadata}</head><body><div id="root">${renderToString(React.createElement(App,{initialProjects:projects,initialPath:route.path}))}</div><script id="catalogue-data" type="application/json">${json(projects)}</script><script defer src="${js}"></script></body></html>`;
+ const html = `<!DOCTYPE html><html lang="en"><head>${head}${metadata}</head><body><div id="root">${renderToString(React.createElement(App,{initialProjects:projects,initialPath:route.path}))}</div><script id="catalogue-data" type="application/json">${json(projects)}</script><script defer src="${js}"></script>${route.missing ? '' : analytics}</body></html>`;
  const file = route.missing?'dist/404.html':`dist${route.path}index.html`;
  await mkdir(file.slice(0,file.lastIndexOf('/')),{recursive:true});await writeFile(file,html);
 }
