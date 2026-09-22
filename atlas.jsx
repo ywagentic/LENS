@@ -416,6 +416,7 @@ function AtlasMap({projects,onSelect,setView}) {
     `}</style>
     <h1 style={{fontWeight:200,fontSize:'clamp(40px,5vw,64px)',margin:0,letterSpacing:'-.025em'}}>Atlas</h1>
     <p style={{color:'var(--fg3)',lineHeight:1.6,marginTop:12}}>Explore the collection by geography, year, or type. Select a group to see its region.</p>
+    <AtlasCollectionStats projects={projects} />
     <div className="atlas-map-toolbar">
       <span style={{fontSize:12,color:'var(--fg3)'}}>Arrange by</span>
       {['map','year','type'].map(v=><button key={v} style={{...button,background:v==='map'?'var(--fg)':'transparent',color:v==='map'?'var(--bg)':'var(--fg)'}} onClick={()=>setView(v)}>{v==='map'?'Geography':v==='year'?'Year':'Type'}</button>)}
@@ -443,6 +444,15 @@ function AtlasMap({projects,onSelect,setView}) {
       </aside>
     </div>
   </main>;
+}
+
+function AtlasCollectionStats({ projects }) {
+  const clips = projects.reduce((total, project) => total + (project.captures || []).length, 0);
+  return <p aria-label="Archive statistics" style={{fontSize:13,color:'var(--fg3)',lineHeight:1.5,marginTop:12}}>
+    <span style={{color:'var(--fg)'}}>{projects.length}</span> Projects
+    <span aria-hidden="true"> · </span>
+    <span style={{color:'var(--fg)'}}>{clips}</span> Clips
+  </p>;
 }
 
 function Atlas({ projects, onSelect }) {
@@ -510,6 +520,7 @@ function Atlas({ projects, onSelect }) {
           }}>
             The collection as a field. Each dot is a project — rearrange by geography, year, or type, and hover to inspect.
           </p>
+          <AtlasCollectionStats projects={projects} />
         </div>
 
         {/* Field + chrome */}

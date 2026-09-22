@@ -2115,7 +2115,7 @@ function Equipment({ onBrowse }) {
 }
 
 
-function About({ projectCount }) {
+function About({ projectCount, clipCount }) {
   return (
     <div className="about-page" style={{ overflowWrap: 'anywhere', minWidth: 0, padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}>
       <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.05, marginBottom: 24 }}>About LENS</h1>
@@ -2139,9 +2139,10 @@ function About({ projectCount }) {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))', gap: 20, marginTop: 48 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 20, marginTop: 48 }}>
         {[
           [String(projectCount), 'Projects', 'Growing collection of documented spaces'],
+          [String(clipCount), 'Clips', 'Published 360° video recordings'],
           ['360°', 'Immersive', 'Full spherical photo and video capture'],
           ['Open', 'Access', 'Free for education and research'],
         ].map(([val, label, desc]) => (
@@ -2306,7 +2307,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
           {!loading && view === 'equipment' && <Equipment onBrowse={() => navigate('browse')} />}
           {!loading && view === 'for educators' && <ForEducators onBrowse={() => navigate('browse')} />}
           {!loading && view === 'contribute' && <Contribute onNav={navigate} />}
-          {!loading && view === 'about' && <About projectCount={published.length} />}
+          {!loading && view === 'about' && <About projectCount={published.length} clipCount={published.reduce((total, project) => total + project.captures.length, 0)} />}
         </div>
       </div>
 
