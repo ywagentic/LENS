@@ -100,6 +100,7 @@
       --space-4: 32px; --space-6: 48px; --space-8: 64px;
       --page-inset: clamp(20px, 4vw, 56px);
     }
+    .archive-hero, .archive-collection { width: 100%; max-width: 1440px; margin-left: auto; margin-right: auto; }
     .archive-hero { padding: 96px var(--page-inset) var(--space-8); }
     .archive-intro { display: grid; grid-template-columns: 144px minmax(0, 680px); gap: var(--space-3); align-items: baseline; padding-bottom: var(--space-3); border-bottom: 1px solid var(--border); }
     .archive-intro h1, .archive-intro p { font-size: var(--type-body); font-weight: 400; line-height: 1.55; margin: 0; }
@@ -114,7 +115,7 @@
     .archive-feature h2 a { color: inherit; }
     .archive-feature-description { font-size: var(--type-body); line-height: 1.55; color: var(--fg2); max-width: 400px; margin: 0 0 var(--space-2); }
     .archive-feature-image { grid-column: 2; grid-row: 1 / 3; min-width: 0; display: flex; align-items: end; background: #fff; }
-    .archive-feature-image img { display: block; width: 100%; height: auto; }
+    .archive-feature-image img { display: block; width: 100%; height: auto; max-height: 510px; }
     .archive-feature-details { grid-column: 1; grid-row: 2; }
     .archive-feature-location { font-size: var(--type-ui); line-height: 1.45; color: var(--fg3); margin: 0 0 var(--space-3); }
     .archive-project-link { display: inline-flex; min-height: 44px; align-items: center; gap: var(--space-4); padding: 12px var(--space-3); background: var(--fg); color: var(--bg); font-size: var(--type-ui); transition: background .18s; }
@@ -620,7 +621,7 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
       WebkitBackdropFilter: scrolled ? 'blur(12px) saturate(1.1)' : 'none',
       borderBottom: '1px solid var(--border)',
       transition: 'background 0.3s',
-      padding: '0 clamp(20px, 4vw, 56px)',
+      padding: '0 max(clamp(20px, 4vw, 56px), calc((100vw - 1440px) / 2 + 56px))',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       gap: 16, flexWrap: 'nowrap',
       height: 64,
@@ -2217,7 +2218,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
           {!loading && view === 'home' && (
             <>
               <Hero featured={getFeatured(published)} heroLayout={tweaks.heroLayout} />
-              <div style={{ padding: published.length ? '0 clamp(20px, 4vw, 56px)' : '120px clamp(20px, 4vw, 56px) 0', marginBottom: 96 }}>
+              <div className="archive-collection" style={{ padding: published.length ? '0 clamp(20px, 4vw, 56px)' : '120px clamp(20px, 4vw, 56px) 0', marginBottom: 96 }}>
 
                 <div className="archive-more">
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 32 }}>
