@@ -2133,7 +2133,7 @@ function About({ projectCount }) {
 // ─── APP ─────────────────────────────────────────────────────────────────────
 const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/' };
 function projectPath(project) {
-  const slug = { 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
+  const slug = { 23: 'the-broad', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
   return `/projects/${slug}/`;
 }
 function resolveRoute(path, projects) {

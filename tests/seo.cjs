@@ -14,7 +14,7 @@ for(const url of urls){
  assert(data.every(p=>['1','true','on','published','2','upcoming'].includes(String(p.visible).toLowerCase())));
  assert.doesNotThrow(()=>JSON.parse(html.match(/type="application\/ld\+json">(.*?)<\/script>/s)[1]));
  for(const p of data){
-  const slug=({9:'yongqing-fang',17:'smale-riverfront-park',20:'huacheng-square'})[p.id]||`project-${p.id}`;
+  const slug=({23:'the-broad',9:'yongqing-fang',17:'smale-riverfront-park',20:'huacheng-square'})[p.id]||`project-${p.id}`;
   if (['2','upcoming'].includes(String(p.visible).toLowerCase())) {
    assert(!sitemap.includes(`${site}/projects/${slug}/`));
    assert.equal(p.captures.length, 0);
