@@ -207,7 +207,7 @@ function hasRecording(project) { return (project.captures || []).length > 0; }
 function normalizeProjects(data) {
   return data.filter(isProjectVisible).map(source => {
     const p = { ...source };
-    const illustrations = { 22: '/assets/projects/tongva-park.jpg', 17: '/assets/projects/smale-riverfront-park.jpg', 9: '/assets/projects/yongqing-fang.jpg', 20: '/assets/projects/huacheng-square.jpg', 21: '/assets/projects/shenzhen-talent-park-phase-ii.jpg' };
+    const illustrations = { 23: '/assets/projects/the-broad.jpg', 22: '/assets/projects/tongva-park.jpg', 17: '/assets/projects/smale-riverfront-park.jpg', 9: '/assets/projects/yongqing-fang.jpg', 20: '/assets/projects/huacheng-square.jpg', 21: '/assets/projects/shenzhen-talent-park-phase-ii.jpg' };
     if (illustrations[p.id]) {
       p.thumb = illustrations[p.id];
       p.thumbIllustration = true;
