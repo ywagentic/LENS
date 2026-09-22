@@ -31,3 +31,6 @@ dist/
 
 # Local project previews
 .preview/
+
+# Private working notes: never commit or deploy
+.local-notes/
