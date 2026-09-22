@@ -245,7 +245,7 @@ function hasRecording(project) { return (project.captures || []).length > 0; }
 function normalizeProjects(data) {
   return data.filter(isProjectVisible).map(source => {
     const p = { ...source };
-    const illustrations = { 17: '/assets/projects/smale-riverfront-park.jpg', 9: '/assets/projects/yongqing-fang.jpg', 20: '/assets/projects/huacheng-square.jpg', 21: '/assets/projects/shenzhen-talent-park-phase-ii.jpg' };
+    const illustrations = { 22: '/assets/projects/tongva-park.jpg', 17: '/assets/projects/smale-riverfront-park.jpg', 9: '/assets/projects/yongqing-fang.jpg', 20: '/assets/projects/huacheng-square.jpg', 21: '/assets/projects/shenzhen-talent-park-phase-ii.jpg' };
     if (illustrations[p.id]) {
       p.thumb = illustrations[p.id];
       p.thumbIllustration = true;
@@ -2133,7 +2133,7 @@ function About({ projectCount }) {
 // ─── APP ─────────────────────────────────────────────────────────────────────
 const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/' };
 function projectPath(project) {
-  const slug = { 23: 'the-broad', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
+  const slug = { 23: 'the-broad', 22: 'tongva-park', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
   return `/projects/${slug}/`;
 }
 function resolveRoute(path, projects) {
