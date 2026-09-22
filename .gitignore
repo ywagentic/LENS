@@ -34,3 +34,15 @@ dist/
 
 # Private working notes: never commit or deploy
 .local-notes/
+
+# Internal editorial, research and preparation material
+docs/*
+!docs/project-years.md
+drafts/
+design/
+assets/projects/*-prompt.md
+assets/brand/*-prompt.md
+assets/brand/lens-youtube-banner-*
+grants/
+profile img/
+thumbs/
