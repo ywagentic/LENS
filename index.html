@@ -89,46 +89,48 @@
       .browse-content .project-card-list > :nth-child(4) { grid-column: 2; }
     }
 
-    .archive-hero { padding: 120px clamp(20px, 4vw, 56px) 64px; }
-    .archive-intro { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 48px; align-items: end; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
-    .archive-intro h1 { font-size: clamp(28px, 3vw, 42px); font-weight: 300; line-height: 1.12; letter-spacing: -.025em; margin: 0; }
-    .archive-intro-copy { max-width: 380px; }
-    .archive-intro-copy p { font-size: 15px; line-height: 1.55; color: var(--fg2); margin: 0 0 14px; }
-    .archive-intro-copy a { font-size: 13px; color: var(--accent); display: inline-flex; align-items: center; gap: 16px; }
-    .archive-feature { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); column-gap: 48px; row-gap: 28px; padding-top: 36px; }
-    .archive-feature-heading { grid-column: 1; grid-row: 1; }
-    .archive-eyebrow { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--fg3); margin: 0 0 24px; }
-    .archive-eyebrow span { color: var(--accent); margin-right: 8px; }
-    .archive-feature h2 { font-size: clamp(36px, 4vw, 56px); line-height: 1.05; font-weight: 300; letter-spacing: -.025em; margin: 0 0 20px; }
-    .archive-feature h2 a { color: inherit; }
-    .archive-feature-description { font-size: 15px; line-height: 1.6; color: var(--fg2); max-width: 440px; margin: 0; }
-    .archive-feature-image { grid-column: 2; grid-row: 1 / 3; min-width: 0; display: flex; align-items: center; background: #fff; }
-    .archive-feature-image img { display: block; width: 100%; height: auto; max-height: 510px; }
-    .archive-feature-details { grid-column: 1; grid-row: 2; }
-    .archive-feature-details dl { border-top: 1px solid var(--border); padding-top: 18px; margin: 0 0 24px; }
-    .archive-feature-details dl > div { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 16px; margin-bottom: 10px; }
-    .archive-feature-details dt { font-size: 11px; color: var(--fg3); }
-    .archive-feature-details dd { font-size: 12px; margin: 0; }
-    .archive-project-link { display: inline-flex; align-items: center; gap: 28px; padding: 13px 20px; background: var(--fg); color: var(--bg); font-size: 13px; transition: background .18s; }
-    .archive-project-link:hover { background: var(--accent); }
-    @media (min-width: 881px) {
-      .archive-feature-full { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-      .archive-feature-full .archive-feature-image { grid-column: 1 / -1; grid-row: 2; }
-      .archive-feature-full .archive-feature-details { grid-column: 2; grid-row: 1; }
+    :root {
+      --type-display: clamp(64px, 5.6vw, 80px);
+      --type-section: 32px;
+      --type-card: 20px;
+      --type-body: 16px;
+      --type-ui: 13px;
+      --type-label: 11px;
+      --space-1: 8px; --space-2: 16px; --space-3: 24px;
+      --space-4: 32px; --space-6: 48px; --space-8: 64px;
+      --page-inset: clamp(20px, 4vw, 56px);
     }
+    .archive-hero { padding: 96px var(--page-inset) var(--space-8); }
+    .archive-intro { display: grid; grid-template-columns: 144px minmax(0, 680px); gap: var(--space-3); align-items: baseline; padding-bottom: var(--space-3); border-bottom: 1px solid var(--border); }
+    .archive-intro h1, .archive-intro p { font-size: var(--type-body); font-weight: 400; line-height: 1.55; margin: 0; }
+    .archive-intro .archive-identity-label { font-size: var(--type-label); font-weight: 500; letter-spacing: .12em; line-height: 1.4; color: var(--fg3); }
+    .archive-intro h1 span { color: var(--fg3); }
+    .archive-intro .archive-intro-detail { margin-top: var(--space-2); color: var(--fg3); }
+    .archive-feature { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: var(--space-4); row-gap: var(--space-3); padding-top: var(--space-6); }
+    .archive-feature-heading { grid-column: 1; grid-row: 1; }
+    .archive-eyebrow { font-size: var(--type-label); font-weight: 500; letter-spacing: .12em; line-height: 1.4; text-transform: uppercase; color: var(--fg3); margin: 0 0 var(--space-3); }
+    .archive-eyebrow span { color: var(--accent); margin-right: var(--space-1); }
+    .archive-feature h2 { font-size: var(--type-display); line-height: 1.02; font-weight: 300; letter-spacing: -.04em; margin: 0; }
+    .archive-feature h2 a { color: inherit; }
+    .archive-feature-description { font-size: var(--type-body); line-height: 1.55; color: var(--fg2); max-width: 400px; margin: 0 0 var(--space-2); }
+    .archive-feature-image { grid-column: 2; grid-row: 1 / 3; min-width: 0; display: flex; align-items: end; background: #fff; }
+    .archive-feature-image img { display: block; width: 100%; height: auto; }
+    .archive-feature-details { grid-column: 1; grid-row: 2; }
+    .archive-feature-location { font-size: var(--type-ui); line-height: 1.45; color: var(--fg3); margin: 0 0 var(--space-3); }
+    .archive-project-link { display: inline-flex; min-height: 44px; align-items: center; gap: var(--space-4); padding: 12px var(--space-3); background: var(--fg); color: var(--bg); font-size: var(--type-ui); transition: background .18s; }
+    .archive-project-link:hover { background: var(--accent); }
+    .archive-more { border-top: 1px solid var(--border); padding-top: var(--space-4); }
+    .archive-more h2 { font-size: var(--type-section); line-height: 1.15; font-weight: 300; letter-spacing: -.02em; margin: 0; }
+    .archive-more-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
     @media (max-width: 880px) {
-      .archive-hero { padding-top: 100px; padding-bottom: 40px; }
-      .archive-intro { grid-template-columns: 1fr; gap: 18px; padding-bottom: 24px; }
-      .archive-intro h1 { font-size: clamp(28px, 5vw, 38px); }
-      .archive-intro-copy { max-width: 440px; }
-      .archive-intro-copy p { font-size: 14px; margin-bottom: 12px; }
-      .archive-feature { grid-template-columns: 1fr; gap: 24px; padding-top: 28px; }
+      :root { --type-display: clamp(40px, 6.2vw, 48px); --type-section: 28px; }
+      .archive-hero { padding-top: 88px; padding-bottom: var(--space-6); }
+      .archive-intro { grid-template-columns: 1fr; gap: var(--space-2); }
+      .archive-feature { grid-template-columns: 1fr; gap: var(--space-3); padding-top: var(--space-4); }
       .archive-feature-heading, .archive-feature-image, .archive-feature-details { grid-column: 1; grid-row: auto; }
-      .archive-feature h2 { font-size: 36px; margin-bottom: 14px; }
-      .archive-eyebrow { margin-bottom: 16px; }
-      .archive-feature-description { font-size: 14px; }
-      .archive-feature-image { aspect-ratio: 16 / 9; }
-      .archive-feature-image img { height: 100%; }
+      .archive-eyebrow { margin-bottom: var(--space-2); }
+      .archive-feature-image img { max-height: 450px; }
+      .archive-more-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -618,7 +620,7 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
       WebkitBackdropFilter: scrolled ? 'blur(12px) saturate(1.1)' : 'none',
       borderBottom: '1px solid var(--border)',
       transition: 'background 0.3s',
-      padding: 'clamp(0px, 4vw, 56px) clamp(20px, 4vw, 56px)',
+      padding: '0 clamp(20px, 4vw, 56px)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       gap: 16, flexWrap: 'nowrap',
       height: 64,
@@ -738,30 +740,24 @@ function Hero({ featured, heroLayout }) {
   return (
     <section className="archive-hero">
       <header className="archive-intro">
-        <h1>Contemporary Urban<br className="archive-title-break" /> Public Spaces in VR</h1>
-        <div className="archive-intro-copy">
-          <p>A digital archive for landscape architecture education and research.</p>
-          <a href="/browse/">Explore the archive <span aria-hidden="true">↗</span></a>
+        <p className="archive-identity-label">ABOUT LENS</p>
+        <div>
+          <h1>Contemporary Urban Public Spaces in VR</h1>
+          <p className="archive-intro-detail">LENS is a VR digital archive for landscape architecture education and research. Its collection brings together on-site 360° recordings of parks, plazas, waterfronts and other contemporary urban public spaces.</p>
         </div>
       </header>
       {featured && <article className={`archive-feature${heroLayout === 'full' ? ' archive-feature-full' : ''}`}>
         <div className="archive-feature-heading">
-          <p className="archive-eyebrow"><span aria-hidden="true">●</span> Featured space{featured.year ? ` · ${featured.year}` : ''}</p>
+          <p className="archive-eyebrow"><span aria-hidden="true">●</span> Featured space</p>
           <h2><a href={projectPath(featured)}>{featured.title}</a></h2>
-          <p className="archive-feature-description">{featured.subtitle}</p>
+
         </div>
         <a className="archive-feature-image" href={projectPath(featured)} aria-label={`View ${featured.title} project details`}>
           {featured.thumb && <img src={featured.thumb} alt={featured.title} style={{ objectFit: featured.thumbIllustration ? 'contain' : 'cover' }} />}
         </a>
         <div className="archive-feature-details">
-          <dl>
-            {[
-              ['Designer', featured.designer || 'Multiple'],
-              ['Location', featured.location],
-              ['Type', featured.type],
-              ['Site area', featured.area || '—'],
-            ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
-          </dl>
+          <p className="archive-feature-description">{featured.subtitle}</p>
+          <p className="archive-feature-location">{featured.location}{featured.year ? ` · ${featured.year}` : ''}</p>
           <a className="archive-project-link" href={projectPath(featured)}>View project <span aria-hidden="true">→</span></a>
         </div>
       </article>}
@@ -2223,17 +2219,17 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
               <Hero featured={getFeatured(published)} heroLayout={tweaks.heroLayout} />
               <div style={{ padding: published.length ? '0 clamp(20px, 4vw, 56px)' : '120px clamp(20px, 4vw, 56px) 0', marginBottom: 96 }}>
 
-                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 40 }}>
+                <div className="archive-more">
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 32 }}>
-                    <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: 32, letterSpacing: '-0.02em', margin: 0 }}>Recent additions</h2>
+                    <h2>More from the archive</h2>
                     <button onClick={() => navigate('browse')} style={{
                       background: 'none', border: 'none', cursor: 'pointer',
                       fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)',
                       textDecoration: 'underline', textUnderlineOffset: 4,
                     }}>Browse all projects →</button>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '48px 28px' }}>
-                    {published.slice(0,4).map(p => (
+                  <div className="archive-more-grid">
+                    {published.filter(p => p.id !== getFeatured(published)?.id).slice(0,4).map(p => (
                       <ProjectCard key={p.id} project={p} onClick={() => selectProject(p)} showTags={tweaks.showTags} cardStyle="grid" voted={voted} counts={counts} onToggle={toggle} />
                     ))}
                   </div>
