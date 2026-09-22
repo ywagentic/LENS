@@ -438,7 +438,7 @@ function AtlasMap({projects,onSelect,setView}) {
       <aside aria-label="Projects in map area" style={{minWidth:0,borderTop:'1px solid var(--border)',paddingTop:16,overflowWrap:'anywhere'}}>
         <div aria-live="polite" style={{fontSize:12,color:'var(--fg3)',marginBottom:12}}>{selection?'Selected group':ATLAS_LEVELS[level].label} · {listed.length} projects</div>
         {selection&&<button style={button} onClick={()=>setSelection(null)}>Show all in this region</button>}
-        {listed.map(p=><button key={p.id} onClick={()=>onSelect(p)} style={{display:'block',width:'100%',textAlign:'left',padding:'16px 0',border:0,borderBottom:'1px solid var(--border)',background:'transparent',color:'var(--fg)',cursor:'pointer'}}><span style={{display:'block',fontSize:16,lineHeight:1.4}}>{p.title} →</span><span style={{display:'block',fontSize:12,color:'var(--fg3)',marginTop:6}}>{p.location}{p.year?` · ${p.year}`:''}</span></button>)}
+        {listed.map(p=><button key={p.id} onClick={()=>onSelect(p)} style={{display:'block',width:'100%',textAlign:'left',padding:'16px 0',border:0,borderBottom:'1px solid var(--border)',background:'transparent',color:'var(--fg)',cursor:'pointer'}}><span style={{display:'block',fontSize:16,lineHeight:1.4}}>{p.title} →</span><span style={{display:'block',fontSize:12,color:'var(--fg3)',marginTop:6}}>{p.location}{p.year?` · ${p.year}`:''}</span><span style={{display:'block',fontSize:12,color:'var(--accent)',marginTop:6}}>{recordingViewLabel(p)}</span></button>)}
         {!listed.length&&<p style={{fontSize:13,color:'var(--fg3)'}}>No projects match this view.</p>}
         {level==='guangdong'&&listed.length>1&&<p style={{fontSize:12,color:'var(--fg3)',lineHeight:1.6,marginTop:16}}>Select a project from the list. Nearby projects share a numbered point.</p>}
       </aside>
@@ -446,12 +446,17 @@ function AtlasMap({projects,onSelect,setView}) {
   </main>;
 }
 
+function recordingViewLabel(project) {
+  const count = (project.captures || []).length;
+  return `${count} ${count === 1 ? 'View' : 'Views'}`;
+}
+
 function AtlasCollectionStats({ projects }) {
   const clips = projects.reduce((total, project) => total + (project.captures || []).length, 0);
   return <p aria-label="Archive statistics" style={{fontSize:13,color:'var(--fg3)',lineHeight:1.5,marginTop:12}}>
     <span style={{color:'var(--fg)'}}>{projects.length}</span> Projects
     <span aria-hidden="true"> · </span>
-    <span style={{color:'var(--fg)'}}>{clips}</span> Clips
+    <span style={{color:'var(--fg)'}}>{clips}</span> Views
   </p>;
 }
 
@@ -610,7 +615,7 @@ function Atlas({ projects, onSelect }) {
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {p.title}
+                  {p.title} · {recordingViewLabel(p)}
                 </div>
               );
             })}
@@ -711,7 +716,7 @@ function Atlas({ projects, onSelect }) {
                 <div style={{
                   fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)',
                   marginTop: 4, lineHeight: 1.4,
-                }}>{active.location}</div>
+                }}>{active.location} · {recordingViewLabel(active)}</div>
                 {active.subtitle && (
                   <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', marginTop: 10, lineHeight: 1.5 }}>
                     {active.subtitle}
