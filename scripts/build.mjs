@@ -9,7 +9,13 @@ const origin = 'https://lens-vr.com';
 const analyticsConfig = JSON.parse(await readFile('config/analytics.json', 'utf8'));
 const analytics = analyticsMarkup(analyticsConfig.cloudflareToken, origin);
 const source = await readFile('index.html', 'utf8');
-const app = source.split('<script type="text/babel">')[1].split('const root = ReactDOM.createRoot')[0];
+const journal = JSON.parse(await readFile(process.env.LENS_JOURNAL_FILE || 'config/journal.json','utf8')).filter(post => post.published === true).sort((a,b)=>b.date.localeCompare(a.date));
+if (new Set(journal.map(p=>p.slug)).size !== journal.length) throw new Error('Duplicate journal slugs');
+for (const post of journal) {
+ if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug) || !/^\d{4}-\d{2}-\d{2}$/.test(post.date) || (!post.image && !post.title && !post.paragraphs?.length) || (post.paragraphs != null && (!Array.isArray(post.paragraphs) || !post.paragraphs.every(p=>typeof p==='string')))) throw new Error('Invalid journal post');
+ if (post.image && !/^\/assets\/(journal|projects)\//.test(post.image)) throw new Error('Journal images must be local');
+}
+const app = source.split('<script type="text/babel">')[1].split('const root = ReactDOM.createRoot')[0].replace('const JOURNAL_POSTS = [];', 'const JOURNAL_POSTS = ' + JSON.stringify(journal).replaceAll('<','\\u003c') + ';');
 await rm('.build', {recursive:true, force:true});
 await rm('dist', {recursive:true, force:true});
 await mkdir('.build', {recursive:true});
@@ -34,6 +40,7 @@ try { await cp('public','dist',{recursive:true}); } catch(error) { if(error.code
 const escape = s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const json = value=>JSON.stringify(value).replaceAll('<','\\u003c');
 const pages = {
+ journal:['Journal | LENS','Field notes, new recordings and news from the LENS archive of contemporary urban public spaces.'],
  home:['LENS — Landscape Architecture VR Archive','LENS is a VR digital archive of contemporary urban public spaces for landscape architecture education and research. Explore parks, plazas and waterfronts in 360°.'],
  browse:['Explore Public Spaces in 360° VR | LENS','Browse contemporary urban public spaces in the LENS archive. Explore landscape architecture projects through 360° recordings, design information and sources.'],
  atlas:['Map of Urban Public Spaces in VR | LENS','Locate projects in the LENS VR archive of contemporary urban public spaces. Explore the collection by location, completion year and spatial characteristics.'],
@@ -44,6 +51,7 @@ const pages = {
 };
 const routes = Object.entries(PAGE_PATHS).map(([view,path])=>({view,path,title:pages[view][0],description:pages[view][1]}));
 for(const p of projects.filter(isPublished)) routes.push({path:projectPath(p),project:p,title:`${p.title}, ${p.location} — 360° VR | LENS`,description:`Explore ${p.title} in ${p.location} through ${(p.captures || []).length} 360° VR recording${(p.captures || []).length === 1 ? '' : 's'}. View project information and sources in the LENS public space archive.`});
+try { await cp('assets/journal','dist/assets/journal',{recursive:true,filter:source=>source==='assets/journal'||/\.(jpg|jpeg|png|webp|avif)$/i.test(source)}); } catch(error) { if(error.code !== 'ENOENT') throw error; }
 let head = source.split('<head>')[1].split('</head>')[0].replace(/<title>[\s\S]*?<\/title>/,'').replace(/<script[\s\S]*?<\/script>/g,'');
 for(const route of [...routes,{path:'/404/',title:'Page not found | LENS',description:'This page is unavailable.',missing:true}]) {
  const url = origin+route.path;
@@ -52,8 +60,8 @@ for(const route of [...routes,{path:'/404/',title:'Page not found | LENS',descri
   {'@type':'WebSite','@id':origin+'/#website',url:origin+'/',name:'LENS',description:'A VR digital archive of contemporary urban public spaces for landscape architecture education and research',inLanguage:'en'},
   {'@type':route.project?'WebPage':(['home','browse','atlas'].includes(route.view)?'CollectionPage':'WebPage'),'@id':url+'#webpage',url,name:route.title,description:route.description,isPartOf:{'@id':origin+'/#website'},...(route.project?{about:{'@type':'Place',name:route.project.title,address:route.project.location,url,...(route.project.coordinates?{geo:{'@type':'GeoCoordinates',latitude:Number(route.project.coordinates.split(',')[0]),longitude:Number(route.project.coordinates.split(',')[1])}}:{})}}:{})}
  ]};
- const metadata = `<title>${escape(route.title)}</title><meta name="description" content="${escape(route.description)}"><link rel="canonical" href="${url}"><meta name="robots" content="${route.missing?'noindex, follow':'index, follow'}"><meta property="og:type" content="website"><meta property="og:site_name" content="LENS"><meta property="og:title" content="${escape(route.title)}"><meta property="og:description" content="${escape(route.description)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${escape(picture)}"><meta name="twitter:card" content="${route.project?'summary_large_image':'summary'}"><script type="application/ld+json">${json(schema)}</script>`;
- const html = `<!DOCTYPE html><html lang="en"><head>${head}${metadata}</head><body><div id="root">${renderToString(React.createElement(App,{initialProjects:projects,initialPath:route.path}))}</div><script id="catalogue-data" type="application/json">${json(projects)}</script><script defer src="${js}"></script>${route.missing ? '' : analytics}</body></html>`;
+ const metadata = `<title>${escape(route.title)}</title><meta name="description" content="${escape(route.description)}"><link rel="canonical" href="${url}"><meta name="robots" content="${(route.missing || process.env.LENS_JOURNAL_FILE)?'noindex, follow':'index, follow'}"><meta property="og:type" content="website"><meta property="og:site_name" content="LENS"><meta property="og:title" content="${escape(route.title)}"><meta property="og:description" content="${escape(route.description)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${escape(picture)}"><meta name="twitter:card" content="${route.project?'summary_large_image':'summary'}"><script type="application/ld+json">${json(schema)}</script>`;
+ const html = `<!DOCTYPE html><html lang="en"><head>${head}${metadata}</head><body><div id="root">${renderToString(React.createElement(App,{initialProjects:projects,initialPath:route.path}))}</div><script id="catalogue-data" type="application/json">${json(projects)}</script><script defer src="${js}"></script>${(route.missing || process.env.LENS_JOURNAL_FILE) ? '' : analytics}</body></html>`;
  const file = route.missing?'dist/404.html':`dist${route.path}index.html`;
  await mkdir(file.slice(0,file.lastIndexOf('/')),{recursive:true});await writeFile(file,html);
 }

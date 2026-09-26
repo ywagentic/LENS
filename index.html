@@ -571,6 +571,7 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
     { key: 'equipment', label: 'Equipment' },
     { key: 'contribute', label: 'Contribute' },
     { key: 'for educators', label: 'For Educators' },
+    { key: 'journal', label: 'Journal' },
     { key: 'about', label: 'About' },
   ];
 
@@ -2118,6 +2119,76 @@ function Equipment({ onBrowse }) {
 }
 
 
+const JOURNAL_POSTS = [];
+function Journal() {
+  const [query, setQuery] = useState('');
+  const [topic, setTopic] = useState('');
+  const [month, setMonth] = useState('');
+  const months = [...new Set(JOURNAL_POSTS.map(post => post.date.slice(0,7)))];
+  const topics = [...new Set(JOURNAL_POSTS.flatMap(post => post.tags || []))];
+  const shown = JOURNAL_POSTS.filter(post => (!month || post.date.startsWith(month)) && (!topic || (post.tags || []).includes(topic)) && [post.title, ...(post.paragraphs || []), post.imageAlt || '', post.caption || '', ...(post.tags || []), ...(post.links || []).map(link => link.label)].join(' ').toLowerCase().includes(query.trim().toLowerCase()));
+  return <main className="journal-page">
+    <style>{`
+      .journal-page{max-width:1440px;margin:auto;padding:144px clamp(20px,4vw,56px) 96px}
+      .journal-heading{display:flex;align-items:baseline;justify-content:space-between;gap:24px;flex-wrap:wrap}
+      .journal-heading h1{font-size:clamp(40px,5vw,64px);font-weight:300;letter-spacing:-.035em;line-height:1.05}
+      .journal-tools{margin:32px 0 40px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:16px 0;display:flex;flex-wrap:wrap;align-items:center;gap:16px}
+      .journal-search{font:inherit;font-size:13px;border:1px solid var(--border);padding:12px;background:var(--bg);color:var(--fg);width:280px;max-width:100%}
+      .journal-topics{display:flex;flex-wrap:wrap;gap:8px}
+      .journal-topic{font:inherit;font-size:12px;border:0;background:transparent;padding:8px 10px;color:var(--fg3);cursor:pointer}
+      .journal-topic[aria-pressed=true]{background:var(--accent-dim);color:var(--accent)}
+      .journal-layout{display:grid;grid-template-columns:108px minmax(0,1fr);gap:36px;align-items:start}
+      .journal-timeline{position:sticky;top:110px;border-left:1px solid var(--border);display:flex;flex-direction:column;gap:20px;padding:8px 0}
+      .journal-timeline button{position:relative;text-align:left;background:none;border:0;padding:0 0 0 18px;font:inherit;font-size:12px;color:var(--fg3);cursor:pointer}
+      .journal-timeline button:before{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:var(--border);left:-3px;top:5px}
+      .journal-timeline button[aria-pressed=true]{color:var(--accent)}
+      .journal-timeline button[aria-pressed=true]:before{background:var(--accent)}
+      .journal-wall{min-width:0}
+      .journal-month{margin-bottom:96px}
+      .journal-month-label{font-size:14px;font-weight:400;line-height:1.4;letter-spacing:.02em;color:var(--fg3);margin:0 0 28px}
+      .journal-month-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:56px 72px;align-items:start}
+      .journal-note:nth-child(even){margin-top:120px}
+      .journal-note.photo-only{padding:0;border:0;background:transparent}
+      .journal-note.photo-only time{display:block;margin-bottom:16px}
+      .journal-note.photo-only img{margin:0}
+      .journal-note.photo-only footer{margin-top:16px}
+      .journal-note{min-width:0;display:inline-block;width:100%;box-sizing:border-box;break-inside:avoid;border:1px solid var(--border);background:var(--card-bg);padding:22px;margin:0 0 24px;scroll-margin-top:130px;overflow-wrap:anywhere}
+      .journal-note h2{font-size:23px;font-weight:400;line-height:1.2;letter-spacing:-.02em;margin:20px 0 16px}
+      .journal-note p{font-size:15px;line-height:1.65;margin:0 0 16px;color:var(--fg2)}
+      .journal-note img{width:100%;display:block;margin:0 0 20px}
+      .journal-note footer{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
+      .journal-note footer button{font:inherit;font-size:11px;border:0;padding:0;background:none;color:var(--fg3);cursor:pointer;text-decoration:underline;text-underline-offset:3px;margin-right:8px}
+      .journal-links{display:flex;flex-direction:column;gap:10px;margin-top:20px}
+      .journal-links a{font-size:13px;color:var(--accent);line-height:1.5}
+      @media(max-width:1050px){.journal-month-cards{gap:40px}.journal-layout{gap:24px;grid-template-columns:90px minmax(0,1fr)}}
+      @media(max-width:640px){.journal-page{padding-top:104px}.journal-layout{display:block}.journal-timeline{position:static;flex-direction:row;flex-wrap:wrap;border-left:0;border-bottom:1px solid var(--border);padding:0 0 18px;margin-bottom:24px}.journal-timeline button{padding-left:12px}.journal-timeline button:before{left:0}.journal-month-cards{grid-template-columns:1fr;gap:36px}.journal-note:nth-child(even){margin-top:0}.journal-month{margin-bottom:56px}.journal-search{width:100%}.journal-tools{margin-bottom:32px}}
+    `}</style>
+    {JOURNAL_POSTS.some(post=>post.demo) && <p style={{fontSize:12,color:'var(--accent)',marginBottom:20}}>LOCAL DESIGN PREVIEW · Sample notes, not published announcements</p>}
+    <header className="journal-heading"><h1>Journal</h1><p style={{fontSize:15,lineHeight:1.6,color:'var(--fg3)'}}>Field notes, new recordings and small updates.</p></header>
+    <div className="journal-tools">
+      <input className="journal-search" aria-label="Search notes" placeholder="Search notes, places, projects…" value={query} onChange={e=>setQuery(e.target.value)} />
+      <div className="journal-topics" aria-label="Filter notes"><button className="journal-topic" aria-pressed={!topic} onClick={()=>setTopic('')}>All notes</button>{topics.map(tag=><button key={tag} className="journal-topic" aria-pressed={topic===tag} onClick={()=>setTopic(topic===tag?'':tag)}>{tag}</button>)}</div>
+      <span role="status" style={{fontSize:12,color:'var(--fg3)',marginLeft:'auto'}}>{shown.length} {shown.length===1?'note':'notes'}</span>
+    </div>
+    <div className="journal-layout">
+    <nav className="journal-timeline" aria-label="Notes by month">
+      <button aria-pressed={!month} onClick={()=>setMonth('')}>All dates</button>
+      {months.map(value=><button key={value} aria-pressed={month===value} onClick={()=>setMonth(month===value?'':value)}>{new Date(value+'-01T12:00:00Z').toLocaleDateString('en-US',{month:'short',year:'numeric',timeZone:'UTC'})}</button>)}
+    </nav>
+    <div className="journal-wall">{months.filter(value=>shown.some(post=>post.date.startsWith(value))).map(value=><section className="journal-month" key={value} aria-label={value}>
+      <h2 className="journal-month-label">{new Date(value+'-01T12:00:00Z').toLocaleDateString('en-US',{month:'long',year:'numeric',timeZone:'UTC'})}</h2>
+      <div className="journal-month-cards">{shown.filter(post=>post.date.startsWith(value)).map(post=><article className={'journal-note'+(!post.title && !post.paragraphs?.length?' photo-only':'')} key={post.slug} id={post.slug}>
+      <time dateTime={post.date} style={{fontSize:11,letterSpacing:'.06em',color:'var(--fg3)'}}>{post.dateLabel || new Date(post.date+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'})}</time>
+      {post.title && <h3 style={{fontSize:23,fontWeight:400,lineHeight:1.2,letterSpacing:'-.02em',margin:'20px 0 16px'}}>{post.title}</h3>}
+      {post.image && <figure style={{margin:0}}><img src={post.image} alt={post.imageAlt || ''} />{post.caption && <figcaption style={{fontSize:12,lineHeight:1.5,color:'var(--fg3)',marginTop:12}}>{post.caption}</figcaption>}</figure>}
+      {(post.paragraphs || []).map((text,i)=><p key={i}>{text}</p>)}
+      {post.links?.length>0 && <div className="journal-links">{post.links.map(link=><a key={link.href} href={link.href}>{link.label} ↗</a>)}</div>}
+      <footer>{(post.tags || []).map(tag=><button key={tag} onClick={()=>setTopic(tag)} aria-label={'Show notes about '+tag}>{tag}</button>)}</footer>
+    </article>)}</div></section>)}</div></div>
+    {!shown.length && <p style={{fontSize:15,color:'var(--fg3)'}}>{JOURNAL_POSTS.length?'No matching notes. Try another keyword or choose All notes.':'Notes from the archive will appear here.'}</p>}
+  </main>;
+}
+
 function About({ projectCount, clipCount }) {
   return (
     <div className="about-page" style={{ overflowWrap: 'anywhere', minWidth: 0, padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}>
@@ -2181,7 +2252,7 @@ function About({ projectCount, clipCount }) {
 }
 
 // ─── APP ─────────────────────────────────────────────────────────────────────
-const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/' };
+const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/', journal: '/journal/' };
 function projectPath(project) {
   const slug = { 23: 'the-broad', 22: 'tongva-park', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
   return `/projects/${slug}/`;
@@ -2310,6 +2381,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
           {!loading && view === 'equipment' && <Equipment onBrowse={() => navigate('browse')} />}
           {!loading && view === 'for educators' && <ForEducators onBrowse={() => navigate('browse')} />}
           {!loading && view === 'contribute' && <Contribute onNav={navigate} />}
+          {!loading && view === 'journal' && <Journal path={initialPath} />}
           {!loading && view === 'about' && <About projectCount={published.length} clipCount={published.reduce((total, project) => total + project.captures.length, 0)} />}
         </div>
       </div>

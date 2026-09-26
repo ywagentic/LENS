@@ -1,0 +1,182 @@
+[
+  {
+    "slug": "journal-begins",
+    "title": "Starting the Journal",
+    "date": "2026-09-26",
+    "dateLabel": "September 2026",
+    "paragraphs": [
+      "I added this Journal to share notes from my trips and updates on LENS. I wanted a place to write about the projects I visit while I’m still working through the recordings, and to share a little of how the archive is coming together."
+    ],
+    "tags": [
+      "Archive updates"
+    ],
+    "links": [],
+    "published": true
+  },
+  {
+    "slug": "los-angeles-asla",
+    "title": "A trip to Los Angeles",
+    "date": "2026-09-18",
+    "dateLabel": "September 2026",
+    "paragraphs": [
+      "I presented at the 2026 ASLA Conference on Landscape Architecture in Los Angeles. While there, I recorded Tongva Park in Santa Monica and The Broad and its adjoining plaza in downtown Los Angeles. I’m preparing these recordings for LENS."
+    ],
+    "tags": [
+      "Los Angeles",
+      "Fieldwork"
+    ],
+    "links": [],
+    "published": true,
+    "image": "/assets/journal/tongva-park-fieldwork.jpg",
+    "imageAlt": "Curving paths, planted terraces and seating at Tongva Park in Santa Monica."
+  },
+  {
+    "slug": "smale-published",
+    "title": "Smale Riverfront Park is online",
+    "date": "2026-09-13",
+    "dateLabel": "September 13, 2026",
+    "paragraphs": [
+      "I added three recordings from Smale Riverfront Park to LENS. I filmed at the swing pergola, the sculpture area and the water features during my visit to Cincinnati."
+    ],
+    "tags": [
+      "Cincinnati",
+      "New recordings"
+    ],
+    "links": [
+      {
+        "label": "Explore Smale Riverfront Park",
+        "href": "/projects/smale-riverfront-park/"
+      }
+    ],
+    "published": true,
+    "image": "/assets/projects/smale-riverfront-park.jpg",
+    "imageAlt": "Three views along the Ohio River"
+  },
+  {
+    "slug": "first-youtube-recording",
+    "title": "The first recordings on YouTube",
+    "date": "2026-09-12",
+    "dateLabel": "September 2026",
+    "paragraphs": [
+      "I uploaded the first LENS recordings to YouTube. I started with two projects in Guangzhou: Yongqing Fang and Huacheng Plaza on the Zhujiang Xincheng central axis."
+    ],
+    "tags": [
+      "Guangzhou",
+      "New recordings"
+    ],
+    "links": [
+      {
+        "label": "Explore the recordings",
+        "href": "/browse/"
+      }
+    ],
+    "published": true
+  },
+  {
+    "slug": "lens-online",
+    "title": "LENS is online",
+    "date": "2026-08-27",
+    "dateLabel": "August 2026",
+    "paragraphs": [
+      "I launched LENS and connected the site to lens-vr.com. I’m building a VR archive of contemporary urban public spaces for landscape architecture education and research."
+    ],
+    "tags": [
+      "Archive updates"
+    ],
+    "links": [
+      {
+        "label": "lens-vr.com",
+        "href": "/"
+      }
+    ],
+    "published": true
+  },
+  {
+    "slug": "china-summer",
+    "title": "Summer fieldwork in China",
+    "date": "2026-08-01",
+    "dateLabel": "Summer 2026",
+    "paragraphs": [
+      "I recorded several public-space projects in China this summer. I’ll go through the footage and add the projects to LENS as I finish editing."
+    ],
+    "tags": [
+      "China",
+      "Fieldwork"
+    ],
+    "links": [],
+    "published": true
+  },
+  {
+    "slug": "cincinnati-cela",
+    "title": "A trip to Cincinnati",
+    "date": "2026-03-21",
+    "dateLabel": "March 2026",
+    "paragraphs": [
+      "I visited Cincinnati for the CELA conference and recorded Smale Riverfront Park, Zaha Hadid’s Contemporary Arts Center and Fountain Square. I also visited the University of Cincinnati to see the campus landscapes by Hargreaves Associates."
+    ],
+    "tags": [
+      "Cincinnati",
+      "Fieldwork"
+    ],
+    "links": [
+      {
+        "label": "Smale Riverfront Park",
+        "href": "/projects/smale-riverfront-park/"
+      }
+    ],
+    "published": true,
+    "image": "/assets/journal/cincinnati-campus-fieldwork.jpg",
+    "imageAlt": "Lawns, terraced seating and paths on the University of Cincinnati campus."
+  },
+  {
+    "slug": "seattle-fieldwork",
+    "title": "A November visit to Seattle",
+    "date": "2025-11-01",
+    "dateLabel": "November 2025",
+    "paragraphs": [
+      "I went to Seattle in November to record several landscape projects, including the newly opened Waterfront Park on Elliott Bay. I also met someone from GGN during the trip."
+    ],
+    "tags": [
+      "Seattle",
+      "Fieldwork"
+    ],
+    "links": [],
+    "published": true
+  },
+  {
+    "slug": "cac-stair",
+    "date": "2026-03-21",
+    "dateLabel": "March 2026",
+    "image": "/assets/journal/cac-stair.jpg",
+    "imageAlt": "Interior stair rising between concrete walls at the Contemporary Arts Center.",
+    "caption": "Contemporary Arts Center, Cincinnati — Zaha Hadid.",
+    "tags": [
+      "Cincinnati"
+    ],
+    "published": true
+  },
+  {
+    "slug": "freedom-center",
+    "date": "2026-03-21",
+    "dateLabel": "March 2026",
+    "image": "/assets/journal/freedom-center.jpg",
+    "imageAlt": "Curving concrete wall and tree shadows outside the National Underground Railroad Freedom Center.",
+    "caption": "National Underground Railroad Freedom Center, Cincinnati.",
+    "tags": [
+      "Cincinnati"
+    ],
+    "published": true
+  },
+  {
+    "slug": "smale-riverfront-photo",
+    "date": "2026-03-21",
+    "dateLabel": "March 2026",
+    "image": "/assets/journal/smale-riverfront-photo.jpg",
+    "imageAlt": "Trees, planted slopes and a stone path at Smale Riverfront Park with the Cincinnati skyline beyond.",
+    "caption": "Smale Riverfront Park, Cincinnati — looking back toward downtown.",
+    "tags": [
+      "Cincinnati"
+    ],
+    "published": true
+  }
+]
