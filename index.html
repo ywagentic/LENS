@@ -2127,7 +2127,49 @@ function Journal() {
   const months = [...new Set(JOURNAL_POSTS.map(post => post.date.slice(0,7)))];
   const topics = [...new Set(JOURNAL_POSTS.flatMap(post => post.tags || []))];
   const shown = JOURNAL_POSTS.filter(post => (!month || post.date.startsWith(month)) && (!topic || (post.tags || []).includes(topic)) && [post.title, ...(post.paragraphs || []), post.imageAlt || '', post.caption || '', ...(post.tags || []), ...(post.links || []).map(link => link.label)].join(' ').toLowerCase().includes(query.trim().toLowerCase()));
-  return <main className="journal-page">
+  const journalRef = React.useRef(null);
+  useEffect(() => {
+    const root = journalRef.current;
+    const enabled = window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+    let frame = 0;
+    let point = null;
+    const reset = () => root.querySelectorAll('.journal-note').forEach(card => {
+      card.classList.remove('is-near');
+    });
+    const update = () => {
+      frame = 0;
+      if (!point || !enabled.matches) { reset(); return; }
+      root.querySelectorAll('.journal-note').forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const dx = point.x - (rect.left + rect.width / 2);
+        const dy = point.y - (rect.top + rect.height / 2);
+        const distance = Math.hypot(Math.max(0, Math.abs(dx) - rect.width / 2), Math.max(0, Math.abs(dy) - rect.height / 2));
+        const active = distance < 48;
+        card.classList.toggle('is-near', active);
+      });
+    };
+    const move = event => {
+      if (event.pointerType !== 'mouse') return;
+      point = {x:event.clientX,y:event.clientY};
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    const leave = () => { point = null; cancelAnimationFrame(frame); frame = 0; reset(); };
+    root.addEventListener('pointermove', move);
+    root.addEventListener('pointerleave', leave);
+    window.addEventListener('scroll', leave, {passive:true});
+    window.addEventListener('blur', leave);
+    enabled.addEventListener('change', leave);
+    return () => {
+      leave();
+      root.removeEventListener('pointermove', move);
+      root.removeEventListener('pointerleave', leave);
+      window.removeEventListener('scroll', leave);
+      window.removeEventListener('blur', leave);
+      enabled.removeEventListener('change', leave);
+    };
+  }, [query, topic, month]);
+  return <main className="journal-page" ref={journalRef}>
+
     <style>{`
       .journal-page{max-width:1440px;margin:auto;padding:144px clamp(20px,4vw,56px) 96px}
       .journal-heading{display:flex;align-items:baseline;justify-content:space-between;gap:24px;flex-wrap:wrap}
@@ -2153,6 +2195,13 @@ function Journal() {
       .journal-note.photo-only img{margin:0}
       .journal-note.photo-only footer{margin-top:16px}
       .journal-note{min-width:0;display:inline-block;width:100%;box-sizing:border-box;break-inside:avoid;border:1px solid var(--border);background:var(--card-bg);padding:22px;margin:0 0 24px;scroll-margin-top:130px;overflow-wrap:anywhere}
+      @media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+        .journal-note{position:relative;transition:transform 380ms cubic-bezier(.22,.61,.36,1),box-shadow 280ms ease;transform-origin:50% 75%}
+        .journal-note.is-near{transform:translateY(-4px);box-shadow:6px 8px 0 0 var(--accent-dim)}
+        .journal-note.photo-only.is-near{transform:none;box-shadow:none}
+        .journal-note.photo-only img{transform-origin:50% 75%;transition:transform 380ms cubic-bezier(.22,.61,.36,1),box-shadow 280ms ease}
+        .journal-note.photo-only.is-near img{transform:translateY(-4px);box-shadow:6px 8px 0 0 var(--accent-dim)}
+      }
       .journal-note h2{font-size:23px;font-weight:400;line-height:1.2;letter-spacing:-.02em;margin:20px 0 16px}
       .journal-note p{font-size:15px;line-height:1.65;margin:0 0 16px;color:var(--fg2)}
       .journal-note img{width:100%;display:block;margin:0 0 20px}
