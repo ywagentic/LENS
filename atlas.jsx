@@ -442,9 +442,9 @@ function AtlasMap({projects,onSelect,setView}) {
     <div className="atlas-map-layout">
       <div ref={field} className="atlas-map-field" aria-label={`${ATLAS_LEVELS[level].label} project map`} style={{position:'relative',overflow:'hidden',border:'1px solid var(--border)',background:'var(--card-bg)'}}>
         {level==='world'?<MapBackdrop/>:<AtlasRegionBackdrop level={level} bounds={bounds}/>}
-        {groups.map(g=>{const next=destination(g),count=g.members.length,label=next?`Explore ${ATLAS_LEVELS[next].label}`:count>1?`Choose from ${count} projects`:`Open ${g.members[0].title}`;return <button className="atlas-map-marker" key={g.members.map(p=>p.id).join('-')} aria-label={label} title={label} onClick={()=>open(g)} style={{position:'absolute',left:`${g.x*100}%`,top:`${g.y*100}%`,transform:'translate(-50%,-50%)',display:'grid',placeItems:'center',width:44,height:44,border:0,padding:0,background:'transparent',cursor:'pointer'}}>
+        {groups.map((g,groupIndex)=>{const next=destination(g),showRegionLabel=next && groups.findIndex(other=>destination(other)===next)===groupIndex,count=g.members.length,label=next?`Explore ${ATLAS_LEVELS[next].label}`:count>1?`Choose from ${count} projects`:`Open ${g.members[0].title}`;return <button className="atlas-map-marker" key={g.members.map(p=>p.id).join('-')} aria-label={label} title={label} onClick={()=>open(g)} style={{position:'absolute',left:`${g.x*100}%`,top:`${g.y*100}%`,transform:'translate(-50%,-50%)',display:'grid',placeItems:'center',width:44,height:44,border:0,padding:0,background:'transparent',cursor:'pointer'}}>
           <span style={{display:'grid',placeItems:'center',width:count>1?36:13,height:count>1?36:13,borderRadius:'50%',background:'var(--accent)',color:'white',fontSize:13,boxShadow:'0 0 0 3px var(--card-bg)'}}>{count>1?count:''}</span>
-          {next&&<span style={{position:'absolute',top:43,fontSize:11,color:'var(--fg2)',whiteSpace:'nowrap'}}>{ATLAS_LEVELS[next].label}</span>}
+          {showRegionLabel&&<span style={{position:'absolute',top:43,fontSize:11,color:'var(--fg2)',whiteSpace:'nowrap'}}>{ATLAS_LEVELS[next].label}</span>}
         </button>})}
       </div>
       <aside aria-label="Projects in map area" style={{minWidth:0,borderTop:'1px solid var(--border)',paddingTop:16,overflowWrap:'anywhere'}}>
