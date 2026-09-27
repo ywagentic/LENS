@@ -152,6 +152,20 @@
     "published": true
   },
   {
+    "slug": "youtube-hosting",
+    "title": "Choosing YouTube for the recordings",
+    "date": "2026-07-01",
+    "dateLabel": "July 2026",
+    "paragraphs": [
+      "After weighing several hosting options, I’ve decided to use YouTube for the recordings in LENS. Device compatibility was the main consideration: the archive needs to be accessible on a range of VR headsets as well as ordinary computers, tablets and phones. YouTube seemed the best fit for making the same recordings available across these different devices."
+    ],
+    "tags": [
+      "Archive updates"
+    ],
+    "links": [],
+    "published": true
+  },
+  {
     "slug": "cincinnati-cela",
     "title": "A trip to Cincinnati",
     "date": "2026-03-21",
