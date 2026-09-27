@@ -1,5 +1,27 @@
 [
   {
+    "slug": "shenzhen-childrens-park",
+    "title": "A summer evening at the children’s park",
+    "date": "2026-09-26",
+    "dateLabel": "September 2026",
+    "paragraphs": [
+      "I’ve added two recordings from the children’s area at Shenzhen Talent Park Phase II, filmed on a summer evening in 2025. Within this large urban park, the play area has a rich sequence of spaces and a scale that feels comfortable. It was a lovely evening, with the space full of laughter. A reminder of how much pleasure a good public space can bring to everyday life."
+    ],
+    "tags": [
+      "Shenzhen",
+      "New recordings"
+    ],
+    "links": [
+      {
+        "label": "Explore the two views",
+        "href": "/projects/shenzhen-talent-park-phase-ii/"
+      }
+    ],
+    "image": "/assets/projects/shenzhen-talent-park-phase-ii.jpg",
+    "imageAlt": "Illustration of the children’s play area at Shenzhen Talent Park Phase II.",
+    "published": true
+  },
+  {
     "slug": "journal-begins",
     "title": "Starting the Journal",
     "date": "2026-09-26",
