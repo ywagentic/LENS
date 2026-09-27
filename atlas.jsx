@@ -411,12 +411,13 @@ function AtlasMap({projects,onSelect,setView}) {
   const listed=(selection?inView.filter(p=>selection.includes(p.id)):inView).slice().sort((a,b)=>a.title.localeCompare(b.title));
   const go=next=>{setLevel(next);setSelection(null);};
   const destination=g=>{
+    if(g.members.length < 2) return null;
     if(level==='world'&&g.members.every(p=>/china/i.test(p.location||'')))return 'china';
     if(level==='world'&&g.members.every(p=>/USA|United States/i.test(p.location||'')))return 'usa';
     if(level==='china'&&g.members.every(p=>{const [lat,lng]=(p.coordinates||'').split(',').map(Number);return lat>=20&&lat<=26&&lng>=109&&lng<=118;}))return 'guangdong';
     return null;
   };
-  const open=g=>{const next=destination(g);if(next)go(next);else if(g.members.length===1)onSelect(g.members[0]);else setSelection(g.members.map(p=>p.id));};
+  const open=g=>{const next=destination(g);if(next)go(next);else setSelection(g.members.map(p=>p.id));};
   const button={border:'1px solid var(--border)',background:'var(--card-bg)',color:'var(--fg)',padding:'9px 12px',cursor:'pointer',font:'inherit',fontSize:12};
   return <main className="atlas-map-page" style={{padding:'120px 56px 40px',minWidth:0}}>
     <style>{`
@@ -424,6 +425,10 @@ function AtlasMap({projects,onSelect,setView}) {
       .atlas-map-layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:20px}
       .atlas-map-field{height:clamp(360px,60vh,680px)}
       .atlas-map-marker:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
+      .atlas-map-dot{transition:transform 180ms ease;transform-origin:center}
+      @media(hover:hover) and (pointer:fine){.atlas-map-marker:hover .atlas-map-dot{transform:scale(1.3)}}
+      .atlas-map-marker:focus-visible .atlas-map-dot{transform:scale(1.3)}
+      @media(prefers-reduced-motion:reduce){.atlas-map-dot{transition:none}}
       @media(max-width:760px){.atlas-map-page{padding:110px 20px 28px!important}.atlas-map-layout{grid-template-columns:minmax(0,1fr)}.atlas-map-field{height:300px}.atlas-map-toolbar select{max-width:100%;min-width:0}}
     `}</style>
     <h1 style={{fontWeight:200,fontSize:'clamp(40px,5vw,64px)',margin:0,letterSpacing:'-.025em'}}>Atlas</h1>
@@ -442,13 +447,13 @@ function AtlasMap({projects,onSelect,setView}) {
     <div className="atlas-map-layout">
       <div ref={field} className="atlas-map-field" aria-label={`${ATLAS_LEVELS[level].label} project map`} style={{position:'relative',overflow:'hidden',border:'1px solid var(--border)',background:'var(--card-bg)'}}>
         {level==='world'?<MapBackdrop/>:<AtlasRegionBackdrop level={level} bounds={bounds}/>}
-        {groups.map((g,groupIndex)=>{const next=destination(g),showRegionLabel=next && groups.findIndex(other=>destination(other)===next)===groupIndex,count=g.members.length,label=next?`Explore ${ATLAS_LEVELS[next].label}`:count>1?`Choose from ${count} projects`:`Open ${g.members[0].title}`;return <button className="atlas-map-marker" key={g.members.map(p=>p.id).join('-')} aria-label={label} title={label} onClick={()=>open(g)} style={{position:'absolute',left:`${g.x*100}%`,top:`${g.y*100}%`,transform:'translate(-50%,-50%)',display:'grid',placeItems:'center',width:44,height:44,border:0,padding:0,background:'transparent',cursor:'pointer'}}>
-          <span style={{display:'grid',placeItems:'center',width:count>1?36:13,height:count>1?36:13,borderRadius:'50%',background:'var(--accent)',color:'white',fontSize:13,boxShadow:'0 0 0 3px var(--card-bg)'}}>{count>1?count:''}</span>
+        {groups.map((g,groupIndex)=>{const next=destination(g),showRegionLabel=next && groups.findIndex(other=>destination(other)===next)===groupIndex,count=g.members.length,label=next?`Explore ${ATLAS_LEVELS[next].label}`:count>1?`Show ${count} projects in list`:`Show ${g.members[0].title} in list`;return <button className="atlas-map-marker" key={g.members.map(p=>p.id).join('-')} aria-label={label} title={label} onClick={()=>open(g)} style={{position:'absolute',left:`${g.x*100}%`,top:`${g.y*100}%`,transform:'translate(-50%,-50%)',display:'grid',placeItems:'center',width:44,height:44,border:0,padding:0,background:'transparent',cursor:'pointer'}}>
+          <span className="atlas-map-dot" style={{display:'grid',placeItems:'center',width:count>1?36:13,height:count>1?36:13,borderRadius:'50%',background:'var(--accent)',color:'white',fontSize:13,boxShadow:'0 0 0 3px var(--card-bg)'}}>{count>1?count:''}</span>
           {showRegionLabel&&<span style={{position:'absolute',top:43,fontSize:11,color:'var(--fg2)',whiteSpace:'nowrap'}}>{ATLAS_LEVELS[next].label}</span>}
         </button>})}
       </div>
       <aside aria-label="Projects in map area" style={{minWidth:0,borderTop:'1px solid var(--border)',paddingTop:16,overflowWrap:'anywhere'}}>
-        <div aria-live="polite" style={{fontSize:12,color:'var(--fg3)',marginBottom:12}}>{selection?'Selected group':ATLAS_LEVELS[level].label} · {listed.length} projects</div>
+        <div aria-live="polite" style={{fontSize:12,color:'var(--fg3)',marginBottom:12}}>{selection?'Selected projects':ATLAS_LEVELS[level].label} · {listed.length} projects</div>
         {selection&&<button style={button} onClick={()=>setSelection(null)}>Show all in this region</button>}
         {listed.map(p=><button key={p.id} onClick={()=>onSelect(p.sourceProject || p)} style={{display:'block',width:'100%',textAlign:'left',padding:'16px 0',border:0,borderBottom:'1px solid var(--border)',background:'transparent',color:'var(--fg)',cursor:'pointer'}}><span style={{display:'block',fontSize:16,lineHeight:1.4}}>{p.title} →</span><span style={{display:'block',fontSize:12,color:'var(--fg3)',marginTop:6}}>{p.location}{p.year?` · ${p.year}`:''}</span><span style={{display:'block',fontSize:12,color:'var(--accent)',marginTop:6}}>{recordingViewLabel(p)}</span></button>)}
         {!listed.length&&<p style={{fontSize:13,color:'var(--fg3)'}}>No projects match this view.</p>}

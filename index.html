@@ -155,8 +155,8 @@ function parseCSV(text) {
     // Fallback: legacy single vrId/vrType becomes one capture
     if (obj.captures) {
       obj.captures = obj.captures.split('|').map(c => {
-        const [label, vrId, description, height, code] = c.split('::').map(s => (s || '').trim());
-        return vrId ? { label: label || 'View', vrId, description: description || '', height: height || '', code: code || '' } : null;
+        const [label, vrId, description, height, code, spaceTypes] = c.split('::').map(s => (s || '').trim());
+        return vrId ? { label: label || 'View', vrId, description: description || '', height: height || '', code: code || '', ...(spaceTypes ? {spaceTypes:spaceTypes.split(';')} : {}) } : null;
       }).filter(Boolean);
     } else if (obj.vrId) {
       obj.captures = [{ label: 'Main view', vrId: obj.vrId, description: '', height: '' }];
@@ -204,6 +204,19 @@ function upcomingTiming(project, now = new Date()) {
   return `Expected within ${weeks} ${weeks === 1 ? 'week' : 'weeks'} · by ${formatted}`;
 }
 function hasRecording(project) { return (project.captures || []).length > 0; }
+// View-level classifications; explicit capture metadata takes precedence.
+const VIEW_SPACE_TYPES = {
+  'TMOCg1CHIME':['Play'], 'bu1FLEJ7aho':['Play'],
+  'XjTg7fDE0b0':['Plaza','Grove'], '1HEh8N37O2E':['Grove'],
+  'I3IN-UAZJ_s':['Lobby'], 'g7vaffVzdfI':['Gallery'],
+  '0_J7l3HbcX0':['Plaza'], 'sFw9p5A91HY':['Plaza'],
+  'kYic2jDx61s':['Seating','Pergola'], 'pgxcavf846k':['Sculpture'],
+  'zkgIGKo52ME':['Water Feature']
+};
+function captureSpaceTypes(c) {
+  const raw = c.spaceTypes ?? VIEW_SPACE_TYPES[c.vrId] ?? [];
+  return [...new Set((Array.isArray(raw) ? raw : raw.split(';')).map(t=>t.trim()).filter(Boolean))];
+}
 function projectTypes(p) {
   const values = Array.isArray(p.types) ? p.types : String(p.type || '').split('|');
   return [...new Set(values.map(t => t.trim()).filter(Boolean))];
@@ -224,6 +237,7 @@ function normalizeProjects(data) {
     if (!p.vrTypes) {
       p.vrTypes = p.vrType ? [p.vrType] : [];
     }
+    p.captures = p.captures.map(c => ({...c, spaceTypes:captureSpaceTypes(c)}));
     if (isUpcoming(p)) { p.captures = []; p.vrId = ''; }
     p.captures = p.captures.filter(c => /^[A-Za-z0-9_-]{11}$/.test(c.vrId || ''));
     return p;
@@ -841,9 +855,9 @@ function RecentAdditions({projects, renderCard}) {
       .recent-rail{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:x proximity;padding:0 0 20px;scrollbar-width:none}
       .recent-rail::-webkit-scrollbar{display:none}
       .recent-rail.has-more{mask-image:linear-gradient(to right,#000 0%,#000 88%,transparent 100%)}
-      .recent-item{flex:0 0 calc((100% - 84px)/3.25);min-width:0;scroll-snap-align:start}
-      @media(max-width:1050px){.recent-item{flex-basis:calc((100% - 56px)/2.2)}}
-      @media(max-width:600px){.recent-rail{gap:20px}.recent-item{flex-basis:86%}}
+      .recent-item{flex:0 0 clamp(240px,23vw,320px);min-width:0;scroll-snap-align:start}
+      @media(max-width:1050px){.recent-item{flex-basis:280px}}
+      @media(max-width:600px){.recent-rail{gap:20px}.recent-item{flex-basis:min(82%,300px)}}
     `}</style>
     <div ref={rail} className={'recent-rail'+(hasMore?' has-more':'')} tabIndex={0} role="region" aria-label="Recent additions, newest first">
       {ordered.map(p=><div className="recent-item" key={p.id}>{renderCard(p)}</div>)}
@@ -857,8 +871,22 @@ function UpcomingSection({ projects, cardStyle = 'grid' }) {
     <section aria-label="Upcoming recordings" style={{ borderTop: '1px solid var(--border)', paddingTop: 32, marginTop: 48 }}>
       <h2 style={{ fontSize: 28, fontWeight: 300, letterSpacing: '-0.02em', marginBottom: 10 }}>Upcoming</h2>
       <p style={{ fontSize: 14, color: 'var(--fg3)', lineHeight: 1.6, marginBottom: 28 }}>360° recordings being prepared for the collection.</p>
-      <div style={{ display: 'grid', gridTemplateColumns: cardStyle === 'list' ? '1fr' : 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: 28 }}>
-        {projects.map(project => (
+      <div style={{ display: 'grid', gridTemplateColumns: cardStyle === 'list' ? '1fr' : 'repeat(auto-fill, minmax(min(100%, 280px), 320px))', gap: cardStyle === 'list' ? 0 : 28 }}>
+        {projects.map(project => cardStyle === 'list' ? (
+          <article key={project.id} data-publication="upcoming" className="project-card-list" style={{display:'grid',gridTemplateColumns:'110px minmax(0, 1fr) auto auto',gap:28,alignItems:'center',padding:'20px 4px',borderBottom:'1px solid var(--border)',minWidth:0}}>
+            <div style={{overflow:'hidden',opacity:.5,filter:'grayscale(1)'}}><ProjectThumb project={project} size="sm" /></div>
+            <div>
+              <h3 style={{fontSize:21,fontWeight:400,lineHeight:1.15,letterSpacing:'-.015em',margin:'0 0 6px',color:'var(--fg3)'}}>{project.title}</h3>
+              <div style={{fontSize:13,color:'var(--fg3)'}}>{project.designer?.trim() || 'Multiple'} · {project.location}</div>
+              <p style={{fontSize:12,lineHeight:1.5,color:'var(--fg3)',marginTop:8}}>Upcoming · {upcomingTiming(project)}</p>
+            </div>
+            <div style={{textAlign:'right'}}>
+              <div style={{fontSize:12,color:'var(--fg3)',letterSpacing:'.04em',textTransform:'uppercase'}}>{project.type}</div>
+              <div style={{fontSize:13,color:'var(--fg2)',marginTop:4}}>{project.year || '—'}</div>
+            </div>
+            <div aria-hidden="true" style={{width:44}} />
+          </article>
+        ) : (
           <article key={project.id} data-publication="upcoming" style={{ minWidth: 0, maxWidth: cardStyle === 'list' ? undefined : 520 }}>
             <div style={{ position: 'relative', background: 'var(--bg2)', marginBottom: 16, overflow: 'hidden' }}>
               <div style={{ opacity: 0.5, filter: 'grayscale(1)' }}>
@@ -881,7 +909,7 @@ function UpcomingSection({ projects, cardStyle = 'grid' }) {
 function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onToggle }) {
   const [hovered, setHovered] = useState(false);
   const archiveId = 'LENS-' + String(project.id).padStart(3, '0');
-  const viewCount = <p style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--accent)', marginTop: 8 }}>{recordingViewLabel(project)}</p>;
+  const viewCount = <p style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--accent)', marginTop: 8 }}>{recordingViewLabel(project)}{project.matchedSpace && <> · {project.matchedViews} {project.matchedSpace} {project.matchedViews===1?'view':'views'}</>}</p>;
   if (cardStyle === 'list') {
     return (
       <div className="project-card-list"
@@ -902,7 +930,7 @@ function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onT
           <ProjectThumb project={project} size="sm" />
         </div>
         <div>
-          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, marginBottom: 6, letterSpacing: '-0.015em', lineHeight: 1.15 }}><a href={projectPath(project)} onClick={e => e.stopPropagation()}>{project.title}</a></div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, marginBottom: 6, letterSpacing: '-0.015em', lineHeight: 1.15 }}><a href={projectPath(project)+(project.matchedSpace?'?space='+encodeURIComponent(project.matchedSpace):'')} onClick={e => e.stopPropagation()}>{project.title}</a></div>
           <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)' }}>{project.designer?.trim() || 'Multiple'} · {project.location}</div>
           {viewCount}
           {showTags && (
@@ -947,7 +975,7 @@ function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onT
       </div>
       <div>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
-          <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, lineHeight: 1.15, letterSpacing: '-0.015em', color: 'var(--fg)', margin: 0 }}><a href={projectPath(project)} onClick={e => e.stopPropagation()}>{project.title}</a></h3>
+          <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, lineHeight: 1.15, letterSpacing: '-0.015em', color: 'var(--fg)', margin: 0 }}><a href={projectPath(project)+(project.matchedSpace?'?space='+encodeURIComponent(project.matchedSpace):'')} onClick={e => e.stopPropagation()}>{project.title}</a></h3>
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', flexShrink: 0 }}>{project.year || '—'}</span>
         </div>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', marginBottom: 4, lineHeight: 1.5 }}>
@@ -976,17 +1004,16 @@ function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onT
 // ─── BROWSE ──────────────────────────────────────────────────────────────────
 function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, counts, onToggle }) {
   const [activeTag, setActiveTag] = useState('All');
-  const [activeType, setActiveType] = useState('All Types');
+  const [activeSpace, setActiveSpace] = useState('');
+  const spaceOptions = [...new Set(projects.flatMap(p=>(p.captures||[]).flatMap(captureSpaceTypes)))].sort();
   const [sortBy, setSortBy] = useState('year');
 
-  const ALL_TAGS = getTagsFromProjects(projects);
-  const ALL_TYPES = getTypesFromProjects(projects);
+  const ALL_TAGS = ['All', ...new Set([...projects.flatMap(projectTypes), ...getTagsFromProjects(projects).filter(t=>t!=='All')])];
 
   const matches = projects.filter(p => {
-    const matchTag = activeTag === 'All' || p.tags.includes(activeTag);
-    const matchType = activeType === 'All Types' || projectTypes(p).includes(activeType);
+    const matchTag = activeTag === 'All' || p.tags.includes(activeTag) || projectTypes(p).includes(activeTag);
     const matchSearch = !searchQuery || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.location.toLowerCase().includes(searchQuery.toLowerCase()) || p.designer.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchTag && matchType && matchSearch;
+    return matchTag && matchSearch && (!activeSpace || (p.captures||[]).some(c=>captureSpaceTypes(c).includes(activeSpace)));
   }).sort((a, b) => {
     if (sortBy === 'year') return b.year - a.year;
     if (sortBy === 'title') return a.title.localeCompare(b.title);
@@ -998,7 +1025,7 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
     return 0;
   });
 
-  const filtered = matches.filter(isPublished);
+  const filtered = matches.filter(isPublished).map(p=>({...p, matchedSpace:activeSpace, matchedViews:activeSpace ? p.captures.filter(c=>captureSpaceTypes(c).includes(activeSpace)).length : null}));
   const upcoming = matches.filter(isUpcoming);
 
   return (
@@ -1009,29 +1036,22 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
         marginBottom: 36, flexWrap: 'wrap', gap: 24,
         paddingTop: 20, borderTop: '1px solid var(--border)',
       }}>
-        <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.04em', color: 'var(--fg3)', textTransform: 'uppercase', marginBottom: 12 }}>Filter by tag</div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: 720 }}>
+        <div style={{ flex: '1 1 100%', minWidth: 0 }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.04em', color: 'var(--fg3)', textTransform: 'uppercase', marginBottom: 12 }}>Filter by project tag</div>
+          <div role="group" aria-label="Filter by project tag" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: 720 }}>
             {ALL_TAGS.map(t => (
               <Tag key={t} label={t} active={activeTag === t} onClick={() => setActiveTag(t)} accent={tweaks.accentHue} />
             ))}
           </div>
         </div>
+        <div style={{flex:'1 1 640px',minWidth:0}}>
+          <div style={{fontFamily:'Inter, sans-serif',fontSize:11,letterSpacing:'.04em',color:'var(--fg3)',textTransform:'uppercase',marginBottom:12}}>Filter by space type (individual views)</div>
+          <div role="group" aria-label="Filter by space type" style={{display:'flex',gap:6,flexWrap:'wrap',maxWidth:720}}>
+            <Tag label="All" active={!activeSpace} onClick={()=>setActiveSpace('')} accent={tweaks.accentHue}/>
+            {spaceOptions.map(t=><Tag key={t} label={t} active={activeSpace===t} onClick={()=>setActiveSpace(activeSpace===t?'':t)} accent={tweaks.accentHue}/>)}
+          </div>
+        </div>
         <div className="browse-controls" style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap', maxWidth: '100%', minWidth: 0 }}>
-          <select
-            aria-label="Filter by project type" value={activeType}
-            onChange={e => setActiveType(e.target.value)}
-            style={{
-              fontFamily: 'Inter, sans-serif', fontSize: 12, padding: '8px 28px 8px 12px',
-              border: '1px solid var(--border)', borderRadius: 0, background: 'transparent',
-              color: 'var(--fg)', cursor: 'pointer', outline: 'none',
-              appearance: 'none',
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2399a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
-              backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center',
-            }}
-          >
-            {ALL_TYPES.map(t => <option key={t}>{t}</option>)}
-          </select>
           <select
             aria-label="Sort projects" value={sortBy}
             onChange={e => setSortBy(e.target.value)}
@@ -1086,7 +1106,7 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
       {tweaks.cardStyle === 'grid' ? (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 320px))',
           gap: '48px 28px',
         }}>
           {filtered.map(p => (
@@ -1138,7 +1158,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
   const captures = project.captures || [];
   const [activeIdx, setActiveIdx] = useState(0);
   // Reset to first capture when project changes
-  useEffect(() => { setActiveIdx(0); }, [project.id]);
+  useEffect(() => { const type=new URLSearchParams(window.location.search).get('space'); const idx=type?captures.findIndex(c=>captureSpaceTypes(c).includes(type)):0; setActiveIdx(Math.max(0,idx)); }, [project.id]);
   const activeCapture = captures[activeIdx] || null;
   const [copyStatus, setCopyStatus] = useState('');
   useEffect(() => setCopyStatus(''), [activeCapture?.vrId]);
@@ -1326,6 +1346,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
                       color: isActive ? 'var(--accent-bright)' : 'var(--fg)',
                       marginBottom: c.description ? 3 : 0,
                     }}>{c.label}</div>
+                    {captureSpaceTypes(c).length>0 && <div style={{fontSize:11,color:'var(--accent)',margin:'6px 0'}}>{captureSpaceTypes(c).join(' · ')}</div>}
                     {c.description && (
                       <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12.5, color: 'var(--fg3)', lineHeight: 1.45 }}>
                         {c.description}
@@ -1350,6 +1371,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
         </div>
       )}
 
+      {captures.length===1 && captureSpaceTypes(captures[0]).length>0 && <p style={{fontSize:12,color:'var(--accent)',marginBottom:24}}>Space type · {captureSpaceTypes(captures[0]).join(' · ')}</p>}
       {project.plannedCaptures?.some(c => !c.vrId) && (
         <section aria-label="Planned viewpoints" style={{ marginBottom: 64 }}>
           <div style={{ ...SMALL, marginBottom: 16 }}>Viewpoints · {project.plannedCaptures.filter(c => !c.vrId).length} · Recordings in preparation</div>
@@ -2382,7 +2404,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
   };
 
   const selectProject = (p) => {
-    window.location.assign(projectPath(p));
+    window.location.assign(projectPath(p)+(p.matchedSpace?'?space='+encodeURIComponent(p.matchedSpace):''));
   };
 
   const published = projects.filter(isPublished);
