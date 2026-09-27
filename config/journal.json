@@ -1,5 +1,28 @@
 [
   {
+    "slug": "the-broad-published",
+    "title": "Architecture and public domain",
+    "date": "2026-09-27",
+    "dateLabel": "September 2026",
+    "paragraphs": [
+      "The Broad is now on LENS, the first project in the archive to include architecture and interior spaces. What interests me here is the museum as an extension of the city’s public domain. The plaza, the sheltered edge of the building and the spaces inside belong to a connected public experience, even as their forms and materials change.",
+      "Their spatial forms, materials, design approaches and scales offer useful references for design teaching and research. I’m glad to bring them into the collection. Moving beyond this disciplinary boundary allows LENS to focus more clearly on its core mission of documenting the urban public domain and the spatial experience."
+    ],
+    "tags": [
+      "Los Angeles",
+      "New recordings"
+    ],
+    "links": [
+      {
+        "label": "Explore The Broad",
+        "href": "/projects/the-broad/"
+      }
+    ],
+    "image": "/assets/projects/the-broad.jpg",
+    "imageAlt": "Illustration of The Broad and its adjoining public plaza in Los Angeles.",
+    "published": true
+  },
+  {
     "slug": "shenzhen-childrens-park",
     "title": "A summer evening at the children’s park",
     "date": "2026-09-26",

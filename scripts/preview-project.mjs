@@ -2,6 +2,7 @@
 import { readFile, writeFile, mkdir, cp, rm } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { build } from 'esbuild';
+import { createHash } from 'node:crypto';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 const require = createRequire(import.meta.url);
@@ -18,6 +19,7 @@ await rm('.preview', {recursive:true, force:true});
 await cp('dist', '.preview', {recursive:true});
 await writeFile('.build/preview.jsx', `import React from 'react';import {createRoot} from 'react-dom/client';import {App} from './app.jsx';createRoot(document.getElementById('root')).render(<App initialProjects={JSON.parse(document.getElementById('catalogue-data').textContent)} initialPath={window.location.pathname} freezeCatalogue={true}/>);`);
 await build({entryPoints:['.build/preview.jsx'],outfile:'.preview/assets/preview.js',bundle:true,minify:true,define:{'process.env.NODE_ENV':'"production"'}});
+const previewVersion = createHash('sha256').update(await readFile('.preview/assets/preview.js')).digest('hex').slice(0,12);
 const escape = s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
 const head = template.split('<head>')[1].split('</head>')[0]
  .replace(/<title>[\s\S]*?<\/title>/,`<title>Preview — ${escape(draft.title)} | LENS</title>`)
@@ -27,6 +29,6 @@ const head = template.split('<head>')[1].split('</head>')[0]
  .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/,'');
 const markup = renderToString(React.createElement(App,{initialProjects:projects,initialPath:path,freezeCatalogue:true}));
 await mkdir(`.preview${path}`,{recursive:true});
-await writeFile(`.preview${path}index.html`,`<!DOCTYPE html><html lang="en"><head>${head}</head><body><div id="root">${markup}</div><script id="catalogue-data" type="application/json">${JSON.stringify(projects).replaceAll('<','\\u003c')}</script><script defer src="/assets/preview.js"></script></body></html>`);
+await writeFile(`.preview${path}index.html`,`<!DOCTYPE html><html lang="en"><head>${head}</head><body><div id="root">${markup}</div><script id="catalogue-data" type="application/json">${JSON.stringify(projects).replaceAll('<','\\u003c')}</script><script defer src="/assets/preview.js?v=${previewVersion}"></script></body></html>`);
 await writeFile('.preview/robots.txt','User-agent: *\nDisallow: /\n');
 console.log(`Local preview: ${path} — serve .preview; never deploy this directory.`);
