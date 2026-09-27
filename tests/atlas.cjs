@@ -3,7 +3,7 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const source=fs.readFileSync('atlas.jsx','utf8');
 const c={};
-vm.runInNewContext('const FH=560;'+source.slice(source.indexOf('function positionsForMap('),source.indexOf('function positionsForYear('))+source.slice(source.indexOf('const ATLAS_LEVELS'),source.indexOf('function AtlasMap(')),c);
+vm.runInNewContext('const FW=1000,FH=560;'+source.slice(source.indexOf('function positionsForMap('),source.indexOf('function positionsForYear('))+source.slice(source.indexOf('const ATLAS_LEVELS'),source.indexOf('function AtlasMap(')),c);
 const projects=[{id:1,coordinates:'23.1226,113.2395'},{id:2,coordinates:'23.116258,113.324729'},{id:3,coordinates:'40,116'},{id:4,coordinates:'invalid'}];
 for(const width of [320,1000]){
  const world=c.atlasRegionPositions(projects,'world',width,560);
@@ -23,3 +23,9 @@ console.log('PASS: fixed World/China/Guangdong views, mobile positions, clusteri
 assert.ok(!source.includes('ATLAS_REGION_PATHS'));
 assert.ok(source.includes('ATLAS_PROVINCE_LINES')); 
 assert.ok(source.includes('Schematic view'));
+
+// Equal map-unit distances retain the same screen length at every aspect ratio.
+for(const [width,height] of [[320,560],[1000,560],[1600,400]]) {
+ const p=c.atlasRegionPositions([{id:1,coordinates:'0,0'},{id:2,coordinates:'0,36'},{id:3,coordinates:'36,0'}],'world',width,height).positions;
+ assert.ok(Math.abs((p[2].x-p[1].x)*width-(p[1].y-p[3].y)*height)<1e-8);
+}

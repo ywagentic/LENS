@@ -812,6 +812,39 @@ function Hero({ featured, heroLayout }) {
   );
 }
 
+// First publication dates; capture dates and construction years do not determine release order.
+const PROJECT_RELEASE_DATES = {9:'2026-09-12',20:'2026-09-12',17:'2026-09-13',21:'2026-09-26',23:'2026-09-27'};
+function RecentAdditions({projects, renderCard}) {
+  const rail = React.useRef(null);
+  const [hasMore, setHasMore] = useState(projects.length > 3);
+  const ordered = [...projects].sort((a,b) => {
+    const date = p => Date.parse(p.publishedAt || PROJECT_RELEASE_DATES[p.id] || '') || 0;
+    return date(b) - date(a) || b.id - a.id;
+  });
+  useEffect(() => {
+    const el = rail.current;
+    const update = () => setHasMore(el.scrollWidth - el.clientWidth - el.scrollLeft > 2);
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    el.addEventListener('scroll', update, {passive:true});
+    update();
+    return () => {observer.disconnect(); el.removeEventListener('scroll', update);};
+  }, [projects]);
+  return <div className="recent-additions">
+    <style>{`
+      .recent-rail{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:x proximity;padding:0 0 20px;scrollbar-width:none}
+      .recent-rail::-webkit-scrollbar{display:none}
+      .recent-rail.has-more{mask-image:linear-gradient(to right,#000 0%,#000 88%,transparent 100%)}
+      .recent-item{flex:0 0 calc((100% - 84px)/3.25);min-width:0;scroll-snap-align:start}
+      @media(max-width:1050px){.recent-item{flex-basis:calc((100% - 56px)/2.2)}}
+      @media(max-width:600px){.recent-rail{gap:20px}.recent-item{flex-basis:86%}}
+    `}</style>
+    <div ref={rail} className={'recent-rail'+(hasMore?' has-more':'')} tabIndex={0} role="region" aria-label="Recent additions, newest first">
+      {ordered.map(p=><div className="recent-item" key={p.id}>{renderCard(p)}</div>)}
+    </div>
+  </div>;
+}
+
 function UpcomingSection({ projects, cardStyle = 'grid' }) {
   if (!projects.length) return null;
   return (
@@ -2400,11 +2433,9 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
                       textDecoration: 'underline', textUnderlineOffset: 4,
                     }}>Browse all projects →</button>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '48px 28px' }}>
-                    {published.slice(0,4).map(p => (
-                      <ProjectCard key={p.id} project={p} onClick={() => selectProject(p)} showTags={tweaks.showTags} cardStyle="grid" voted={voted} counts={counts} onToggle={toggle} />
-                    ))}
-                  </div>
+                  <RecentAdditions projects={published} renderCard={p => (
+                    <ProjectCard project={p} onClick={() => selectProject(p)} showTags={tweaks.showTags} cardStyle="grid" voted={voted} counts={counts} onToggle={toggle} />
+                  )} />
                 </div>
                 <UpcomingSection projects={upcoming} />
               </div>

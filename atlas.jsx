@@ -257,7 +257,7 @@ function MapBackdrop() {
   }, []);
   const usePaths = paths || WORLD_PATHS;
   return (
-    <svg viewBox={`0 0 ${FW} ${FH}`} preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
+    <svg viewBox={`0 0 ${FW} ${FH}`} preserveAspectRatio="xMidYMid meet" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}>
       <g transform="translate(0, 30)">
         <g stroke="var(--border)" strokeWidth="0.5" fill="none" opacity="0.6">
           {[-60, -30, 0, 30, 60].map(lat => {
@@ -356,7 +356,16 @@ const ATLAS_LEVELS = {
   guangdong: {label:'Guangdong',bounds:[109,19.5,118,26]},
 };
 function atlasRegionPositions(projects,level,width,height) {
-  if(level==='world') return {positions:positionsForMap(projects),bounds:null};
+  if(level==='world') {
+    const scale = Math.min(width/FW, height/FH);
+    const offsetX = (width-FW*scale)/2, offsetY = (height-FH*scale)/2;
+    const positions = positionsForMap(projects);
+    for (const p of Object.values(positions)) {
+      p.x = (offsetX+p.x*FW*scale)/width;
+      p.y = (offsetY+p.y*FH*scale)/height;
+    }
+    return {positions,bounds:null};
+  }
   const raw=ATLAS_LEVELS[level].bounds;
   const cx=(raw[0]+raw[2])/2,cy=(raw[1]+raw[3])/2;
   let w=raw[2]-raw[0],h=raw[3]-raw[1];
