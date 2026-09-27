@@ -138,7 +138,7 @@ function positionsForYear(projects) {
 function positionsForType(projects) {
   const groups = {};
   projects.forEach(p => {
-    const key = p.type || 'Other';
+    const key = p.typeCategory || projectTypes(p)[0] || 'Other';
     (groups[key] = groups[key] || []).push(p);
   });
   const types = Object.keys(groups).sort();
@@ -319,6 +319,7 @@ function ColumnBackdrop({ columns, axisLabel }) {
 
 // Generalized coastlines and subdued province boundaries at fixed scales.
 const ATLAS_COASTS = {
+  usa: [[-124.7,48.5],[-123,48],[-124,46],[-124,42],[-123,40],[-122,38],[-120.5,35],[-117.2,32.5],[-111,31.3],[-108.2,31.3],[-106.5,31.8],[-104.5,29.6],[-103,29],[-101,29.8],[-99,26.5],[-97.2,25.9],[-96.5,28],[-94,29.5],[-90,29],[-89,30.3],[-85,30],[-83,29],[-82,27],[-80.5,25.2],[-80,27],[-81,30.5],[-80,32.5],[-78.5,34],[-76,35.5],[-75.5,37],[-74,40.5],[-71,41.5],[-70,43],[-67,45],[-69,47.5],[-71.5,45],[-74.5,45],[-76.5,44],[-79,43],[-82,41.8],[-83,42],[-82.5,45.5],[-84.5,46.5],[-89,48],[-95,49],[-110,49],[-124.7,49],[-124.7,48.5]],
   china: [[135,49],[134,46],[132,43],[130,42],[129,39],[129,36],[127,34.5],[126,35],[125,38],[124,39.5],[122,40],[121,41],[119.5,40],[118,39],[119,38],[121,38],[122,37],[120,36],[120,34],[121.5,32],[122,30],[121,28],[120,26],[118,24.5],[116,23],[114,22.5],[113.5,23],[113,22],[111,21.5],[110.3,21],[110,20.2],[109.6,20.3],[109.8,21.3],[108.5,21.7],[107,21],[106,19.5],[105.5,18],[107,16],[109,13],[109,10],[106,8]],
   guangdong: [[105,20],[107,21],[108,21.6],[108.8,21.7],[109.7,21.4],[109.6,20.5],[109.9,20.2],[110.3,20.4],[110.4,20.9],[110.2,21.2],[110.7,21.4],[111,21.5],[111.5,21.5],[112,21.8],[112.4,21.8],[112.7,22.1],[113.05,22.05],[113.25,22.2],[113.35,22.55],[113.25,22.8],[113.48,23.05],[113.65,22.85],[113.55,22.6],[113.8,22.4],[113.95,22.5],[114.15,22.3],[114.35,22.4],[114.5,22.65],[114.8,22.6],[115.1,22.8],[115.5,22.75],[115.8,22.9],[116.25,23.05],[116.6,23.3],[116.9,23.4],[117.2,23.65],[117.6,23.75],[118,24.1],[118.5,24.4],[119,25],[120,26],[121,28]],
 };
@@ -332,7 +333,7 @@ function AtlasRegionBackdrop({level,bounds}) {
   const coast=ATLAS_COASTS[level];
   const path=points=>'M'+points.map(([x,y])=>`${x},${-y}`).join(' L');
   const edge=path(coast);
-  const land=level==='china'?edge+' L 65,-8 L 65,-65 L 145,-65 Z':edge+' L 130,-60 L 65,-60 L 65,-15 Z';
+  const land=level==='usa'?edge+' Z':level==='china'?edge+' L 65,-8 L 65,-65 L 145,-65 Z':edge+' L 130,-60 L 65,-60 L 65,-15 Z';
   return <svg aria-hidden="true" viewBox={`${bounds[0]} ${-bounds[3]} ${bounds[2]-bounds[0]} ${bounds[3]-bounds[1]}`} style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}}>
     <g stroke="var(--border)" strokeWidth=".5" opacity=".6">
       {[1,2,3].map(i=>{const y=bounds[1]+(bounds[3]-bounds[1])*i/4;return <line key={'y'+i} x1={bounds[0]} y1={-y} x2={bounds[2]} y2={-y} strokeDasharray="2 5" vectorEffect="non-scaling-stroke"/>;})}
@@ -340,11 +341,11 @@ function AtlasRegionBackdrop({level,bounds}) {
     </g>
     <path d={land} fill="var(--fg)" opacity=".035"/>
     <g fill="none" stroke="var(--fg3)" strokeWidth=".6" opacity=".45" strokeLinejoin="round" strokeLinecap="round">
-      {ATLAS_PROVINCE_LINES.map((d,i)=><path key={i} d={d} vectorEffect="non-scaling-stroke"/>)}
+      {(level==='usa'?[]:ATLAS_PROVINCE_LINES).map((d,i)=><path key={i} d={d} vectorEffect="non-scaling-stroke"/>)}
     </g>
     <g fill="none" stroke="var(--fg2)" strokeWidth=".7" strokeLinejoin="round" strokeLinecap="round" opacity=".75">
       <path d={edge} vectorEffect="non-scaling-stroke"/>
-      {ATLAS_COAST_ISLANDS.map((points,i)=><path key={i} d={path(points)+' Z'} fill="var(--fg)" fillOpacity=".035" vectorEffect="non-scaling-stroke"/>)}
+      {(level==='usa'?[]:ATLAS_COAST_ISLANDS).map((points,i)=><path key={i} d={path(points)+' Z'} fill="var(--fg)" fillOpacity=".035" vectorEffect="non-scaling-stroke"/>)}
     </g>
   </svg>;
 }
@@ -352,6 +353,7 @@ function AtlasRegionBackdrop({level,bounds}) {
 // Fixed editorial views; no free camera, dragging, wheel or pinch zoom.
 const ATLAS_LEVELS = {
   world: {label:'World'},
+  usa: {label:'United States',bounds:[-126,24,-66,50]},
   china: {label:'China',bounds:[72,17,136,55]},
   guangdong: {label:'Guangdong',bounds:[109,19.5,118,26]},
 };
@@ -402,7 +404,7 @@ function AtlasMap({projects,onSelect,setView}) {
   const [size,setSize]=React.useState({width:1000,height:560});
   const field=React.useRef(null);
   React.useEffect(()=>{const observer=new ResizeObserver(([e])=>setSize({width:e.contentRect.width,height:e.contentRect.height}));observer.observe(field.current);return()=>observer.disconnect();},[]);
-  const filtered=React.useMemo(()=>projects.filter(p=>filter==='all'||p.type===filter),[projects,filter]);
+  const filtered=React.useMemo(()=>projects.filter(p=>filter==='all'||projectTypes(p).includes(filter)),[projects,filter]);
   const {positions,bounds}=React.useMemo(()=>atlasRegionPositions(filtered,level,size.width,size.height),[filtered,level,size]);
   const groups=React.useMemo(()=>atlasClusters(filtered,positions,size.width,size.height),[filtered,positions,size]);
   const inView=filtered.filter(p=>positions[p.id]);
@@ -410,6 +412,7 @@ function AtlasMap({projects,onSelect,setView}) {
   const go=next=>{setLevel(next);setSelection(null);};
   const destination=g=>{
     if(level==='world'&&g.members.every(p=>/china/i.test(p.location||'')))return 'china';
+    if(level==='world'&&g.members.every(p=>/USA|United States/i.test(p.location||'')))return 'usa';
     if(level==='china'&&g.members.every(p=>{const [lat,lng]=(p.coordinates||'').split(',').map(Number);return lat>=20&&lat<=26&&lng>=109&&lng<=118;}))return 'guangdong';
     return null;
   };
@@ -429,10 +432,10 @@ function AtlasMap({projects,onSelect,setView}) {
     <div className="atlas-map-toolbar">
       <span style={{fontSize:12,color:'var(--fg3)'}}>Arrange by</span>
       {['map','year','type'].map(v=><button key={v} style={{...button,background:v==='map'?'var(--fg)':'transparent',color:v==='map'?'var(--bg)':'var(--fg)'}} onClick={()=>setView(v)}>{v==='map'?'Geography':v==='year'?'Year':'Type'}</button>)}
-      <select aria-label="Filter projects by type" value={filter} onChange={e=>{setFilter(e.target.value);setSelection(null);}} style={button}><option value="all">All types</option>{[...new Set(projects.map(p=>p.type).filter(Boolean))].sort().map(t=><option key={t}>{t}</option>)}</select>
+      <select aria-label="Filter projects by type" value={filter} onChange={e=>{setFilter(e.target.value);setSelection(null);}} style={button}><option value="all">All types</option>{[...new Set(projects.flatMap(projectTypes))].sort().map(t=><option key={t}>{t}</option>)}</select>
     </div>
     <nav aria-label="Map region" style={{display:'flex',alignItems:'center',gap:8,marginBottom:14,flexWrap:'wrap'}}>
-      {(level==='world'?['world']:level==='china'?['world','china']:['world','china','guangdong']).map((key,i)=><React.Fragment key={key}>{i>0&&<span style={{color:'var(--fg3)'}}> / </span>}<button onClick={()=>go(key)} aria-current={level===key?'location':undefined} style={{...button,border:'none',padding:'6px 0',color:level===key?'var(--accent)':'var(--fg3)'}}>{ATLAS_LEVELS[key].label}</button></React.Fragment>)}
+      {(level==='world'?['world']:level==='guangdong'?['world','china','guangdong']:['world',level]).map((key,i)=><React.Fragment key={key}>{i>0&&<span style={{color:'var(--fg3)'}}> / </span>}<button onClick={()=>go(key)} aria-current={level===key?'location':undefined} style={{...button,border:'none',padding:'6px 0',color:level===key?'var(--accent)':'var(--fg3)'}}>{ATLAS_LEVELS[key].label}</button></React.Fragment>)}
       {level!=='world'&&<button style={{...button,marginLeft:'auto'}} onClick={()=>go(level==='guangdong'?'china':'world')}>← Back one level</button>}
     </nav>
     {level!=='world'&&<p style={{fontSize:11,color:'var(--fg3)',marginBottom:12}}>Schematic view · relative project locations</p>}
@@ -447,7 +450,7 @@ function AtlasMap({projects,onSelect,setView}) {
       <aside aria-label="Projects in map area" style={{minWidth:0,borderTop:'1px solid var(--border)',paddingTop:16,overflowWrap:'anywhere'}}>
         <div aria-live="polite" style={{fontSize:12,color:'var(--fg3)',marginBottom:12}}>{selection?'Selected group':ATLAS_LEVELS[level].label} · {listed.length} projects</div>
         {selection&&<button style={button} onClick={()=>setSelection(null)}>Show all in this region</button>}
-        {listed.map(p=><button key={p.id} onClick={()=>onSelect(p)} style={{display:'block',width:'100%',textAlign:'left',padding:'16px 0',border:0,borderBottom:'1px solid var(--border)',background:'transparent',color:'var(--fg)',cursor:'pointer'}}><span style={{display:'block',fontSize:16,lineHeight:1.4}}>{p.title} →</span><span style={{display:'block',fontSize:12,color:'var(--fg3)',marginTop:6}}>{p.location}{p.year?` · ${p.year}`:''}</span><span style={{display:'block',fontSize:12,color:'var(--accent)',marginTop:6}}>{recordingViewLabel(p)}</span></button>)}
+        {listed.map(p=><button key={p.id} onClick={()=>onSelect(p.sourceProject || p)} style={{display:'block',width:'100%',textAlign:'left',padding:'16px 0',border:0,borderBottom:'1px solid var(--border)',background:'transparent',color:'var(--fg)',cursor:'pointer'}}><span style={{display:'block',fontSize:16,lineHeight:1.4}}>{p.title} →</span><span style={{display:'block',fontSize:12,color:'var(--fg3)',marginTop:6}}>{p.location}{p.year?` · ${p.year}`:''}</span><span style={{display:'block',fontSize:12,color:'var(--accent)',marginTop:6}}>{recordingViewLabel(p)}</span></button>)}
         {!listed.length&&<p style={{fontSize:13,color:'var(--fg3)'}}>No projects match this view.</p>}
         {level==='guangdong'&&listed.length>1&&<p style={{fontSize:12,color:'var(--fg3)',lineHeight:1.6,marginTop:16}}>Select a project from the list. Nearby projects share a numbered point.</p>}
       </aside>
@@ -475,13 +478,13 @@ function Atlas({ projects, onSelect }) {
   const [filter, setFilter] = React.useState('all'); // 'all' | <type>
 
   const typeOptions = React.useMemo(() => {
-    const set = new Set(projects.map(p => p.type).filter(Boolean));
+    const set = new Set(projects.flatMap(projectTypes));
     return ['all', ...Array.from(set).sort()];
   }, [projects]);
 
   const filtered = React.useMemo(() => (
-    filter === 'all' ? projects : projects.filter(p => p.type === filter)
-  ), [projects, filter]);
+    (filter === 'all' ? projects : projects.filter(p => projectTypes(p).includes(filter))).flatMap(p => view === 'type' ? (filter === 'all' ? projectTypes(p) : [filter]).map(type => ({...p, id: `${p.id}:${type}`, typeCategory:type, sourceProject:p})) : [p])
+  ), [projects, filter, view]);
 
   // Build positions for the active view
   const { positions, columns } = React.useMemo(() => {
@@ -581,7 +584,7 @@ function Atlas({ projects, onSelect }) {
                     className="field-dot-html"
                     onMouseEnter={() => setActive(p)}
                     onMouseLeave={() => setActive(null)}
-                    onClick={() => onSelect(p)}
+                    onClick={() => onSelect(p.sourceProject || p)}
                     style={{
                       position: 'absolute',
                       left: `${pos.x * 100}%`,
@@ -732,7 +735,7 @@ function Atlas({ projects, onSelect }) {
                   </div>
                 )}
                 <button
-                  onClick={() => onSelect(active)}
+                  onClick={() => onSelect(active.sourceProject || active)}
                   style={{
                     marginTop: 14,
                     background: 'none', border: 'none',
@@ -769,7 +772,7 @@ function Atlas({ projects, onSelect }) {
             marginTop: 16, fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)',
           }}>
             <div>
-              Showing <span style={{ color: 'var(--fg)', fontWeight: 500 }}>{visibleProjects.length}</span> of {projects.length} projects
+              Showing <span style={{ color: 'var(--fg)', fontWeight: 500 }}>{new Set(visibleProjects.map(p => (p.sourceProject || p).id)).size}</span> of {projects.length} projects
               {view === 'map' && filtered.length > visibleProjects.length && (
                 <span style={{ color: 'var(--fg4)' }}> · {filtered.length - visibleProjects.length} lack coordinates</span>
               )}

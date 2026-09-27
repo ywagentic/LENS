@@ -204,9 +204,15 @@ function upcomingTiming(project, now = new Date()) {
   return `Expected within ${weeks} ${weeks === 1 ? 'week' : 'weeks'} · by ${formatted}`;
 }
 function hasRecording(project) { return (project.captures || []).length > 0; }
+function projectTypes(p) {
+  const values = Array.isArray(p.types) ? p.types : String(p.type || '').split('|');
+  return [...new Set(values.map(t => t.trim()).filter(Boolean))];
+}
 function normalizeProjects(data) {
   return data.filter(isProjectVisible).map(source => {
     const p = { ...source };
+    p.types = projectTypes(p);
+    p.type = p.types.join(' · ');
     const illustrations = { 24: '/assets/projects/oct-harbour.jpg', 23: '/assets/projects/the-broad.jpg', 22: '/assets/projects/tongva-park.jpg', 17: '/assets/projects/smale-riverfront-park.jpg', 9: '/assets/projects/yongqing-fang.jpg', 20: '/assets/projects/huacheng-square.jpg', 21: '/assets/projects/shenzhen-talent-park-phase-ii.jpg' };
     if (illustrations[p.id]) {
       p.thumb = illustrations[p.id];
@@ -245,7 +251,7 @@ function getTagsFromProjects(projects) {
   return ["All", ...Array.from(set).sort()];
 }
 function getTypesFromProjects(projects) {
-  const set = new Set(projects.map(p => p.type).filter(Boolean));
+  const set = new Set(projects.flatMap(projectTypes));
   return ["All Types", ...Array.from(set).sort()];
 }
 
@@ -978,7 +984,7 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
 
   const matches = projects.filter(p => {
     const matchTag = activeTag === 'All' || p.tags.includes(activeTag);
-    const matchType = activeType === 'All Types' || p.type === activeType;
+    const matchType = activeType === 'All Types' || projectTypes(p).includes(activeType);
     const matchSearch = !searchQuery || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.location.toLowerCase().includes(searchQuery.toLowerCase()) || p.designer.toLowerCase().includes(searchQuery.toLowerCase());
     return matchTag && matchType && matchSearch;
   }).sort((a, b) => {
