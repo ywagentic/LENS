@@ -41,3 +41,9 @@ const numbered=ctx.parseCSV('id,title,visible,captures\n17,Smale,1,Water Feature
 assert.equal(numbered.captures[0].code,'0501-04');
 assert.equal(numbered.captures[0].height,'');
 assert.equal(ctx.parseCSV('id,title,visible,captures\n20,Huacheng,1,Main::0_J7l3HbcX0::Test::1.6m')[0].captures[0].code,'');
+
+// Capture artwork is independent of the project cover and survives CSV parsing.
+const artwork=ctx.parseCSV('id,title,visible,captures\n22,Tongva,1,Central Lawn::gaEUL4jyxEA::Summer 2026::::0601-01::Lawn;Seating::/assets/projects/views/0601-01.jpg')[0];
+assert.equal(artwork.captures[0].thumb,'/assets/projects/views/0601-01.jpg');
+assert.equal(artwork.captures[0].code,'0601-01');
+assert.equal(ctx.normalizeProjects([artwork])[0].captures[0].thumb,artwork.captures[0].thumb);

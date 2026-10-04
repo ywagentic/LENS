@@ -155,8 +155,8 @@ function parseCSV(text) {
     // Fallback: legacy single vrId/vrType becomes one capture
     if (obj.captures) {
       obj.captures = obj.captures.split('|').map(c => {
-        const [label, vrId, description, height, code, spaceTypes] = c.split('::').map(s => (s || '').trim());
-        return vrId ? { label: label || 'View', vrId, description: description || '', height: height || '', code: code || '', ...(spaceTypes ? {spaceTypes:spaceTypes.split(';')} : {}) } : null;
+        const [label, vrId, description, height, code, spaceTypes, thumb] = c.split('::').map(s => (s || '').trim());
+        return vrId ? { label: label || 'View', vrId, description: description || '', height: height || '', code: code || '', ...(spaceTypes ? {spaceTypes:spaceTypes.split(';')} : {}), ...(thumb ? {thumb} : {}) } : null;
       }).filter(Boolean);
     } else if (obj.vrId) {
       obj.captures = [{ label: 'Main view', vrId: obj.vrId, description: '', height: '' }];
@@ -497,7 +497,7 @@ function ProjectThumb({ project, size = 'md' }) {
           src={project.thumb}
           alt={project.title}
           style={{ width: '100%', height: '100%', objectFit: project.thumbIllustration ? 'contain' : 'cover', display: 'block' }}
-          onError={e => { e.target.style.display = 'none'; }}
+          onError={e => { if (project.fallbackThumb && e.target.getAttribute('src') !== project.fallbackThumb) { e.target.src = project.fallbackThumb; e.target.style.objectFit = 'contain'; } else { e.target.style.display = 'none'; } }}
         />
       ) : (
         <>
@@ -1140,6 +1140,13 @@ function youtubeDestination(capture, nav = (typeof navigator !== 'undefined' ? n
   };
 }
 const YOUTUBE_SEARCH_TITLES = {
+  "gaEUL4jyxEA": "Santa Monica Tongva Park / Central Lawn — Upper Seating Terrace | 360° VR | 0601-01",
+  "GKBIgSyo-7E": "Santa Monica Tongva Park / Shaded Playground — Upper View | 360° VR | 0601-02",
+  "zqOyhpRXCew": "Santa Monica Tongva Park / Playground & Picnic Grove — Lower View | 360° VR | 0601-03",
+  "R56NwksLlHA": "Santa Monica Tongva Park / Landscape Wall Overlook — Santa Monica Street View | 360° VR | 0601-04",
+  "AphUgkL5358": "Santa Monica Tongva Park / Inside the Shell-like Overlook | 360° VR | 0601-05",
+  "roVzfn03OdU": "Santa Monica Tongva Park / Planted Hillside — Stair Landing | 360° VR | 0601-06",
+  "5-vwdLfZla4": "Santa Monica Tongva Park / Entrance Plaza — Curved Seating & Landscape Walls | 360° VR | 0601-08",
   'I3IN-UAZJ_s': "Los Angeles The Broad / Ground-Floor Lobby | 360° VR | 0701-03",
   'g7vaffVzdfI': "Los Angeles The Broad / Third-Floor Gallery - Arrival | 360° VR | 0701-04",
   '1HEh8N37O2E': "Los Angeles The Broad / Olive Grove - Under the Overhang | 360° VR | 0701-02",
@@ -1235,7 +1242,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
           transform: hovered ? 'scale(1.005)' : 'scale(1)',
         }}
       >
-        <ProjectThumb project={project} size="lg" />
+        <ProjectThumb key={activeCapture?.vrId || project.id} project={activeCapture ? {...project, thumb:activeCapture.thumb || `https://i.ytimg.com/vi/${activeCapture.vrId}/hqdefault.jpg`, thumbIllustration:!!activeCapture.thumb, fallbackThumb:project.thumb, title:activeCapture.label} : project} size="lg" />
         <div style={{
           position: 'absolute', inset: 0, display: 'flex',
           alignItems: 'center', justifyContent: 'center',
