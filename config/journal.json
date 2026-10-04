@@ -1,5 +1,28 @@
 [
   {
+    "slug": "tongva-park-published",
+    "title": "Tongva Park at a human scale",
+    "date": "2026-10-03",
+    "dateLabel": "October 2026",
+    "paragraphs": [
+      "I’m excited to have Tongva Park online, with seven viewpoints—the most available for any single project in LENS so far.",
+      "I enjoyed this park a lot, not only for its “heroic” formal moves, but also for the richness of its spatial layers. The shaded play slope, picnic grove and smaller seating spaces have a particularly comfortable human scale. Careful planting gives these places much of their character. For me, this is where the park’s placemaking is especially successful."
+    ],
+    "tags": [
+      "Santa Monica",
+      "New recordings"
+    ],
+    "links": [
+      {
+        "label": "Explore Tongva Park",
+        "href": "/projects/tongva-park/"
+      }
+    ],
+    "image": "/assets/journal/tongva-park-fieldwork.jpg",
+    "imageAlt": "Curving seating, planted slopes and shaded spaces at Tongva Park in Santa Monica.",
+    "published": true
+  },
+  {
     "slug": "the-broad-published",
     "title": "Architecture and public domain",
     "date": "2026-09-27",

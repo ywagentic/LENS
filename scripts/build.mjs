@@ -33,7 +33,7 @@ if (new Set(projects.map(p=>p.id)).size !== projects.length) throw new Error('Du
 await writeFile('.build/client.jsx',`import React from 'react';import {createRoot} from 'react-dom/client';import {App} from './app.jsx';createRoot(document.getElementById('root')).render(<App initialProjects={JSON.parse(document.getElementById('catalogue-data').textContent)} initialPath={window.location.pathname}/>);`);
 const built = await build({entryPoints:['.build/client.jsx'],outdir:'dist/assets',entryNames:'app-[hash]',bundle:true,minify:true,metafile:true,define:{'process.env.NODE_ENV':'"production"'}});
 const js = '/'+Object.keys(built.metafile.outputs).find(p=>p.endsWith('.js')).replace(/^dist\//,'');
-await cp('assets/projects','dist/assets/projects',{recursive:true, filter: source => source === 'assets/projects' || /\.(?:jpg|jpeg|png|webp|avif|svg|gif|ico)$/i.test(source)});
+await cp('assets/projects','dist/assets/projects',{recursive:true, filter: source => source === 'assets/projects' || source === 'assets/projects/views' || /\.(?:jpg|jpeg|png|webp|avif|svg|gif|ico)$/i.test(source)});
 await cp('assets/brand','dist/assets/brand',{recursive:true, filter: source => source === 'assets/brand' || /\.(?:jpg|jpeg|png|webp|avif|svg|gif|ico)$/i.test(source)});
 await cp('CNAME','dist/CNAME');
 try { await cp('public','dist',{recursive:true}); } catch(error) { if(error.code !== 'ENOENT') throw error; }

@@ -46,3 +46,7 @@ assets/brand/lens-youtube-banner-*
 grants/
 profile img/
 thumbs/
+
+# Local YouTube thumbnail exports
+thumbnail/
+output/
