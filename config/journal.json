@@ -1,5 +1,26 @@
 [
   {
+    "slug": "lee-parks-tongva-video",
+    "title": "Lee Parks’s video of Tongva Park",
+    "date": "2026-10-04",
+    "dateLabel": "October 2026",
+    "paragraphs": [
+      "Lee Parks, a friend of mine and an amazingly caring landscape architect who leads AECOM’s landscape practice in Shanghai, has published a video of our visit to Tongva Park on Xiaohongshu. It’s incredibly rich and captures much of the place, especially the plantings.",
+      "Please give it a watch, and if you’re on Xiaohongshu, follow him for some great landscape architecture content."
+    ],
+    "tags": [
+      "Santa Monica",
+      "Fieldwork"
+    ],
+    "links": [
+      {
+        "label": "Watch Lee’s video on Xiaohongshu",
+        "href": "https://www.xiaohongshu.com/explore/6ac0d366000000000a020e37?xsec_token=CBO9Ldp0OcYTq8Qqxu0vAX0w8HeMw-RTQ4xOigBnOeq68%3D&xsec_source=app_share"
+      }
+    ],
+    "published": true
+  },
+  {
     "slug": "tongva-park-published",
     "title": "Tongva Park at a human scale",
     "date": "2026-10-03",
