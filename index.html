@@ -94,6 +94,13 @@
     .home-identity h1 { font-size: 16px; font-weight: 400; line-height: 1.55; margin: 0; }
     .home-identity-description { font-size: 16px; line-height: 1.55; color: var(--fg3); margin-top: 16px; }
     @media (max-width: 880px) { .home-identity { grid-template-columns: 1fr; gap: 16px; margin-bottom: 32px; } }
+    .brand-descriptor { display: none; border-left: 1px solid var(--border); margin-left: 2px; padding-left: 10px; font-size: 12px; font-weight: 400; letter-spacing: 0; line-height: 20px; color: var(--fg3); }
+    @media (min-width: 1180px) { .brand-descriptor { display: inline-block; } }
+    .view-info { display: none; position: relative; margin-left: 8px; vertical-align: middle; font-size: 11px; font-weight: 400; color: var(--fg3); }
+    @media (hover: hover) and (pointer: fine) and (min-width: 721px) { .view-info { display: inline-flex; } }
+    .view-info-icon { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border: 1px solid currentColor; border-radius: 50%; font-style: normal; }
+    .view-info-text { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 10px); left: -12px; width: min(300px, 55vw); padding: 12px 14px; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,.12); font-size: 12px; line-height: 1.5; text-align: left; z-index: 20; pointer-events: none; transition: opacity .15s; }
+    .view-info:hover .view-info-text, .view-info:focus .view-info-text { visibility: visible; opacity: 1; }
   </style>
 </head>
 <body>
@@ -107,6 +114,10 @@ const { useState, useEffect, useRef, useCallback } = React;
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTstt0D318arNWhKhdUAUrxqAgKBClnFyzuwuCHWzTEQIX_uiPGlAEqdigcOdQsBA3ZTCT408dmWa-H/pub?output=csv&gid=1420398750&single=true";
 
 // Parse a CSV string into an array of objects using the first row as headers
+function ViewInfo({description}) {
+  return <span className="view-info" tabIndex={0} aria-label={description}><span className="view-info-icon" aria-hidden="true">i</span><span className="view-info-text" role="tooltip">{description}</span></span>;
+}
+
 function parseCSV(text) {
   const rows = [];
   let row = [], field = '', quoted = false;
@@ -621,6 +632,7 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
           fontSize: 22, letterSpacing: '-0.035em', color: 'var(--fg)',
           whiteSpace: 'nowrap', lineHeight: 1,
         }}>LENS</span>
+        <span className="brand-descriptor">Digital Archive of Urban Public Spaces</span>
       </a>
 
       {!isNarrow && (
@@ -1315,7 +1327,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
               Select a viewpoint, then open it on YouTube
             </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--border)', borderRadius: 4, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--border)', borderRadius: 4, overflow: 'visible' }}>
             {captures.map((c, i) => {
               const isActive = i === activeIdx;
               return (
@@ -1351,14 +1363,10 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
                     <div style={{
                       fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 15,
                       color: isActive ? 'var(--accent-bright)' : 'var(--fg)',
-                      marginBottom: c.description ? 3 : 0,
-                    }}>{c.label}</div>
+                      marginBottom: 0,
+                    }}>{c.label}{c.description && <ViewInfo description={c.description} />}</div>
                     {captureSpaceTypes(c).length>0 && <div style={{fontSize:11,color:'var(--accent)',margin:'6px 0'}}>{captureSpaceTypes(c).join(' · ')}</div>}
-                    {c.description && (
-                      <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12.5, color: 'var(--fg3)', lineHeight: 1.45 }}>
-                        {c.description}
-                      </div>
-                    )}
+
                   </div>
                   <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: 'var(--fg3)', letterSpacing: '0.04em' }}>
                     {c.height || ''}
@@ -1377,6 +1385,8 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
           </div>
         </div>
       )}
+
+      {captures.length === 1 && captures[0].description && <div style={{fontSize:15,fontWeight:500,marginBottom:16}}>{captures[0].label}<ViewInfo description={captures[0].description} /></div>}
 
       {captures.length===1 && captureSpaceTypes(captures[0]).length>0 && <p style={{fontSize:12,color:'var(--accent)',marginBottom:24}}>Space type · {captureSpaceTypes(captures[0]).join(' · ')}</p>}
       {project.plannedCaptures?.some(c => !c.vrId) && (
