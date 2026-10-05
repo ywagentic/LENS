@@ -1254,7 +1254,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
           transform: hovered ? 'scale(1.005)' : 'scale(1)',
         }}
       >
-        <ProjectThumb key={activeCapture?.vrId || project.id} project={activeCapture ? {...project, thumb:activeCapture.thumb || `https://i.ytimg.com/vi/${activeCapture.vrId}/hqdefault.jpg`, thumbIllustration:!!activeCapture.thumb, fallbackThumb:project.thumb, title:activeCapture.label} : project} size="lg" />
+        <ProjectThumb key={activeCapture?.vrId || project.id} project={activeCapture ? {...project, thumb:(activeCapture.thumb ? activeCapture.thumb + (project.id === 22 ? "?v=clean-edge-20261004" : "") : `https://i.ytimg.com/vi/${activeCapture.vrId}/hqdefault.jpg`), thumbIllustration:!!activeCapture.thumb, fallbackThumb:project.thumb, title:activeCapture.label} : project} size="lg" />
         <div style={{
           position: 'absolute', inset: 0, display: 'flex',
           alignItems: 'center', justifyContent: 'center',
