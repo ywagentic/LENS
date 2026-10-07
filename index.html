@@ -226,7 +226,9 @@ const VIEW_SPACE_TYPES = {
 };
 function captureSpaceTypes(c) {
   const raw = c.spaceTypes ?? VIEW_SPACE_TYPES[c.vrId] ?? [];
-  return [...new Set((Array.isArray(raw) ? raw : raw.split(';')).map(t=>t.trim()).filter(Boolean))];
+  const types = (Array.isArray(raw) ? raw : raw.split(';')).map(t=>t.trim()).filter(Boolean);
+  if (['pgxcavf846k', 'zkgIGKo52ME'].includes(c.vrId)) types.push('Seated view');
+  return [...new Set(types)];
 }
 function projectTypes(p) {
   const values = Array.isArray(p.types) ? p.types : String(p.type || '').split('|');
@@ -2428,10 +2430,10 @@ const WEBSITE_RELEASES = [
     "Journal launch",
     [
       "Added a Journal for personal field notes, project announcements and photographs.",
-      "Developed a loose card composition with month labels, a timeline reference, search and topic filtering.",
+      "Added month labels, search and topic filtering to the Journal card layout.",
       "Allowed photo-only cards with short captions and direct links to related projects.",
       "Refined card movement to a subtle hover translation, including photo cards, without skew or pointer-following rotation.",
-      "Released the Shenzhen children’s play-space recordings and prepared OCT Harbour as upcoming."
+      "Added Shenzhen children’s play-space recordings and an upcoming OCT Harbour entry."
     ]
   ],
   [
@@ -2443,10 +2445,10 @@ const WEBSITE_RELEASES = [
       "Added viewpoint counts to Browse and Atlas project displays.",
       "Retained designer and site-area information in the featured project and refined cover alignment.",
       "Refined search titles and archive descriptions around landscape architecture and urban public spaces.",
-      "Integrated the archive identity into the original homepage composition after reviewing layout alternatives.",
+      "Added a compact archive introduction to the homepage.",
       "Restored the established homepage proportions and controlled wide-screen layout.",
       "Enabled Cloudflare Web Analytics on production pages.",
-      "Prepared Tongva Park and The Broad as upcoming projects with covers."
+      "Added upcoming entries and covers for Tongva Park and The Broad."
     ]
   ],
   [
@@ -2465,7 +2467,7 @@ const WEBSITE_RELEASES = [
     "September 12, 2026",
     "Initial usable archive",
     [
-      "Prepared the first Guangzhou projects with project metadata, video links and illustrated covers.",
+      "Added Guangzhou project pages with metadata, video links and illustrated covers.",
       "Established catalogue visibility controls and the contribution submission workflow.",
       "Reorganized educator guidance around embodied scale, drawing from observation and comparing spaces.",
       "Established the cover illustration style and updated licensing and citation links to the site domain.",
@@ -2477,28 +2479,28 @@ const WEBSITE_RELEASES = [
       "Extended project visibility from hidden/published to hidden/upcoming/published.",
       "Displayed upcoming projects separately with subdued covers while keeping unavailable recordings inactive.",
       "Added a cover for the forthcoming Shenzhen project.",
-      "Applied the approved LENS visual identity and prepared the YouTube avatar.",
+      "Added the LENS logo and visual identity.",
       "Made the featured-project action open project details so visitors can choose among views.",
       "Addressed overlapping project markers with clustering and fixed world, China and Guangdong views.",
       "Retained the schematic line-art map style through regional zoom, with recognizable coastal detail and simplified province boundaries.",
       "Fixed narrow-screen overflow in Browse and About.",
-      "Added an isolated headset app-handoff test; subsequent guidance uses the tested copy-and-search route."
+      "Added headset playback guidance with a copy-and-search route to the YouTube app."
     ]
   ],
   [
     "0.1.0-beta.2",
     "July 20, 2026",
-    "Early website testing",
+    "Prototype refinements",
     [
-      "Developed and tested the early website, organized initial project material and prepared the public archive."
+      "Updated the prototype’s project presentation and viewing interface."
     ]
   ],
   [
     "0.1.0-beta.1",
     "May 20, 2026",
-    "Early development",
+    "Initial prototype",
     [
-      "Began developing the archive concept, exploring viewing methods and building early prototypes."
+      "Initial prototype of the archive interface."
     ]
   ]
 ];
