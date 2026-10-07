@@ -20,7 +20,8 @@ for(const path of ['/','/browse/']) {
 assert(render('upcoming',projectPath(row)).includes('Page not found'));
 assert(render('1',projectPath(row)).includes('watch?v=abcdefghijk'));
 const atlasUpcoming = render('upcoming','/atlas/');
-assert(atlasUpcoming.includes(row.title));
+assert(!atlasUpcoming.includes('aria-label="Projects in map area"'));
+assert(atlasUpcoming.includes('Gray · Upcoming'));
 assert(!atlasUpcoming.includes(`href="${projectPath(row)}"`));
 assert(!atlasUpcoming.includes('watch?v=abcdefghijk'));
 console.log('PASS: upcoming → published → hidden rendering, no preview playback/detail links, and Atlas upcoming visibility.');
