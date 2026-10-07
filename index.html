@@ -2399,7 +2399,7 @@ function About({ projectCount, clipCount }) {
 // ─── APP ─────────────────────────────────────────────────────────────────────
 const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/', journal: '/journal/' };
 function projectPath(project) {
-  const slug = { 16: 'freeway-park', 25: 'university-of-cincinnati-campus', 26: 'fountain-square', 27: 'luxelakes-cpi-island', 28: 'luxelakes-love-island', 21: 'shenzhen-talent-park-phase-ii', 24: 'oct-harbour', 23: 'the-broad', 22: 'tongva-park', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
+  const slug = { 29: 'circo-massimo', 30: 'portland-airport-main-terminal', 16: 'freeway-park', 25: 'university-of-cincinnati-campus', 26: 'fountain-square', 27: 'luxelakes-cpi-island', 28: 'luxelakes-love-island', 21: 'shenzhen-talent-park-phase-ii', 24: 'oct-harbour', 23: 'the-broad', 22: 'tongva-park', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
   return `/projects/${slug}/`;
 }
 function resolveRoute(path, projects) {

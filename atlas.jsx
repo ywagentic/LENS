@@ -114,7 +114,10 @@ function positionsForYear(projects) {
     const key = p.year || '—';
     (groups[key] = groups[key] || []).push(p);
   });
-  const years = Object.keys(groups).sort();
+  const years = Object.keys(groups).sort((a,b) => {
+    const rank = value => value === 'Ancient Rome' ? -Infinity : Number.parseInt(value) || Infinity;
+    return rank(a) - rank(b) || a.localeCompare(b);
+  });
   const N = years.length;
   const out = {};
   const padX = 0.06;

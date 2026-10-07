@@ -231,5 +231,81 @@
     ],
     "description": "Love Island (爱心岛) is a heart-shaped island within Luxelakes in Chengdu, published as Edenland in the landscape designer’s project documentation. Its lakeside gardens, lawns and paths provide settings for ceremonies and recreation. Interesting Landscape completed the 11,388-square-metre island landscape in 2024. This archive entry focuses on an open-sided pitched-roof pavilion and its surrounding outdoor space.",
     "locationPrecision": "approximate neighborhood"
+  },
+  {
+    "id": 29,
+    "title": "Circo Massimo",
+    "location": "Rome, Italy",
+    "year": "Ancient Rome",
+    "yearLabel": "Period",
+    "designer": "—",
+    "type": "Urban Park",
+    "types": [
+      "Urban Park"
+    ],
+    "vrType": "360° Video",
+    "vrTypes": [
+      "360° Video"
+    ],
+    "vrId": "",
+    "captures": [],
+    "visible": "2",
+    "area": "600 × 140 m (historic circus dimensions)",
+    "thumb": "/assets/projects/circo-massimo.jpg",
+    "thumbIllustration": true,
+    "featured": false,
+    "dateCollected": "",
+    "coordinates": "41.886651,12.484509",
+    "tags": [
+      "Urban",
+      "Historic Landscape"
+    ],
+    "links": [
+      {
+        "label": "Turismo Roma",
+        "url": "https://www.turismoroma.it/en/places/circus-maximus"
+      }
+    ],
+    "description": "Circo Massimo occupies a long valley between Rome’s Palatine and Aventine hills. The former chariot-racing ground now forms a large open space within the historic city, with archaeological remains at its southeastern end."
+  },
+  {
+    "id": 30,
+    "title": "Portland International Airport Main Terminal",
+    "location": "Portland, Oregon, USA",
+    "year": "2024–2026",
+    "designer": "Various",
+    "type": "Public Building",
+    "types": [
+      "Public Building"
+    ],
+    "vrType": "360° Video",
+    "vrTypes": [
+      "360° Video"
+    ],
+    "vrId": "",
+    "captures": [],
+    "visible": "2",
+    "area": "Approx. 92,900 m² (main terminal expansion)",
+    "thumb": "/assets/projects/portland-airport-main-terminal.jpg",
+    "thumbIllustration": true,
+    "featured": false,
+    "dateCollected": "",
+    "coordinates": "45.58926,-122.59375",
+    "tags": [
+      "Urban",
+      "Transport",
+      "Planting"
+    ],
+    "links": [
+      {
+        "label": "ZGF",
+        "url": "https://www.zgf.com/work/5683-port-of-portland-pdx-airport-main-terminal-expansion"
+      },
+      {
+        "label": "Port of Portland",
+        "url": "https://www.flypdx.com/Newsroom/the-local-est-airport-yet-the-new-pdx-starts-opening-aug-14"
+      }
+    ],
+    "description": "Portland International Airport’s reconstructed main terminal is organized beneath an undulating mass-timber roof. Skylights, interior planting and a pre-security market hall introduce daylight and places to pause within the airport’s public circulation spaces. The main hall opened in 2024, with the remaining reconstruction completed in 2026."
   }
 ]
