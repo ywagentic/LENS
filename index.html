@@ -221,14 +221,17 @@ const VIEW_SPACE_TYPES = {
   'XjTg7fDE0b0':['Plaza','Grove'], '1HEh8N37O2E':['Grove'],
   'I3IN-UAZJ_s':['Lobby'], 'g7vaffVzdfI':['Gallery'],
   '0_J7l3HbcX0':['Plaza'], 'sFw9p5A91HY':['Plaza'],
-  'kYic2jDx61s':['Seating','Pergola'], 'pgxcavf846k':['Sculpture'],
+  'kYic2jDx61s':['Seating','Canopy'], 'pgxcavf846k':['Sculpture'],
   'zkgIGKo52ME':['Water Feature']
 };
 function captureSpaceTypes(c) {
   const raw = c.spaceTypes ?? VIEW_SPACE_TYPES[c.vrId] ?? [];
   const types = (Array.isArray(raw) ? raw : raw.split(';')).map(t=>t.trim()).filter(Boolean);
   if (['pgxcavf846k', 'zkgIGKo52ME'].includes(c.vrId)) types.push('Seated view');
-  return [...new Set(types)];
+  if (['kYic2jDx61s', 'AphUgkL5358', '1HEh8N37O2E'].includes(c.vrId)) types.push('Canopy');
+  if (['bu1FLEJ7aho', 'GKBIgSyo-7E', 'zqOyhpRXCew', 'roVzfn03OdU'].includes(c.vrId)) types.push('Topography');
+  if (c.vrId === 'TMOCg1CHIME') types.push('Bridge', 'Overlook');
+  return [...new Set(types.map(t => t === 'Pergola' ? 'Canopy' : t))];
 }
 function projectTypes(p) {
   const values = Array.isArray(p.types) ? p.types : String(p.type || '').split('|');
@@ -254,6 +257,7 @@ function normalizeProjects(data) {
       p.links = [...(p.links || [])];
       if (!p.links.some(link => link.url === fact.url)) p.links.push({label:fact.label,url:fact.url});
     }
+    if (Number(p.id) === 17) p.description = (p.description || '').replace(/pergola/gi, 'canopy');
     p.types = projectTypes(p);
     p.type = p.types.join(' · ');
     const illustrations = { 24: '/assets/projects/oct-harbour.jpg', 23: '/assets/projects/the-broad.jpg', 22: '/assets/projects/tongva-park.jpg', 17: '/assets/projects/smale-riverfront-park.jpg', 9: '/assets/projects/yongqing-fang.jpg', 20: '/assets/projects/huacheng-square.jpg', 21: '/assets/projects/shenzhen-talent-park-phase-ii.jpg' };
@@ -267,7 +271,7 @@ function normalizeProjects(data) {
     if (!p.vrTypes) {
       p.vrTypes = p.vrType ? [p.vrType] : [];
     }
-    p.captures = p.captures.map(c => ({...c, spaceTypes:captureSpaceTypes(c)}));
+    p.captures = p.captures.map(c => ({...c, label:c.vrId === 'kYic2jDx61s' ? 'Swing Canopy' : c.label, description:c.vrId === 'kYic2jDx61s' ? (c.description || '').replace(/pergola/gi, 'canopy') : c.description, spaceTypes:captureSpaceTypes(c)}));
     if (isUpcoming(p)) { p.captures = []; p.vrId = ''; }
     p.captures = p.captures.filter(c => /^[A-Za-z0-9_-]{11}$/.test(c.vrId || ''));
     return p;
