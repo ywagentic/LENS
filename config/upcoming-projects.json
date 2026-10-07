@@ -1,0 +1,233 @@
+[
+  {
+    "id": 16,
+    "title": "Freeway Park",
+    "subtitle": "Concrete plazas, fountains and planting above Interstate 5",
+    "location": "Seattle, Washington, USA",
+    "year": 1976,
+    "designer": "Lawrence Halprin & Associates",
+    "type": "Urban Park",
+    "types": [
+      "Urban Park"
+    ],
+    "vrType": "360° Video",
+    "vrTypes": [
+      "360° Video"
+    ],
+    "vrId": "",
+    "captures": [],
+    "plannedCaptures": [],
+    "visible": "2",
+    "expectedRelease": "",
+    "area": "Approx. 2.2 ha (5.5 acres)",
+    "color": "oklch(65% 0.06 140)",
+    "thumb": "/assets/projects/freeway-park.jpg",
+    "thumbIllustration": true,
+    "featured": false,
+    "dateCollected": "",
+    "contributor": "",
+    "coordinates": "",
+    "tags": [
+      "Urban",
+      "Water",
+      "Planting",
+      "Hardscape",
+      "Infrastructure"
+    ],
+    "links": [
+      {
+        "label": "Seattle Parks",
+        "url": "https://seattle.gov/parks/parks/freeway-park"
+      },
+      {
+        "label": "The Cultural Landscape Foundation",
+        "url": "https://www.tclf.org/freeway-park"
+      }
+    ],
+    "description": "Freeway Park occupies the air space above Interstate 5 in downtown Seattle. Opened in 1976, its linked plazas use board-formed concrete walls, raised planting beds and changes in level to create enclosed spaces above the highway. Evergreen planting and substantial water features give the park a distinct character within the surrounding city."
+  },
+  {
+    "id": 25,
+    "title": "University of Cincinnati Campus Landscape",
+    "subtitle": "A pedestrian campus organized through connected open spaces",
+    "location": "Cincinnati, Ohio, USA",
+    "year": 1991,
+    "designer": "Hargreaves Associates (now Hargreaves Jones)",
+    "type": "Campus",
+    "types": [
+      "Campus"
+    ],
+    "vrType": "360° Video",
+    "vrTypes": [
+      "360° Video"
+    ],
+    "vrId": "",
+    "captures": [],
+    "plannedCaptures": [],
+    "visible": "2",
+    "expectedRelease": "",
+    "area": "Approx. 81 ha (200-acre campus planning context)",
+    "color": "oklch(65% 0.06 140)",
+    "thumb": "/assets/projects/university-of-cincinnati-campus.jpg",
+    "thumbIllustration": true,
+    "featured": false,
+    "dateCollected": "",
+    "contributor": "",
+    "coordinates": "",
+    "tags": [
+      "Urban",
+      "Planting",
+      "Hardscape"
+    ],
+    "links": [
+      {
+        "label": "Master plan — Hargreaves Jones",
+        "url": "https://www.hargreaves.com/work/university-of-cincinnati/"
+      },
+      {
+        "label": "Campus planning history — University of Cincinnati",
+        "url": "https://libapps.libraries.uc.edu/liblog/2011/02/new-university-archives-collection-documents-implementation-of-uc%E2%80%99s-master-plan/"
+      },
+      {
+        "label": "Campus scope and design history — Places",
+        "url": "https://placesjournal.org/article/campus-design-as-critical-practice/"
+      }
+    ],
+    "description": "Hargreaves Associates developed the University of Cincinnati’s campus master plan, approved in 1991, and a series of landscape projects over the following two decades. Connected quadrangles, lawns and pedestrian routes replaced roads and surface parking. Landforms and changes in level give the open spaces distinct characters while linking the campus as a whole. The approximately 200-acre figure describes the campus planning context, rather than the area of any single recorded space.",
+    "yearLabel": "Master plan approved"
+  },
+  {
+    "id": 26,
+    "title": "Fountain Square",
+    "subtitle": "A downtown civic plaza centered on the Tyler Davidson Fountain",
+    "location": "Cincinnati, Ohio, USA",
+    "year": 2007,
+    "designer": "OLIN (landscape revitalization)",
+    "type": "Plaza",
+    "types": [
+      "Plaza"
+    ],
+    "vrType": "360° Video",
+    "vrTypes": [
+      "360° Video"
+    ],
+    "vrId": "",
+    "captures": [],
+    "plannedCaptures": [],
+    "visible": "2",
+    "expectedRelease": "",
+    "area": "Approx. 0.8 ha (2 acres)",
+    "color": "oklch(65% 0.06 140)",
+    "thumb": "/assets/projects/fountain-square.jpg",
+    "thumbIllustration": true,
+    "featured": false,
+    "dateCollected": "",
+    "contributor": "",
+    "coordinates": "",
+    "tags": [
+      "Urban",
+      "Water",
+      "Hardscape"
+    ],
+    "links": [
+      {
+        "label": "Landscape design — OLIN",
+        "url": "https://theolinstudio.com/fountain-square/"
+      },
+      {
+        "label": "Project area — Tillett Lighting",
+        "url": "https://www.tillettlighting.com/fountain-square"
+      },
+      {
+        "label": "Square history",
+        "url": "https://myfountainsquare.com/history/"
+      }
+    ],
+    "description": "Fountain Square is a civic gathering place in downtown Cincinnati, centered on the historic Tyler Davidson Fountain. OLIN’s revitalization relocated the fountain to open up space for events and seating, with planting and street trees defining the plaza’s edges. The square reopened in 2006; OLIN lists the project as completed in 2007."
+  },
+  {
+    "id": 27,
+    "title": "Luxelakes CPI Island",
+    "subtitle": "Lakeside public spaces within a renewed cluster of former show homes",
+    "location": "Chengdu, Sichuan, China",
+    "year": 2024,
+    "designer": "Yudao Studio (landscape); VARI Design and collaborators (architecture)",
+    "type": "Commercial Space",
+    "types": [
+      "Commercial Space"
+    ],
+    "vrType": "360° Video",
+    "vrTypes": [
+      "360° Video"
+    ],
+    "vrId": "",
+    "captures": [],
+    "plannedCaptures": [],
+    "visible": "2",
+    "expectedRelease": "",
+    "area": "30,000 m² (2024 landscape scope)",
+    "color": "oklch(65% 0.06 140)",
+    "thumb": "/assets/projects/luxelakes-cpi-island.jpg",
+    "thumbIllustration": true,
+    "featured": false,
+    "dateCollected": "",
+    "contributor": "",
+    "coordinates": "",
+    "tags": [
+      "Urban",
+      "Planting",
+      "Hardscape"
+    ],
+    "links": [
+      {
+        "label": "Landscape design — Yudao Studio",
+        "url": "https://mooool.com/cpis-new-retail-cluster-landscape-design-by-yudao-studio.html"
+      },
+      {
+        "label": "Architectural renewal — VARI Design",
+        "url": "https://www.archcollege.com/53668.html"
+      }
+    ],
+    "description": "CPI Island is a lakeside retail landscape at Luxelakes in Chengdu. Completed in 2024, the landscape renewal by Yudao Studio retains mature planting and works with approximately nine metres of level change. Paths connect former show homes, small courtyards, terraces and lakeside spaces, opening up an established landscape for public use. The published landscape project covers approximately 30,000 square metres; later phases have separate design teams and boundaries."
+  },
+  {
+    "id": 28,
+    "title": "Luxelakes Love Island",
+    "subtitle": "A lakeside setting for outdoor ceremonies",
+    "location": "Chengdu, Sichuan, China",
+    "year": 2024,
+    "designer": "Interesting Landscape (island landscape)",
+    "type": "Garden",
+    "types": [
+      "Garden"
+    ],
+    "vrType": "360° Video",
+    "vrTypes": [
+      "360° Video"
+    ],
+    "vrId": "",
+    "captures": [],
+    "plannedCaptures": [],
+    "visible": "2",
+    "expectedRelease": "",
+    "area": "11,388 m² (island landscape)",
+    "color": "oklch(65% 0.06 140)",
+    "thumb": "/assets/projects/luxelakes-love-island.jpg",
+    "thumbIllustration": true,
+    "featured": false,
+    "dateCollected": "",
+    "contributor": "",
+    "coordinates": "",
+    "tags": [
+      "Water",
+      "Hardscape"
+    ],
+    "links": [
+      {
+        "label": "Island landscape — Interesting Landscape",
+        "url": "https://mooool.com/luxe-lakes-edenland-by-interesting-landscape.html"
+      }
+    ],
+    "description": "Love Island (爱心岛) is a heart-shaped island within Luxelakes in Chengdu, published as Edenland in the landscape designer’s project documentation. Its lakeside gardens, lawns and paths provide settings for ceremonies and recreation. Interesting Landscape completed the 11,388-square-metre island landscape in 2024. This archive entry focuses on an open-sided pitched-roof pavilion and its surrounding outdoor space."
+  }
+]

@@ -15,7 +15,8 @@ for (const post of journal) {
  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(post.slug) || !/^\d{4}-\d{2}-\d{2}$/.test(post.date) || (!post.image && !post.title && !post.paragraphs?.length) || (post.paragraphs != null && (!Array.isArray(post.paragraphs) || !post.paragraphs.every(p=>typeof p==='string')))) throw new Error('Invalid journal post');
  if (post.image && !/^\/assets\/(journal|projects)\//.test(post.image)) throw new Error('Journal images must be local');
 }
-const app = source.split('<script type="text/babel">')[1].split('const root = ReactDOM.createRoot')[0].replace('const JOURNAL_POSTS = [];', 'const JOURNAL_POSTS = ' + JSON.stringify(journal).replaceAll('<','\\u003c') + ';');
+const upcomingProjects = JSON.parse(await readFile('config/upcoming-projects.json', 'utf8'));
+const app = source.split('<script type="text/babel">')[1].split('const root = ReactDOM.createRoot')[0].replace('const UPCOMING_PROJECTS = [];', 'const UPCOMING_PROJECTS = ' + JSON.stringify(upcomingProjects).replaceAll('<','\\u003c') + ';').replace('const JOURNAL_POSTS = [];', 'const JOURNAL_POSTS = ' + JSON.stringify(journal).replaceAll('<','\\u003c') + ';');
 await rm('.build', {recursive:true, force:true});
 await rm('dist', {recursive:true, force:true});
 await mkdir('.build', {recursive:true});
@@ -28,7 +29,7 @@ const response = process.env.LENS_CSV_FILE ? null : await fetch(SHEET_CSV_URL,{s
 if (response && !response.ok) throw new Error(`Catalogue fetch failed: ${response.status}`);
 const csv = response ? await response.text() : await readFile(process.env.LENS_CSV_FILE,'utf8');
 if (!csv.split(/\r?\n/)[0].split(',').includes('visible')) throw new Error('Catalogue missing publication switch');
-const projects = normalizeProjects(parseCSV(csv));
+const projects = normalizeProjects([...parseCSV(csv).filter(p => !upcomingProjects.some(a => a.id === p.id)), ...upcomingProjects]);
 if (new Set(projects.map(p=>p.id)).size !== projects.length) throw new Error('Duplicate project IDs');
 await writeFile('.build/client.jsx',`import React from 'react';import {createRoot} from 'react-dom/client';import {App} from './app.jsx';createRoot(document.getElementById('root')).render(<App initialProjects={JSON.parse(document.getElementById('catalogue-data').textContent)} initialPath={window.location.pathname}/>);`);
 const built = await build({entryPoints:['.build/client.jsx'],outdir:'dist/assets',entryNames:'app-[hash]',bundle:true,minify:true,metafile:true,define:{'process.env.NODE_ENV':'"production"'}});
