@@ -398,11 +398,7 @@ function atlasClusters(projects,positions,width,height) {
   return groups;
 }
 function atlasMarkerBackground(projects) {
-  const upcoming = projects.filter(isUpcoming).length;
-  if (!upcoming) return 'var(--accent)';
-  if (upcoming === projects.length) return '#9b9f9c';
-  const publishedShare = (projects.length - upcoming) / projects.length * 100;
-  return `conic-gradient(var(--accent) 0% ${publishedShare}%, #9b9f9c ${publishedShare}% 100%)`;
+  return projects.length > 0 && projects.every(isUpcoming) ? '#9b9f9c' : 'var(--accent)';
 }
 function AtlasMap({projects,onSelect,setView}) {
   const [level,setLevel]=React.useState('world');

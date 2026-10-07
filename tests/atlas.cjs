@@ -32,4 +32,4 @@ for(const [width,height] of [[320,560],[1000,560],[1600,400]]) {
 
 assert.equal(c.atlasMarkerBackground([{visible:'upcoming'}]), '#9b9f9c');
 assert.equal(c.atlasMarkerBackground([{visible:'1'}]), 'var(--accent)');
-assert(c.atlasMarkerBackground([{visible:'1'},{visible:'upcoming'}]).includes('50%'));
+assert.equal(c.atlasMarkerBackground([{visible:'1'},{visible:'upcoming'}]), 'var(--accent)');
