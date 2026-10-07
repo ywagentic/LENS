@@ -416,17 +416,18 @@ function UpvoteButton({ projectId, voted, counts, onToggle, size = 'md' }) {
           aria-pressed={hasVoted}
           onClick={e => { e.stopPropagation(); onToggle(projectId); }}
           style={{
-            background: hasVoted ? 'var(--accent)' : 'var(--card-bg)',
-            border: `1px solid ${hasVoted ? 'var(--accent)' : 'var(--border)'}`,
-            borderRadius: 99, minWidth: 32, minHeight: 32, padding: '6px 9px',
+            background: hasVoted ? 'rgba(0, 112, 71, 0.09)' : 'rgba(255, 255, 255, 0.7)',
+            border: 'none',
+            backdropFilter: 'blur(6px)',
+            borderRadius: 99, minWidth: 24, minHeight: 24, padding: '4px 6px',
             justifyContent: 'center',
             display: 'flex', alignItems: 'center', gap: 4,
             cursor: 'pointer', transition: 'all 0.15s',
             fontFamily: 'Inter, sans-serif', fontSize: 11,
-            color: hasVoted ? 'white' : 'var(--fg2)',
+            color: hasVoted ? 'var(--accent)' : 'var(--fg3)',
           }}
         >
-          <svg width={14} height={14} viewBox="0 0 12 12" fill={hasVoted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
+          <svg width={12} height={12} viewBox="0 0 12 12" fill={hasVoted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
             <path d="M6 1l1.5 3H11l-2.8 2 1 3.2L6 7.5l-3.2 1.7 1-3.2L1 4h3.5z"/>
           </svg>
           {count > 0 ? count : ''}
@@ -2039,100 +2040,83 @@ function Equipment({ onBrowse }) {
   const steps = [
     {
       n: '01',
-      title: 'Power on the Quest 3',
-      body: 'Put on the headset and complete guardian setup if it is the first time. The headset works standalone — no PC, no phone tethering required.',
+      title: 'Open LENS in the headset browser',
+      body: 'Open the browser and go to lens-vr.com. Bookmark the site if you plan to return.',
     },
     {
       n: '02',
-      title: 'Open the built-in browser',
-      body: 'From the universal menu, launch the Meta Browser app. Sign into a Google account if you want voting and contribution features (optional — browsing works anonymously).',
+      title: 'Choose a project and a view',
+      body: 'Open a project from Browse, then select a view below the preview. Tapping the preview opens the YouTube web page. In the Quest browser, parts of the video may appear blurry; use the native YouTube VR app for a clearer viewing experience.',
     },
     {
       n: '03',
-      title: 'Navigate to LENS',
-      body: 'Type the LENS URL into the address bar. Bookmark it for quick access in future sessions. The site is fully responsive inside the headset browser.',
+      title: 'Find the recording in YouTube VR',
+      body: 'Copy the video title using the button on the project page, then open the YouTube VR app. Press and hold in the search field to bring up Paste, paste the title, and search for the recording.',
     },
     {
       n: '04',
-      title: 'Pick a project, open YouTube',
-      body: 'Browse the catalogue, open a project, and tap the large 360° preview. Open the recording on YouTube and use the viewing options available on your headset.',
+      title: 'Set the quality to 4K',
+      body: 'In the video’s playback settings, select 4K (2160p), or the highest available resolution. Check that the recording is displayed in immersive 360° mode.',
     },
     {
       n: '05',
+      title: 'Turn on Loop',
+      body: 'Enable Loop for the individual video in the playback options. The short recording will repeat while you adjust the headset and explore the space.',
+    },
+    {
+      n: '06',
       title: 'Look around',
-      body: 'Each recording is captured from a fixed position. Stay in place and turn to look around; walking will not move you through the recorded space. Stand for a standing-eye-level capture and sit for a seated capture, so your posture corresponds to the recorded viewpoint. To view another position, return to the project page and select another capture.',
+      body: 'Each recording is captured from a fixed position. Stay in place and turn to look around; walking will not move you through the recorded space. Stand for standing viewpoints and sit for seated viewpoints to match the recorded eye level. Leave enough clear space around you to turn safely. To explore another viewpoint, return to the project page and select another view.',
     },
   ];
 
   return (
     <div style={{ padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}>
       <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.05, marginBottom: 24 }}>
-        Hardware &amp; recommended workflow
+        Viewing LENS
       </h1>
       <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.55, fontWeight: 400, marginBottom: 48 }}>
-        LENS opens recordings directly on YouTube. On a computer, use the YouTube video page; on a phone, use the YouTube app, since rotating the view may not work in a mobile browser. For an eye-level, immersive experience, use a compatible headset.
+        LENS lets you explore urban public spaces through 360° recordings. A VR headset provides the most immersive experience; if you do not have one, you can still look around the spaces on your phone or computer.
       </p>
 
-      {/* Recommended headset */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: 'minmax(0, 220px) 1fr', gap: 32,
-        padding: 32, background: 'var(--card-bg)', border: '1px solid var(--border)',
-        borderRadius: 12, marginBottom: 56, alignItems: 'center',
-      }}>
-        {/* Schematic illustration of a headset */}
-        <div style={{
-          aspectRatio: '4 / 3', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          background: 'var(--bg2)', borderRadius: 8, border: '1px solid var(--border)',
-        }}>
-          <svg viewBox="0 0 160 120" style={{ width: '78%', height: 'auto' }}>
-            {/* headset main body */}
-            <rect x="20" y="38" width="120" height="56" rx="14" fill="none" stroke="currentColor" strokeOpacity="0.7" strokeWidth="1.5" />
-            {/* lenses */}
-            <circle cx="58" cy="66" r="13" fill="none" stroke="var(--accent)" strokeWidth="1.5" />
-            <circle cx="102" cy="66" r="13" fill="none" stroke="var(--accent)" strokeWidth="1.5" />
-            <circle cx="58" cy="66" r="4" fill="var(--accent)" opacity="0.4" />
-            <circle cx="102" cy="66" r="4" fill="var(--accent)" opacity="0.4" />
-            {/* nose bridge */}
-            <path d="M 75 80 Q 80 88 85 80" fill="none" stroke="currentColor" strokeOpacity="0.5" strokeWidth="1.2" />
-            {/* head strap (top) */}
-            <path d="M 30 44 Q 80 14 130 44" fill="none" stroke="currentColor" strokeOpacity="0.5" strokeWidth="1.2" strokeDasharray="2 3" />
-            {/* side strap hints */}
-            <line x1="20" y1="56" x2="8" y2="58" stroke="currentColor" strokeOpacity="0.4" strokeWidth="1.2" />
-            <line x1="140" y1="56" x2="152" y2="58" stroke="currentColor" strokeOpacity="0.4" strokeWidth="1.2" />
-            {/* sensor dots on front */}
-            <circle cx="38" cy="50" r="1.5" fill="currentColor" opacity="0.4" />
-            <circle cx="122" cy="50" r="1.5" fill="currentColor" opacity="0.4" />
-          </svg>
+      <section style={{ marginBottom: 48 }}>
+        <h2 style={{ ...H2, marginBottom: 20 }}>Ways to explore</h2>
+        <p style={{ ...SMALL, marginBottom: 20 }}>The recordings are hosted on YouTube, making the archive accessible across phones, computers and VR headsets. Phones and computers let you explore without VR equipment. A phone viewer offers an affordable introduction to immersive viewing, while a standalone headset provides the best experience.</p>
+        <div style={{ borderTop: '1px solid var(--border)' }}>
+          {[
+            ['Phone or tablet', 'A quick look with no extra equipment.', 'Open the recording in the YouTube app and move your phone to look around, as you would when framing a photograph, or swipe to turn the view. This is a convenient way to explore wherever you are.'],
+            ['Desktop browser', 'A larger screen for close study and discussion.', 'Open the recording on YouTube and click and drag to look around. The larger display is useful for examining details and taking notes. You can also share the screen in class without needing VR equipment.'],
+            ['Affordable VR option', 'A reasonably immersive experience for around US$20–30.', 'A Cardboard-compatible phone viewer uses your phone’s screen and motion sensors to offer an affordable alternative to a standalone headset. “Cardboard” describes the viewer type; choose a padded, adjustable model rather than one made of actual cardboard. Place your phone inside and select Cardboard mode in YouTube. Note that as of October 2026, this mode is available on Android only.'],
+            ['VR headset', 'Recommended for the best immersive experience.', 'Consider a VR headset to feel as though you are actually in the space. The surrounding view responds to your head movements, helping you judge its scale in relation to your body. Open the recording in the native YouTube app, for example on Meta Quest 3.'],
+          ].map(([title, reason, body]) => <details key={title} className="viewing-option" style={{ borderBottom: '1px solid var(--border)' }}>
+            <summary style={{ cursor: 'pointer', padding: '20px 0', display: 'flex', alignItems: 'center', gap: 16, listStyle: 'none' }}>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 16, fontWeight: 500, marginBottom: 5 }}>{title}</span>
+                <span style={{ ...SMALL, display: 'block' }}>{reason}</span>
+              </span>
+              <span className="viewing-option-indicator" aria-hidden="true" style={{ fontSize: 22, fontWeight: 300, color: 'var(--fg3)', flexShrink: 0 }}>+</span>
+            </summary>
+            <p style={{ ...SMALL, margin: '0 32px 24px 0' }}>{body}</p>
+          </details>)}
         </div>
-        <div>
-          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 8 }}>Recommended</div>
-          <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 26, letterSpacing: '-0.015em', margin: 0, marginBottom: 8 }}>Meta Quest 3</h2>
-          <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg2)', lineHeight: 1.55, margin: 0, marginBottom: 16 }}>
-            Standalone, no PC required. Open recordings in YouTube VR on the headset and check that the video is displayed in immersive 360° mode before a studio session.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginBottom: 16 }}>
-            {[
-              ['Resolution', '2064 × 2208 / eye'],
-              ['Tracking', '6 DoF inside-out'],
-              ['Browser', 'Meta Browser (Chromium)'],
-              ['Setup', 'Standalone, wireless'],
-            ].map(([k, v]) => (
-              <div key={k}>
-                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 2 }}>{k}</div>
-                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg)' }}>{v}</div>
-              </div>
-            ))}
-          </div>
-          <a href="https://www.meta.com/quest/quest-3/" target="_blank" rel="noopener noreferrer" style={{
-            fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--accent)',
-            textDecoration: 'none', borderBottom: '1px solid var(--accent)', paddingBottom: 1,
-          }}>Product details on meta.com →</a>
-        </div>
-      </div>
+        <style>{`.viewing-option summary::-webkit-details-marker { display: none; } .viewing-option[open] .viewing-option-indicator { transform: rotate(45deg); } .viewing-option summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }`}</style>
+
+      </section>
+
+      <section style={{ paddingBlock: 28, borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', marginBottom: 48 }}>
+        <div style={{ ...LABEL, marginBottom: 12 }}>Recommended setup</div>
+        <h2 style={{ ...H2, marginBottom: 16 }}>A recent standalone VR headset</h2>
+        <p style={{ ...SMALL, marginBottom: 16 }}>For the best experience, I recommend a recent standalone headset with native YouTube support, such as Meta Quest 3.</p>
+        <p style={{ ...SMALL, margin: 0 }}>A standalone headset is designed as a complete optical system: the displays, lens shape and placement, and software correction work together. Lens-to-eye distance affects how much of the image you can see, while lens spacing should match the distance between your pupils. Adjusting these helps keep your eyes in the position where the image is clear and the field of view is fully visible. A basic Cardboard viewer offers fewer adjustments, and its results depend on the phone’s screen size and how it sits behind the lenses.</p>
+        <p style={{ ...SMALL, marginTop: 16, marginBottom: 0 }}>For example, Quest 3 combines pancake lenses, adjustable lens spacing and eye relief, a 110° horizontal field of view, and 2064 × 2208 pixels per eye. The broad area of clarity lets you look across the scene with your eyes, with less need to turn your head to keep details in focus. Dedicated tracking and display refresh rates up to 120 Hz also help the view respond smoothly as you turn. Together, these make it easier to spend time observing spatial relationships. The recording’s resolution and frame rate still limit the video quality.</p>
+        <a href="https://developers.meta.com/vr/resources/compare-devices/" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 16, marginRight: 20, fontSize: 13, color: 'var(--accent)' }}>Headset specifications →</a>
+        <a href="https://support.google.com/youtube/answer/7205886" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 16, fontSize: 13, color: 'var(--accent)' }}>Check supported YouTube VR devices →</a>
+      </section>
 
       {/* Workflow */}
       <div style={{ marginBottom: 56 }}>
-        <div style={{ ...LABEL, marginBottom: 24 }}>Suggested workflow</div>
+        <h2 style={{ ...H2, marginBottom: 16 }}>VR headset workflow</h2>
+        <p style={{ ...SMALL, marginBottom: 24 }}>Follow these steps on a headset with YouTube VR support. Menu names and paste controls may vary between devices.</p>
         <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
           {steps.map((s, i) => (
             <div key={s.n} style={{
@@ -2149,30 +2133,6 @@ function Equipment({ onBrowse }) {
                 <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 16, color: 'var(--fg)', marginBottom: 6 }}>{s.title}</div>
                 <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg2)', lineHeight: 1.55 }}>{s.body}</div>
               </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Alternatives */}
-      <div style={{ marginBottom: 56 }}>
-        <div style={{ ...LABEL, marginBottom: 16 }}>Other supported devices</div>
-        <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg2)', lineHeight: 1.6, marginBottom: 20 }}>
-          LENS works on any device — but the experience varies. In rough order of immersion:
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
-          {[
-            { name: 'Other VR headsets', note: 'Pico 4, Vision Pro, Quest 2 — anything with a Chromium-based browser and 360° YouTube support.' },
-            { name: 'Smartphone + Cardboard', note: 'YouTube mobile app has a native cardboard mode. Inexpensive entry point for individual study.' },
-            { name: 'Phone or tablet', note: 'Drag to pan around the 360° sphere. Works on any phone, no headset required.' },
-            { name: 'Desktop browser', note: 'Click-and-drag panning. Best for previewing or annotating in class discussion.' },
-          ].map(d => (
-            <div key={d.name} style={{
-              padding: '16px 18px', background: 'var(--card-bg)',
-              border: '1px solid var(--border)', borderRadius: 8,
-            }}>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, color: 'var(--fg)', marginBottom: 6 }}>{d.name}</div>
-              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12.5, color: 'var(--fg3)', lineHeight: 1.5 }}>{d.note}</div>
             </div>
           ))}
         </div>
@@ -2400,7 +2360,7 @@ function About({ projectCount, clipCount }) {
 }
 
 // ─── APP ─────────────────────────────────────────────────────────────────────
-const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/', journal: '/journal/' };
+const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/', journal: '/journal/', releases: '/releases/' };
 function projectPath(project) {
   const slug = { 29: 'circo-massimo', 30: 'portland-airport-main-terminal', 16: 'freeway-park', 25: 'university-of-cincinnati-campus', 26: 'fountain-square', 27: 'luxelakes-cpi-island', 28: 'luxelakes-love-island', 21: 'shenzhen-talent-park-phase-ii', 24: 'oct-harbour', 23: 'the-broad', 22: 'tongva-park', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
   return `/projects/${slug}/`;
@@ -2409,6 +2369,152 @@ function resolveRoute(path, projects) {
   const normalized = path === '/' ? '/' : path.replace(/\/+$/, '') + '/';
   const selected = projects.find(p => isPublished(p) && projectPath(p) === normalized);
   return selected ? { view: 'project', selected } : { view: Object.keys(PAGE_PATHS).find(key => PAGE_PATHS[key] === normalized) || 'missing', selected: null };
+}
+
+const WEBSITE_VERSION = '1.2.2';
+
+const WEBSITE_RELEASES = [
+  [
+    "1.2.2",
+    "October 7, 2026",
+    "Viewing guidance and site information",
+    [
+      "Reorganized Equipment into four expandable viewing options, recommended hardware and a six-step headset workflow.",
+      "Added guidance on native YouTube playback, 4K quality, looping and matching seated or standing capture positions.",
+      "Explained affordable phone viewers and the optical advantages of standalone headsets.",
+      "Added a compact global footer with authorship, version information and a separate release history page.",
+      "Refined the project voting control with a smaller, lighter background."
+    ]
+  ],
+  [
+    "1.2.1",
+    "October 3–7, 2026",
+    "View previews and Atlas refinements",
+    [
+      "Extended Atlas to include upcoming projects as gray markers, with solid-color clusters.",
+      "Made the results list appear only after map selection and constrained its height to prevent overflow.",
+      "Added simplified state boundaries to the US regional map.",
+      "Expanded upcoming entries with illustrated covers, including Circo Massimo and Portland International Airport.",
+      "Aligned upcoming cards with published-card information hierarchy and standardized designer credits.",
+      "Reworked Tongva preview edges to match the archive’s established collage covers.",
+      "Added text-free preview artwork for earlier project recordings.",
+      "Moved viewpoint descriptions into compact information controls on desktop and removed them from mobile view lists.",
+      "Added the archive descriptor beside the logo and tightened its spacing.",
+      "Corrected recent-addition ordering and refined Tongva publication notes.",
+      "Enabled the main preview artwork to change when a different view is selected.",
+      "Released Tongva Park with seven views and consecutive published view numbering."
+    ]
+  ],
+  [
+    "1.2.0",
+    "September 27, 2026",
+    "Project and individual-space discovery",
+    [
+      "Added multiple project types rather than a single exclusive classification.",
+      "Added individual-view space types and corresponding Browse filters, alongside project tags.",
+      "Made upcoming entries work consistently in list view and refined card widths across breakpoints.",
+      "Added a US regional Atlas view and refined world-map labels according to marker density.",
+      "Added marker hover feedback; point selection filters the adjacent list instead of opening a project immediately.",
+      "Kept separated markers at the current map scale and used fixed regional zoom where locations overlap.",
+      "Preserved map proportions as the window resizes.",
+      "Ordered Recent additions by publication date and added a fading edge without a visible scrollbar.",
+      "Limited Journal hover activation to the visible card and placed the introductory note at the bottom of its timeline.",
+      "Released The Broad with four views and corrected the catalogue data used by Atlas."
+    ]
+  ],
+  [
+    "1.1.0",
+    "September 26, 2026",
+    "Journal launch",
+    [
+      "Added a Journal for personal field notes, project announcements and photographs.",
+      "Developed a loose card composition with month labels, a timeline reference, search and topic filtering.",
+      "Allowed photo-only cards with short captions and direct links to related projects.",
+      "Refined card movement to a subtle hover translation, including photo cards, without skew or pointer-following rotation.",
+      "Released the Shenzhen children’s play-space recordings and prepared OCT Harbour as upcoming."
+    ]
+  ],
+  [
+    "1.0.2",
+    "September 21–22, 2026",
+    "Archive presentation and statistics",
+    [
+      "Added recording totals to Atlas and About statistics.",
+      "Added viewpoint counts to Browse and Atlas project displays.",
+      "Retained designer and site-area information in the featured project and refined cover alignment.",
+      "Refined search titles and archive descriptions around landscape architecture and urban public spaces.",
+      "Integrated the archive identity into the original homepage composition after reviewing layout alternatives.",
+      "Restored the established homepage proportions and controlled wide-screen layout.",
+      "Enabled Cloudflare Web Analytics on production pages.",
+      "Prepared Tongva Park and The Broad as upcoming projects with covers."
+    ]
+  ],
+  [
+    "1.0.1",
+    "September 13, 2026",
+    "Native headset playback guidance",
+    [
+      "Explained the Quest browser clarity issue and the native YouTube app viewing route.",
+      "Added copyable video search titles and long-press paste instructions.",
+      "Established city-based recording codes at the end of YouTube titles.",
+      "Released Smale Riverfront Park with three recordings."
+    ]
+  ],
+  [
+    "1.0.0",
+    "September 12, 2026",
+    "Initial usable archive",
+    [
+      "Prepared the first Guangzhou projects with project metadata, video links and illustrated covers.",
+      "Established catalogue visibility controls and the contribution submission workflow.",
+      "Reorganized educator guidance around embodied scale, drawing from observation and comparing spaces.",
+      "Established the cover illustration style and updated licensing and citation links to the site domain.",
+      "Added crawlable static project pages, canonical links and search metadata.",
+      "Opened recordings on YouTube instead of embedding them, with mobile app guidance.",
+      "Updated Equipment to reflect external playback.",
+      "Filled the detail preview with its project cover and aligned the enlarged homepage cover with metadata.",
+      "Standardized missing-designer rows and tightened educator-section spacing.",
+      "Extended project visibility from hidden/published to hidden/upcoming/published.",
+      "Displayed upcoming projects separately with subdued covers while keeping unavailable recordings inactive.",
+      "Added a cover for the forthcoming Shenzhen project.",
+      "Applied the approved LENS visual identity and prepared the YouTube avatar.",
+      "Made the featured-project action open project details so visitors can choose among views.",
+      "Addressed overlapping project markers with clustering and fixed world, China and Guangdong views.",
+      "Retained the schematic line-art map style through regional zoom, with recognizable coastal detail and simplified province boundaries.",
+      "Fixed narrow-screen overflow in Browse and About.",
+      "Added an isolated headset app-handoff test; subsequent guidance uses the tested copy-and-search route."
+    ]
+  ],
+  [
+    "0.1.0-beta.2",
+    "August 27, 2026",
+    "Domain setup",
+    [
+      "Configured the custom domain for the early website."
+    ]
+  ],
+  [
+    "0.1.0-beta.1",
+    "August 20, 2026",
+    "Initial prototype",
+    [
+      "Created the initial static LENS website."
+    ]
+  ]
+];
+
+function ReleaseHistory() {
+  return <main style={{ padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto' }}>
+    <h1 style={{ fontSize: 'clamp(40px, 5vw, 56px)', fontWeight: 200, letterSpacing: '-0.025em', margin: '0 0 24px' }}>Release history</h1>
+
+
+    {WEBSITE_RELEASES.map(([version, date, title, changes]) => <section key={version} style={{ borderTop: '1px solid var(--border)', padding: '24px 0 28px' }}>
+      <div style={{ ...LABEL, marginBottom: 10 }}>{date}</div>
+      <h2 style={{ ...H2, marginBottom: 8 }}>v{version}</h2>
+      <p style={{ ...SMALL, color: 'var(--fg)', margin: '0 0 12px' }}>{title}</p>
+      <ul style={{ ...SMALL, paddingLeft: 20, margin: 0 }}>{changes.map(change => <li key={change} style={{ marginBottom: 6 }}>{change}</li>)}</ul>
+    </section>)}
+  </main>;
 }
 
 function App({ initialProjects = null, initialPath = '/', freezeCatalogue = false }) {
@@ -2525,10 +2631,23 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
           )}
           {!loading && view === 'atlas' && <Atlas projects={projects} onSelect={selectProject} />}
           {!loading && view === 'equipment' && <Equipment onBrowse={() => navigate('browse')} />}
+          {!loading && view === 'releases' && <ReleaseHistory />}
           {!loading && view === 'for educators' && <ForEducators onBrowse={() => navigate('browse')} />}
           {!loading && view === 'contribute' && <Contribute onNav={navigate} />}
           {!loading && view === 'journal' && <Journal path={initialPath} />}
           {!loading && view === 'about' && <About projectCount={published.length} clipCount={published.reduce((total, project) => total + project.captures.length, 0)} />}
+          {!loading && <footer style={{ margin: '0 clamp(20px, 4vw, 56px)', padding: '24px 0 32px', borderTop: '1px solid var(--border)', fontFamily: 'Inter, sans-serif', fontSize: 12, lineHeight: 1.6, color: 'var(--fg3)' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 24, rowGap: 6 }}>
+              <div>
+                <div>© 2026 <a href="https://architecture.unl.edu/person/yujia-wang/" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>Yujia Wang</a></div>
+                <div>LENS: A Digital Archive of Urban Public Space</div>
+              </div>
+              <div style={{ marginLeft: 'auto' }}>
+                <div>Website v{WEBSITE_VERSION}</div>
+                <a href="/releases/" onClick={e => { e.preventDefault(); navigate('releases'); }} style={{ display: 'block', width: 'fit-content', marginLeft: 'auto', marginTop: 0, color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 3 }}>Release history</a>
+              </div>
+            </div>
+          </footer>}
         </div>
       </div>
 

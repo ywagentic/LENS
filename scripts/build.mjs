@@ -41,6 +41,7 @@ try { await cp('public','dist',{recursive:true}); } catch(error) { if(error.code
 const escape = s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const json = value=>JSON.stringify(value).replaceAll('<','\\u003c');
 const pages = {
+ releases:['Release History | LENS','Website updates and release history for LENS.'],
  journal:['Journal | LENS','Field notes, new recordings and news from the LENS archive of contemporary urban public spaces.'],
  home:['LENS — Landscape Architecture VR Archive','LENS is a VR digital archive of contemporary urban public spaces for landscape architecture education and research. Explore parks, plazas and waterfronts in 360°.'],
  browse:['Explore Public Spaces in 360° VR | LENS','Browse contemporary urban public spaces in the LENS archive. Explore landscape architecture projects through 360° recordings, design information and sources.'],
