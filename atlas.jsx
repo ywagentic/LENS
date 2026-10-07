@@ -397,6 +397,13 @@ function atlasClusters(projects,positions,width,height) {
   }
   return groups;
 }
+function atlasMarkerBackground(projects) {
+  const upcoming = projects.filter(isUpcoming).length;
+  if (!upcoming) return 'var(--accent)';
+  if (upcoming === projects.length) return '#9b9f9c';
+  const publishedShare = (projects.length - upcoming) / projects.length * 100;
+  return `conic-gradient(var(--accent) 0% ${publishedShare}%, #9b9f9c ${publishedShare}% 100%)`;
+}
 function AtlasMap({projects,onSelect,setView}) {
   const [level,setLevel]=React.useState('world');
   const [selection,setSelection]=React.useState(null);
@@ -434,6 +441,7 @@ function AtlasMap({projects,onSelect,setView}) {
     <h1 style={{fontWeight:200,fontSize:'clamp(40px,5vw,64px)',margin:0,letterSpacing:'-.025em'}}>Atlas</h1>
     <p style={{color:'var(--fg3)',lineHeight:1.6,marginTop:12}}>Explore the collection by geography, year, or type. Select a group to see its region.</p>
     <AtlasCollectionStats projects={projects} />
+    <p style={{fontSize:11,color:'var(--fg3)',marginTop:8}}>Green · Available <span aria-hidden="true"> / </span> Gray · Upcoming</p>
     <div className="atlas-map-toolbar">
       <span style={{fontSize:12,color:'var(--fg3)'}}>Arrange by</span>
       {['map','year','type'].map(v=><button key={v} style={{...button,background:v==='map'?'var(--fg)':'transparent',color:v==='map'?'var(--bg)':'var(--fg)'}} onClick={()=>setView(v)}>{v==='map'?'Geography':v==='year'?'Year':'Type'}</button>)}
@@ -448,14 +456,14 @@ function AtlasMap({projects,onSelect,setView}) {
       <div ref={field} className="atlas-map-field" aria-label={`${ATLAS_LEVELS[level].label} project map`} style={{position:'relative',overflow:'hidden',border:'1px solid var(--border)',background:'var(--card-bg)'}}>
         {level==='world'?<MapBackdrop/>:<AtlasRegionBackdrop level={level} bounds={bounds}/>}
         {groups.map((g,groupIndex)=>{const next=destination(g),showRegionLabel=next && groups.findIndex(other=>destination(other)===next)===groupIndex,count=g.members.length,label=next?`Explore ${ATLAS_LEVELS[next].label}`:count>1?`Show ${count} projects in list`:`Show ${g.members[0].title} in list`;return <button className="atlas-map-marker" key={g.members.map(p=>p.id).join('-')} aria-label={label} title={label} onClick={()=>open(g)} style={{position:'absolute',left:`${g.x*100}%`,top:`${g.y*100}%`,transform:'translate(-50%,-50%)',display:'grid',placeItems:'center',width:44,height:44,border:0,padding:0,background:'transparent',cursor:'pointer'}}>
-          <span className="atlas-map-dot" style={{display:'grid',placeItems:'center',width:count>1?36:13,height:count>1?36:13,borderRadius:'50%',background:'var(--accent)',color:'white',fontSize:13,boxShadow:'0 0 0 3px var(--card-bg)'}}>{count>1?count:''}</span>
+          <span className="atlas-map-dot" style={{display:'grid',placeItems:'center',width:count>1?36:13,height:count>1?36:13,borderRadius:'50%',background:atlasMarkerBackground(g.members),color:'white',fontSize:13,boxShadow:'0 0 0 3px var(--card-bg)'}}>{count>1?count:''}</span>
           {showRegionLabel&&<span style={{position:'absolute',top:43,fontSize:11,color:'var(--fg2)',whiteSpace:'nowrap'}}>{ATLAS_LEVELS[next].label}</span>}
         </button>})}
       </div>
       <aside aria-label="Projects in map area" style={{minWidth:0,borderTop:'1px solid var(--border)',paddingTop:16,overflowWrap:'anywhere'}}>
         <div aria-live="polite" style={{fontSize:12,color:'var(--fg3)',marginBottom:12}}>{selection?'Selected projects':ATLAS_LEVELS[level].label} · {listed.length} projects</div>
         {selection&&<button style={button} onClick={()=>setSelection(null)}>Show all in this region</button>}
-        {listed.map(p=><button key={p.id} onClick={()=>onSelect(p.sourceProject || p)} style={{display:'block',width:'100%',textAlign:'left',padding:'16px 0',border:0,borderBottom:'1px solid var(--border)',background:'transparent',color:'var(--fg)',cursor:'pointer'}}><span style={{display:'block',fontSize:16,lineHeight:1.4}}>{p.title} →</span><span style={{display:'block',fontSize:12,color:'var(--fg3)',marginTop:6}}>{p.location}{p.year?` · ${p.year}`:''}</span><span style={{display:'block',fontSize:12,color:'var(--accent)',marginTop:6}}>{recordingViewLabel(p)}</span></button>)}
+        {listed.map(p=><button key={p.id} disabled={isUpcoming(p)} onClick={()=>onSelect(p.sourceProject || p)} style={{display:'block',width:'100%',textAlign:'left',padding:'16px 0',border:0,borderBottom:'1px solid var(--border)',background:'transparent',color:isUpcoming(p)?'var(--fg3)':'var(--fg)',cursor:isUpcoming(p)?'default':'pointer'}}><span style={{display:'block',fontSize:16,lineHeight:1.4}}>{p.title}{!isUpcoming(p)&&' →'}</span><span style={{display:'block',fontSize:12,color:'var(--fg3)',marginTop:6}}>{p.location}{p.year?` · ${p.year}`:''}</span><span style={{display:'block',fontSize:12,color:isUpcoming(p)?'var(--fg3)':'var(--accent)',marginTop:6}}>{recordingViewLabel(p)}</span></button>)}
         {!listed.length&&<p style={{fontSize:13,color:'var(--fg3)'}}>No projects match this view.</p>}
         {level==='guangdong'&&listed.length>1&&<p style={{fontSize:12,color:'var(--fg3)',lineHeight:1.6,marginTop:16}}>Select a project from the list. Nearby projects share a numbered point.</p>}
       </aside>
@@ -464,16 +472,20 @@ function AtlasMap({projects,onSelect,setView}) {
 }
 
 function recordingViewLabel(project) {
+  if (isUpcoming(project)) return 'Upcoming';
   const count = (project.captures || []).length;
   return `${count} ${count === 1 ? 'View' : 'Views'}`;
 }
 
 function AtlasCollectionStats({ projects }) {
-  const clips = projects.reduce((total, project) => total + (project.captures || []).length, 0);
+  const published = projects.filter(isPublished);
+  const upcoming = projects.filter(isUpcoming).length;
+  const clips = published.reduce((total, project) => total + (project.captures || []).length, 0);
   return <p aria-label="Archive statistics" style={{fontSize:13,color:'var(--fg3)',lineHeight:1.5,marginTop:12}}>
-    <span style={{color:'var(--fg)'}}>{projects.length}</span> Projects
+    <span style={{color:'var(--fg)'}}>{published.length}</span> Projects
     <span aria-hidden="true"> · </span>
     <span style={{color:'var(--fg)'}}>{clips}</span> Views
+    {upcoming > 0 && <><span aria-hidden="true"> · </span><span>{upcoming} Upcoming</span></>}
   </p>;
 }
 
@@ -580,7 +592,7 @@ function Atlas({ projects, onSelect }) {
                         width: size, height: size,
                         marginLeft: -size/2, marginTop: -size/2,
                         borderRadius: '50%',
-                        border: '1px solid var(--accent)',
+                        border: `1px solid ${isUpcoming(p) ? '#9b9f9c' : 'var(--accent)'}`,
                         pointerEvents: 'none',
                       }}
                     />
@@ -589,7 +601,7 @@ function Atlas({ projects, onSelect }) {
                     className="field-dot-html"
                     onMouseEnter={() => setActive(p)}
                     onMouseLeave={() => setActive(null)}
-                    onClick={() => onSelect(p.sourceProject || p)}
+                    onClick={() => isUpcoming(p) ? setActive(p) : onSelect(p.sourceProject || p)}
                     style={{
                       position: 'absolute',
                       left: `${pos.x * 100}%`,
@@ -597,7 +609,7 @@ function Atlas({ projects, onSelect }) {
                       width: size, height: size,
                       marginLeft: -size/2, marginTop: -size/2,
                       borderRadius: '50%',
-                      background: 'var(--accent)',
+                      background: atlasMarkerBackground([p]),
                       cursor: 'pointer',
                       transition: 'width 0.2s, height 0.2s, margin 0.2s',
                     }}
@@ -721,7 +733,7 @@ function Atlas({ projects, onSelect }) {
               }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
                   <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--accent)' }}>
-                    {active.type}
+                    {active.type}{isUpcoming(active) ? ' · Upcoming' : ''}
                   </div>
                   <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'var(--fg4)' }}>{active.year}</div>
                 </div>
@@ -739,7 +751,7 @@ function Atlas({ projects, onSelect }) {
                     {active.subtitle}
                   </div>
                 )}
-                <button
+                {!isUpcoming(active) && <button
                   onClick={() => onSelect(active.sourceProject || active)}
                   style={{
                     marginTop: 14,
@@ -750,7 +762,7 @@ function Atlas({ projects, onSelect }) {
                     cursor: 'pointer', padding: 0,
                     textDecoration: 'underline', textUnderlineOffset: 4,
                   }}
-                >Open project →</button>
+                >Open project →</button>}
               </div>
             )}
 

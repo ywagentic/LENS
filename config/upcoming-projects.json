@@ -26,7 +26,7 @@
     "featured": false,
     "dateCollected": "",
     "contributor": "",
-    "coordinates": "",
+    "coordinates": "47.609306,-122.330902",
     "tags": [
       "Urban",
       "Water",
@@ -73,7 +73,7 @@
     "featured": false,
     "dateCollected": "",
     "contributor": "",
-    "coordinates": "",
+    "coordinates": "39.132986,-84.514622",
     "tags": [
       "Urban",
       "Planting",
@@ -123,7 +123,7 @@
     "featured": false,
     "dateCollected": "",
     "contributor": "",
-    "coordinates": "",
+    "coordinates": "39.10161,-84.51250",
     "tags": [
       "Urban",
       "Water",
@@ -172,7 +172,7 @@
     "featured": false,
     "dateCollected": "",
     "contributor": "",
-    "coordinates": "",
+    "coordinates": "30.46232,104.06468",
     "tags": [
       "Urban",
       "Planting",
@@ -188,7 +188,8 @@
         "url": "https://www.archcollege.com/53668.html"
       }
     ],
-    "description": "CPI Island is a lakeside retail landscape at Luxelakes in Chengdu. Completed in 2024, the landscape renewal by Yudao Studio retains mature planting and works with approximately nine metres of level change. Paths connect former show homes, small courtyards, terraces and lakeside spaces, opening up an established landscape for public use. The published landscape project covers approximately 30,000 square metres; later phases have separate design teams and boundaries."
+    "description": "CPI Island is a lakeside retail landscape at Luxelakes in Chengdu. Completed in 2024, the landscape renewal by Yudao Studio retains mature planting and works with approximately nine metres of level change. Paths connect former show homes, small courtyards, terraces and lakeside spaces, opening up an established landscape for public use. The published landscape project covers approximately 30,000 square metres; later phases have separate design teams and boundaries.",
+    "locationPrecision": "approximate site"
   },
   {
     "id": 28,
@@ -217,7 +218,7 @@
     "featured": false,
     "dateCollected": "",
     "contributor": "",
-    "coordinates": "",
+    "coordinates": "30.46343,104.06029",
     "tags": [
       "Water",
       "Hardscape"
@@ -228,6 +229,7 @@
         "url": "https://mooool.com/luxe-lakes-edenland-by-interesting-landscape.html"
       }
     ],
-    "description": "Love Island (爱心岛) is a heart-shaped island within Luxelakes in Chengdu, published as Edenland in the landscape designer’s project documentation. Its lakeside gardens, lawns and paths provide settings for ceremonies and recreation. Interesting Landscape completed the 11,388-square-metre island landscape in 2024. This archive entry focuses on an open-sided pitched-roof pavilion and its surrounding outdoor space."
+    "description": "Love Island (爱心岛) is a heart-shaped island within Luxelakes in Chengdu, published as Edenland in the landscape designer’s project documentation. Its lakeside gardens, lawns and paths provide settings for ceremonies and recreation. Interesting Landscape completed the 11,388-square-metre island landscape in 2024. This archive entry focuses on an open-sided pitched-roof pavilion and its surrounding outdoor space.",
+    "locationPrecision": "approximate neighborhood"
   }
 ]

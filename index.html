@@ -924,7 +924,6 @@ function UpcomingSection({ projects, cardStyle = 'grid' }) {
               <span style={{ position: 'absolute', top: 14, left: 14, background: '#fff', padding: '6px 10px', color: 'var(--fg3)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Upcoming</span>
             </div>
             <h3 style={{ fontSize: 21, fontWeight: 400, lineHeight: 1.25, color: 'var(--fg3)', marginBottom: 8 }}>{project.title}</h3>
-            {project.subtitle && <p style={{ fontSize: 13, color: 'var(--fg3)', lineHeight: 1.5, marginBottom: 6 }}>{project.subtitle}</p>}
             <p style={{ fontSize: 13, color: 'var(--fg3)', marginBottom: 12 }}>{project.designer?.trim() || 'Multiple'} · {project.location}</p>
             <p style={{ fontSize: 12, color: 'var(--fg2)', lineHeight: 1.5 }}>{upcomingTiming(project)}</p>
           </article>
@@ -2521,7 +2520,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
               onToggle={toggle}
             />
           )}
-          {!loading && view === 'atlas' && <Atlas projects={published} onSelect={selectProject} />}
+          {!loading && view === 'atlas' && <Atlas projects={projects} onSelect={selectProject} />}
           {!loading && view === 'equipment' && <Equipment onBrowse={() => navigate('browse')} />}
           {!loading && view === 'for educators' && <ForEducators onBrowse={() => navigate('browse')} />}
           {!loading && view === 'contribute' && <Contribute onNav={navigate} />}
