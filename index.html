@@ -105,7 +105,7 @@
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="scripts/tweaks-production.jsx"></script>
 <script type="text/babel" src="atlas.jsx"></script>
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
@@ -307,13 +307,13 @@ function getTypesFromProjects(projects) {
 const UPVOTE_TOOLTIP = "Upvoting a project signals that it's valuable to the LENS community. Votes are shared across all visitors and help surface the most educationally significant spaces — informing future collection priorities and curation decisions.";
 
 // ─── TWEAK DEFAULTS ──────────────────────────────────────────────────────────
-const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+const TWEAK_DEFAULTS = {
   "accentHue": 196,
   "cardStyle": "grid",
   "showTags": true,
   "heroLayout": "split",
   "typographyScale": 1
-}/*EDITMODE-END*/;
+};
 
 // ─── VOTES API ───────────────────────────────────────────────────────────────
 const VOTES_API = "https://script.google.com/macros/s/AKfycbyR_byTc2nWP1ZUkE4KAe7GznPlSfluYMui8lVbLbM38hKBPF75H4FcIXTYpx20KGO5/exec";

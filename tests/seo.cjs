@@ -43,3 +43,9 @@ assert(fs.readFileSync('dist/404.html','utf8').includes('noindex, follow'));
 assert(!sitemap.includes('/404/'));
 assert(fs.readFileSync('dist/robots.txt','utf8').includes(`${site}/sitemap.xml`));
 console.log(`PASS: ${urls.length} static pages, canonical URLs, crawlable project links, published-only data, structured data and 404 indexing.`);
+
+assert(!fs.existsSync('dist/quest-test'), 'Internal headset tests must not be deployed');
+const brandFiles=fs.readdirSync('dist/assets/brand');
+assert(brandFiles.every(name=>['apple-touch-icon.png','favicon.svg','lens-mark.svg','lens-youtube-avatar.png'].includes(name)), 'Only approved identity assets belong in production');
+const bundles=fs.readdirSync('dist/assets').filter(name=>name.endsWith('.js')).map(name=>fs.readFileSync('dist/assets/'+name,'utf8')).join('\n');
+assert(!/__activate_edit_mode|__edit_mode_available|twk-panel/.test(bundles), 'Development editor must not ship');

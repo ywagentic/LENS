@@ -21,7 +21,7 @@ await rm('.build', {recursive:true, force:true});
 await rm('dist', {recursive:true, force:true});
 await mkdir('.build', {recursive:true});
 await mkdir('dist', {recursive:true});
-const common = `import React from 'react';\n${await readFile('tweaks-panel.jsx','utf8')}\n${await readFile('atlas.jsx','utf8')}\n${app}\nexport {App, parseCSV, normalizeProjects, projectPath, PAGE_PATHS, SHEET_CSV_URL, isPublished};`;
+const common = `import React from 'react';\n${await readFile('scripts/tweaks-production.jsx','utf8')}\n${await readFile('atlas.jsx','utf8')}\n${app}\nexport {App, parseCSV, normalizeProjects, projectPath, PAGE_PATHS, SHEET_CSV_URL, isPublished};`;
 await writeFile('.build/app.jsx', common);
 await build({entryPoints:['.build/app.jsx'], outfile:'.build/server.cjs',bundle:true,platform:'node',format:'cjs',packages:'external',define:{'process.env.NODE_ENV':'"production"'}});
 const {App,parseCSV,normalizeProjects,projectPath,PAGE_PATHS,SHEET_CSV_URL,isPublished} = require('../.build/server.cjs');
@@ -35,9 +35,13 @@ await writeFile('.build/client.jsx',`import React from 'react';import {createRoo
 const built = await build({entryPoints:['.build/client.jsx'],outdir:'dist/assets',entryNames:'app-[hash]',bundle:true,minify:true,metafile:true,define:{'process.env.NODE_ENV':'"production"'}});
 const js = '/'+Object.keys(built.metafile.outputs).find(p=>p.endsWith('.js')).replace(/^dist\//,'');
 await cp('assets/projects','dist/assets/projects',{recursive:true, filter: source => source === 'assets/projects' || source === 'assets/projects/views' || /\.(?:jpg|jpeg|png|webp|avif|svg|gif|ico)$/i.test(source)});
-await cp('assets/brand','dist/assets/brand',{recursive:true, filter: source => source === 'assets/brand' || /\.(?:jpg|jpeg|png|webp|avif|svg|gif|ico)$/i.test(source)});
+const publicBrandAssets = new Set(['apple-touch-icon.png', 'favicon.svg', 'lens-mark.svg', 'lens-youtube-avatar.png']);
+await cp('assets/brand','dist/assets/brand',{recursive:true, filter: source => source === 'assets/brand' || publicBrandAssets.has(source.split('/').pop())});
 await cp('CNAME','dist/CNAME');
-try { await cp('public','dist',{recursive:true}); } catch(error) { if(error.code !== 'ENOENT') throw error; }
+try { await cp('public','dist',{recursive:true, filter: source => {
+ const parts = source.split('/').slice(1);
+ return !parts.some(part => part.startsWith('.') || /^Icon(?:\r|\?)?$/.test(part) || ['quest-test', 'internal', 'drafts', 'previews'].includes(part));
+}}); } catch(error) { if(error.code !== 'ENOENT') throw error; }
 const escape = s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const json = value=>JSON.stringify(value).replaceAll('<','\\u003c');
 const pages = {

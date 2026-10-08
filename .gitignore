@@ -37,7 +37,6 @@ dist/
 
 # Internal editorial, research and preparation material
 docs/*
-!docs/project-years.md
 drafts/
 design/
 assets/projects/*-prompt.md
