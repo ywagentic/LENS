@@ -94,6 +94,7 @@
     .home-identity h1 { font-size: 16px; font-weight: 400; line-height: 1.55; margin: 0; }
     .home-identity-description { font-size: 16px; line-height: 1.55; color: var(--fg3); margin-top: 16px; }
     @media (max-width: 880px) { .home-identity { grid-template-columns: 1fr; gap: 16px; margin-bottom: 32px; } }
+    @media (min-width: 1440px) { .home-content .upcoming-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
     .brand-descriptor { display: none; border-left: 1px solid var(--border); margin-left: 2px; padding-left: 10px; font-size: 12px; font-weight: 400; letter-spacing: 0; line-height: 20px; color: var(--fg3); }
     @media (min-width: 1400px) { .brand-descriptor { display: inline-block; } }
     .view-info { display: none; position: relative; margin-left: 8px; vertical-align: middle; font-size: 11px; font-weight: 400; color: var(--fg3); }
@@ -874,13 +875,14 @@ function Hero({ featured, heroLayout }) {
 
 // First publication dates; capture dates and construction years do not determine release order.
 const PROJECT_RELEASE_DATES = {9:'2026-09-12',20:'2026-09-12',17:'2026-09-13',21:'2026-09-26',23:'2026-09-27',22:'2026-10-03'};
+function comparePublicationDate(a, b) {
+  const date = p => Date.parse(p.publishedAt || PROJECT_RELEASE_DATES[p.id] || '') || 0;
+  return date(b) - date(a) || b.id - a.id;
+}
 function RecentAdditions({projects, renderCard}) {
   const rail = React.useRef(null);
   const [hasMore, setHasMore] = useState(projects.length > 3);
-  const ordered = [...projects].sort((a,b) => {
-    const date = p => Date.parse(p.publishedAt || PROJECT_RELEASE_DATES[p.id] || '') || 0;
-    return date(b) - date(a) || b.id - a.id;
-  });
+  const ordered = [...projects].sort(comparePublicationDate);
   useEffect(() => {
     const el = rail.current;
     const update = () => setHasMore(el.scrollWidth - el.clientWidth - el.scrollLeft > 2);
@@ -895,9 +897,9 @@ function RecentAdditions({projects, renderCard}) {
       .recent-rail{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:x proximity;padding:0 0 20px;scrollbar-width:none}
       .recent-rail::-webkit-scrollbar{display:none}
       .recent-rail.has-more{mask-image:linear-gradient(to right,#000 0%,#000 88%,transparent 100%)}
-      .recent-item{flex:0 0 clamp(240px,23vw,320px);min-width:0;scroll-snap-align:start}
-      @media(max-width:1050px){.recent-item{flex-basis:280px}}
-      @media(max-width:600px){.recent-rail{gap:20px}.recent-item{flex-basis:min(82%,300px)}}
+      .recent-item{flex:0 0 311px;min-width:0;scroll-snap-align:start}
+      @media(max-width:600px){.recent-rail{gap:20px}}
+      @media(max-width:350px){.recent-item{flex-basis:calc(100vw - 40px)}}
     `}</style>
     <div ref={rail} className={'recent-rail'+(hasMore?' has-more':'')} tabIndex={0} role="region" aria-label="Recent additions, newest first">
       {ordered.map(p=><div className="recent-item" key={p.id}>{renderCard(p)}</div>)}
@@ -911,7 +913,7 @@ function UpcomingSection({ projects, cardStyle = 'grid' }) {
     <section aria-label="Upcoming recordings" style={{ borderTop: '1px solid var(--border)', paddingTop: 32, marginTop: 48 }}>
       <h2 style={{ fontSize: 28, fontWeight: 300, letterSpacing: '-0.02em', marginBottom: 10 }}>Upcoming</h2>
       <p style={{ fontSize: 14, color: 'var(--fg3)', lineHeight: 1.6, marginBottom: 28 }}>360° recordings being prepared for the collection.</p>
-      <div style={{ display: 'grid', gridTemplateColumns: cardStyle === 'list' ? '1fr' : 'repeat(auto-fill, minmax(min(100%, 280px), 320px))', gap: cardStyle === 'list' ? 0 : 28 }}>
+      <div className={cardStyle === 'grid' ? 'upcoming-grid' : undefined} style={{ display: 'grid', gridTemplateColumns: cardStyle === 'list' ? '1fr' : 'repeat(auto-fill, minmax(min(100%, 280px), 320px))', gap: cardStyle === 'list' ? 0 : 28 }}>
         {projects.map(project => cardStyle === 'list' ? (
           <article key={project.id} data-publication="upcoming" className="project-card-list" style={{display:'grid',gridTemplateColumns:'110px minmax(0, 1fr) auto auto',gap:28,alignItems:'center',padding:'20px 4px',borderBottom:'1px solid var(--border)',minWidth:0}}>
             <div style={{overflow:'hidden',opacity:.5,filter:'grayscale(1)'}}><ProjectThumb project={project} size="sm" /></div>
@@ -1041,11 +1043,21 @@ function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onT
 }
 
 // ─── BROWSE ──────────────────────────────────────────────────────────────────
+function siteAreaSquareMetres(value) {
+  const text = String(value || '').toLowerCase().replace(/,/g, '');
+  const dimensions = text.match(/(\d+(?:\.\d+)?)\s*[×x]\s*(\d+(?:\.\d+)?)\s*m\b/);
+  if (dimensions) return Number(dimensions[1]) * Number(dimensions[2]);
+  const match = text.match(/(\d+(?:\.\d+)?)\s*(km²|km2|square kilometers?|ha\b|hectares?\b|acres?\b|m²|m2|sqm\b|sq\.?\s*m\b|square met(?:er|re)s?|ft²|sq\.?\s*ft\b)/);
+  if (!match) return null;
+  const unit = match[2];
+  const multiplier = /^(km|square kilo)/.test(unit) ? 1000000 : /^(ha|hectare)/.test(unit) ? 10000 : /^acre/.test(unit) ? 4046.8564224 : /^(ft|sq\.?\s*ft)/.test(unit) ? 0.09290304 : 1;
+  return Number(match[1]) * multiplier;
+}
 function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, counts, onToggle }) {
   const [activeTag, setActiveTag] = useState('All');
   const [activeSpace, setActiveSpace] = useState('');
   const spaceOptions = [...new Set(projects.flatMap(p=>(p.captures||[]).flatMap(captureSpaceTypes)))].sort();
-  const [sortBy, setSortBy] = useState('year');
+  const [sortBy, setSortBy] = useState('recent');
 
   const ALL_TAGS = ['All', ...new Set([...projects.flatMap(projectTypes), ...getTagsFromProjects(projects).filter(t=>t!=='All')])];
 
@@ -1054,12 +1066,15 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
     const matchSearch = !searchQuery || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.location.toLowerCase().includes(searchQuery.toLowerCase()) || p.designer.toLowerCase().includes(searchQuery.toLowerCase());
     return matchTag && matchSearch && (!activeSpace || (p.captures||[]).some(c=>captureSpaceTypes(c).includes(activeSpace)));
   }).sort((a, b) => {
+    if (sortBy === 'recent') return comparePublicationDate(a, b);
     if (sortBy === 'year') return b.year - a.year;
     if (sortBy === 'title') return a.title.localeCompare(b.title);
     if (sortBy === 'votes') return (parseInt(counts[b.id]) || 0) - (parseInt(counts[a.id]) || 0);
     if (sortBy === 'area') {
-      const parseArea = s => parseFloat((s || '0').replace(/[^0-9.]/g, '')) || 0;
-      return parseArea(b.area) - parseArea(a.area);
+      const left = siteAreaSquareMetres(a.area), right = siteAreaSquareMetres(b.area);
+      if (left === null) return right === null ? a.title.localeCompare(b.title) : 1;
+      if (right === null) return -1;
+      return right - left || a.title.localeCompare(b.title);
     }
     return 0;
   });
@@ -1103,7 +1118,8 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
               backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center',
             }}
           >
-            <option value="year">Sort by recent</option>
+            <option value="recent">Recently added</option>
+            <option value="year">Project year</option>
             <option value="title">Sort by A–Z</option>
             <option value="votes">Sort by upvotes</option>
             <option value="area">Sort by size</option>
@@ -2389,7 +2405,9 @@ const WEBSITE_RELEASES = [
       "Added a footer citation dialog with APA, Chicago and MLA formats and a copy control.",
       "Updated the suggested citation to the published Zenodo dataset DOI.",
       "Expanded viewpoint filters with Canopy, Topography and Bridge tags and refined Overlook tagging.",
-      "Adjusted navigation breakpoints to keep all menu items accessible at intermediate widths."
+      "Adjusted navigation breakpoints to keep all menu items accessible at intermediate widths.",
+      "Capped the homepage width, stabilized Recent additions card sizes and added a four-column Upcoming layout on wide screens.",
+      "Separated Recently added and Project year sorting and corrected size sorting across area units."
     ]
   ],
   [
@@ -2654,7 +2672,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
             <p role="status" style={{ padding: '120px 56px 24px', color: 'var(--fg3)' }}>{catalogueError || 'No projects are published yet.'}</p>
           )}
           {!loading && view === 'home' && (
-            <>
+            <div className="home-content" style={{maxWidth:1440, margin:'0 auto', width:'100%'}}>
               <Hero featured={getFeatured(published)} heroLayout={tweaks.heroLayout} />
               <div style={{ padding: published.length ? '0 clamp(20px, 4vw, 56px)' : '120px clamp(20px, 4vw, 56px) 0', marginBottom: 96 }}>
                 {!published.length && <h1 style={{ fontSize: 40, fontWeight: 300, marginBottom: 32 }}>The collection</h1>}
@@ -2673,7 +2691,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
                 </div>
                 <UpcomingSection projects={upcoming} />
               </div>
-            </>
+            </div>
           )}
           {!loading && view === 'browse' && (
             <div style={{ paddingTop: 96 }}>
@@ -2712,6 +2730,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
               </div>
             </div>
           </footer>}
+
         </div>
       </div>
 
