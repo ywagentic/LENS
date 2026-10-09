@@ -95,7 +95,7 @@
     .home-identity-description { font-size: 16px; line-height: 1.55; color: var(--fg3); margin-top: 16px; }
     @media (max-width: 880px) { .home-identity { grid-template-columns: 1fr; gap: 16px; margin-bottom: 32px; } }
     .brand-descriptor { display: none; border-left: 1px solid var(--border); margin-left: 2px; padding-left: 10px; font-size: 12px; font-weight: 400; letter-spacing: 0; line-height: 20px; color: var(--fg3); }
-    @media (min-width: 1180px) { .brand-descriptor { display: inline-block; } }
+    @media (min-width: 1400px) { .brand-descriptor { display: inline-block; } }
     .view-info { display: none; position: relative; margin-left: 8px; vertical-align: middle; font-size: 11px; font-weight: 400; color: var(--fg3); }
     @media (hover: hover) and (pointer: fine) and (min-width: 721px) { .view-info { display: inline-flex; } }
     .view-info-icon { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border: 1px solid currentColor; border-radius: 50%; font-style: normal; }
@@ -607,7 +607,7 @@ function Tag({ label, active, onClick, accent }) {
 // ─── NAV ─────────────────────────────────────────────────────────────────────
 function Nav({ view, onNav, onSearch, searchQuery }) {
   const [scrolled, setScrolled] = useState(false);
-  const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth < 720);
+  const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth < 960);
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     const el = document.getElementById('scroll-root');
@@ -617,7 +617,7 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
     return () => el.removeEventListener('scroll', handler);
   }, []);
   useEffect(() => {
-    const onResize = () => setIsNarrow(window.innerWidth < 720);
+    const onResize = () => setIsNarrow(window.innerWidth < 960);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -663,7 +663,7 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
       </a>
 
       {!isNarrow && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(14px, 2.2vw, 32px)', flexShrink: 1, minWidth: 0, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(14px, 1.6vw, 24px)', flexShrink: 0 }}>
           {links.map(({ key, label }) => {
             const active = view === key;
             return (
@@ -713,6 +713,7 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
           <button
             onClick={() => setMenuOpen(o => !o)}
             aria-label="Menu"
+            aria-expanded={menuOpen}
             style={{
               background: 'none', border: '1px solid var(--border)', cursor: 'pointer',
               width: 34, height: 34, display: 'flex', flexDirection: 'column',
@@ -2323,7 +2324,7 @@ function About({ projectCount, clipCount }) {
         </p>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 8 }}>Suggested citation (APA)</p>
         <p style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12.5, color: 'var(--fg2)', lineHeight: 1.6, padding: '12px 14px', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, margin: 0 }}>
-          Wang, Y. (2026). <em>LENS: A VR digital archive of contemporary urban public spaces (lens-vr.com)</em> (Version 1.0.0) [Dataset]. Zenodo. https://doi.org/10.5281/zenodo.23269677
+          Wang, Y. (2026). <em>LENS: A VR digital archive of contemporary urban public spaces (lens-vr.com)</em> (Version 1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.23269677
         </p>
       </div>
 
@@ -2377,9 +2378,20 @@ function resolveRoute(path, projects) {
   return selected ? { view: 'project', selected } : { view: Object.keys(PAGE_PATHS).find(key => PAGE_PATHS[key] === normalized) || 'missing', selected: null };
 }
 
-const WEBSITE_VERSION = '1.2.2';
+const WEBSITE_VERSION = '1.2.3';
 
 const WEBSITE_RELEASES = [
+  [
+    "1.2.3",
+    "October 9, 2026",
+    "Citation access and space tags",
+    [
+      "Added a footer citation dialog with APA, Chicago and MLA formats and a copy control.",
+      "Updated the suggested citation to the published Zenodo dataset DOI.",
+      "Expanded viewpoint filters with Canopy, Topography and Bridge tags and refined Overlook tagging.",
+      "Adjusted navigation breakpoints to keep all menu items accessible at intermediate widths."
+    ]
+  ],
   [
     "1.2.2",
     "October 7, 2026",
@@ -2394,7 +2406,7 @@ const WEBSITE_RELEASES = [
   ],
   [
     "1.2.1",
-    "October 3–7, 2026",
+    "October 7, 2026",
     "View previews and Atlas refinements",
     [
       "Extended Atlas to include upcoming projects as gray markers, with solid-color clusters.",
@@ -2442,7 +2454,7 @@ const WEBSITE_RELEASES = [
   ],
   [
     "1.0.2",
-    "September 21–22, 2026",
+    "September 22, 2026",
     "Archive presentation and statistics",
     [
       "Added recording totals to Atlas and About statistics.",
@@ -2521,6 +2533,52 @@ function ReleaseHistory() {
       <ul style={{ ...SMALL, paddingLeft: 20, margin: 0 }}>{changes.map(change => <li key={change} style={{ marginBottom: 6 }}>{change}</li>)}</ul>
     </section>)}
   </main>;
+}
+
+const LENS_CITATION = 'Wang, Y. (2026). LENS: A VR digital archive of contemporary urban public spaces (lens-vr.com) (Version 1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.23269677';
+const CITATION_STYLES = {
+  APA: LENS_CITATION,
+  Chicago: 'Wang, Yujia. 2026. LENS: A VR Digital Archive of Contemporary Urban Public Spaces (lens-vr.com). Version 1.0.0. Data set. Zenodo. https://doi.org/10.5281/zenodo.23269677.',
+  MLA: 'Wang, Yujia. LENS: A VR Digital Archive of Contemporary Urban Public Spaces (lens-vr.com). Version 1.0.0, Zenodo, 9 Oct. 2026, https://doi.org/10.5281/zenodo.23269677.'
+};
+function CitationControl() {
+  const [style, setStyle] = useState('APA');
+  const citation = CITATION_STYLES[style];
+  const titleStart = citation.indexOf('LENS:');
+  const titleEnd = citation.indexOf('(lens-vr.com)') + '(lens-vr.com)'.length;
+  const styles = Object.keys(CITATION_STYLES);
+  function chooseStyle(next) { setStyle(next); setCopied(false); }
+  function handleTabKey(e, index) {
+    let next;
+    if (e.key === 'ArrowRight') next = (index + 1) % styles.length;
+    if (e.key === 'ArrowLeft') next = (index + styles.length - 1) % styles.length;
+    if (e.key === 'Home') next = 0;
+    if (e.key === 'End') next = styles.length - 1;
+    if (next !== undefined) { e.preventDefault(); chooseStyle(styles[next]); e.currentTarget.parentElement.children[next].focus(); }
+  }
+  const dialog = useRef(null);
+  const text = useRef(null);
+  const [copied, setCopied] = useState(false);
+  async function copyCitation() {
+    try { await navigator.clipboard.writeText(citation); setCopied(true); }
+    catch { const selection = window.getSelection(); const range = document.createRange(); range.selectNodeContents(text.current); selection.removeAllRanges(); selection.addRange(range); }
+  }
+  return <>
+    <span aria-hidden="true" style={{margin:'0 8px'}}>·</span>
+    <button type="button" onClick={() => { setCopied(false); dialog.current.showModal(); }} style={{font:'inherit', color:'inherit', border:0, background:'none', padding:0, cursor:'pointer', textDecoration:'underline', textUnderlineOffset:3}}>Citation</button>
+    <dialog ref={dialog} aria-labelledby="citation-heading" onClick={e => { if (e.target === dialog.current) { const r = dialog.current.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dialog.current.close(); } }} style={{margin:'auto', inset:0, maxHeight:'calc(100dvh - 40px)', overflowY:'auto', width:'min(520px, calc(100vw - 40px))', boxSizing:'border-box', padding:24, border:'1px solid var(--border)', borderRadius:12, background:'var(--bg)', color:'var(--fg)', textAlign:'left', fontFamily:'Inter, sans-serif'}}>
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', gap:16, marginBottom:16}}>
+        <h2 id="citation-heading" style={{fontSize:16, fontWeight:500, margin:0}}>Cite LENS</h2>
+        <button type="button" aria-label="Close citation" onClick={() => dialog.current.close()} style={{font:'inherit', fontSize:22, color:'var(--fg2)', border:0, background:'none', cursor:'pointer', padding:'0 4px'}}>×</button>
+      </div>
+      <div role="tablist" aria-label="Citation style" style={{display:'flex', gap:4, borderBottom:'1px solid var(--border)', marginBottom:16}}>
+        {styles.map((name, index) => <button key={name} type="button" role="tab" id={`citation-tab-${index}`} aria-selected={style === name} aria-controls="citation-content" tabIndex={style === name ? 0 : -1} onClick={() => chooseStyle(name)} onKeyDown={e => handleTabKey(e, index)} style={{font:'inherit', fontSize:12, padding:'8px 12px', border:0, borderBottom:style === name ? '2px solid var(--accent)' : '2px solid transparent', background:'none', color:style === name ? 'var(--fg)' : 'var(--fg3)', cursor:'pointer'}}>{name}</button>)}
+      </div>
+      <p role="tabpanel" id="citation-content" aria-labelledby={`citation-tab-${styles.indexOf(style)}`} ref={text} style={{fontSize:13, lineHeight:1.7, color:'var(--fg2)', overflowWrap:'anywhere', margin:'0 0 20px'}}>{citation.slice(0, titleStart)}<em>{citation.slice(titleStart, titleEnd)}</em>{citation.slice(titleEnd)}</p>
+      <button type="button" onClick={copyCitation} style={{font:'inherit', fontSize:12, padding:'8px 14px', border:'1px solid var(--border)', borderRadius:6, background:'var(--bg2)', color:'var(--fg)', cursor:'pointer'}}>{copied ? 'Copied' : 'Copy citation'}</button>
+      <span role="status" style={{position:"absolute",width:1,height:1,overflow:"hidden",clipPath:"inset(50%)"}}>{copied ? 'Citation copied to clipboard.' : ''}</span>
+    </dialog>
+  </>;
 }
 
 function App({ initialProjects = null, initialPath = '/', freezeCatalogue = false }) {
@@ -2645,7 +2703,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
           {!loading && <footer style={{ margin: '0 clamp(20px, 4vw, 56px)', padding: '24px 0 32px', borderTop: '1px solid var(--border)', fontFamily: 'Inter, sans-serif', fontSize: 12, lineHeight: 1.6, color: 'var(--fg3)' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 24, rowGap: 6 }}>
               <div>
-                <div>© 2026 <a href="https://architecture.unl.edu/person/yujia-wang/" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>Yujia Wang</a></div>
+                <div>© 2026 <a href="https://architecture.unl.edu/person/yujia-wang/" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>Yujia Wang</a><CitationControl /></div>
                 <div>LENS: A Digital Archive of Urban Public Space</div>
               </div>
               <div style={{ marginLeft: 'auto' }}>
