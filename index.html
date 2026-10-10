@@ -1055,6 +1055,10 @@ function siteAreaSquareMetres(value) {
   return Number(match[1]) * multiplier;
 }
 function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, counts, onToggle }) {
+  const [browseMode, setBrowseMode] = useState('projects');
+  const [showViewHint, setShowViewHint] = useState(false);
+  useEffect(() => { try { setShowViewHint(!localStorage.getItem('lens-browse-views-hint')); } catch {} }, []);
+  const dismissViewHint = () => { setShowViewHint(false); try { localStorage.setItem('lens-browse-views-hint','seen'); } catch {} };
   const [activeTag, setActiveTag] = useState('All');
   const [activeSpace, setActiveSpace] = useState('');
   const spaceOptions = [...new Set(projects.flatMap(p=>(p.captures||[]).flatMap(captureSpaceTypes)))].sort();
@@ -1064,7 +1068,7 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
 
   const matches = projects.filter(p => {
     const matchTag = activeTag === 'All' || p.tags.includes(activeTag) || projectTypes(p).includes(activeTag);
-    const matchSearch = !searchQuery || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.location.toLowerCase().includes(searchQuery.toLowerCase()) || p.designer.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchSearch = !searchQuery || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.location.toLowerCase().includes(searchQuery.toLowerCase()) || p.designer.toLowerCase().includes(searchQuery.toLowerCase()) || (browseMode === 'views' && (p.captures||[]).some(c=>[c.label,...captureSpaceTypes(c)].join(' ').toLowerCase().includes(searchQuery.toLowerCase())));
     return matchTag && matchSearch && (!activeSpace || (p.captures||[]).some(c=>captureSpaceTypes(c).includes(activeSpace)));
   }).sort((a, b) => {
     if (sortBy === 'recent') return comparePublicationDate(a, b);
@@ -1082,9 +1086,11 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
 
   const filtered = matches.filter(isPublished).map(p=>({...p, matchedSpace:activeSpace, matchedViews:activeSpace ? p.captures.filter(c=>captureSpaceTypes(c).includes(activeSpace)).length : null}));
   const upcoming = matches.filter(isUpcoming);
+  const views = filtered.flatMap(project => project.captures.filter(c => (!activeSpace || captureSpaceTypes(c).includes(activeSpace)) && (!searchQuery || [project.title,project.location,project.designer,c.label,...captureSpaceTypes(c)].join(' ').toLowerCase().includes(searchQuery.toLowerCase()))).map(capture=>({project,capture})));
 
   return (
     <div className="browse-content" style={{ padding: '0 clamp(20px, 4vw, 56px) 96px', position: 'relative', zIndex: 1 }}>
+      <style>{`@media(max-width:900px){.browse-controls.has-view-hint{padding-bottom:64px}}`}</style>
       {/* Filters */}
       <div style={{
         display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
@@ -1106,7 +1112,17 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
             {spaceOptions.map(t=><Tag key={t} label={t} active={activeSpace===t} onClick={()=>setActiveSpace(activeSpace===t?'':t)} accent={tweaks.accentHue}/>)}
           </div>
         </div>
-        <div className="browse-controls" style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap', maxWidth: '100%', minWidth: 0 }}>
+        <div className={'browse-controls'+(showViewHint?' has-view-hint':'')} style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap', maxWidth: '100%', minWidth: 0 }}>
+          <div style={{position:'relative',marginRight:8,flexShrink:0}}>
+          <div role="group" aria-label="Browse projects or views" style={{display:'flex',border:'1px solid var(--border)'}}>
+            {['projects','views'].map(mode=><button key={mode} aria-pressed={browseMode===mode} onClick={()=>{setBrowseMode(mode);if(mode==='views') dismissViewHint();}} style={{fontFamily:'Inter, sans-serif',fontSize:12,padding:'8px 12px',border:0,cursor:'pointer',background:browseMode===mode?'var(--fg)':'transparent',color:browseMode===mode?'var(--bg)':'var(--fg3)'}}>{mode==='projects'?'Projects':'Views'}</button>)}
+          </div>
+          {showViewHint && <div role="status" style={{position:'absolute',top:'calc(100% + 10px)',left:0,width:214,maxWidth:'calc(100vw - 48px)',boxSizing:'border-box',padding:'10px 28px 10px 12px',background:'#fff',color:'var(--fg2)',border:'1px solid var(--border)',borderRadius:6,boxShadow:'0 3px 10px rgba(0,0,0,.045)',zIndex:5,fontSize:11,lineHeight:1.5}}>
+            <span>Try <strong style={{fontWeight:600}}>Views</strong> to browse individual viewpoints.</span>
+            <button aria-label="Dismiss viewing tip" onClick={dismissViewHint} style={{position:'absolute',top:7,right:8,border:0,background:'none',padding:2,color:'inherit',opacity:.65,fontSize:16,cursor:'pointer'}}>×</button>
+            <span aria-hidden="true" style={{position:'absolute',bottom:'calc(100% - 5px)',left:92,width:10,height:10,background:'#fff',borderTop:'1px solid #b8b8b8',borderLeft:'1px solid #b8b8b8',transform:'rotate(45deg)'}}/>
+          </div>}
+          </div>
           <select
             aria-label="Sort projects" value={sortBy}
             onChange={e => setSortBy(e.target.value)}
@@ -1155,11 +1171,20 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
         marginBottom: 32,
         display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', overflowWrap: 'anywhere',
       }}>
-        <span>{filtered.length} available {filtered.length === 1 ? 'project' : 'projects'}{upcoming.length > 0 ? ` · ${upcoming.length} upcoming` : ''}</span>
+        <span>{browseMode==='views' ? `${views.length} views · ${filtered.length} projects` : <>{filtered.length} available {filtered.length === 1 ? 'project' : 'projects'}{upcoming.length > 0 ? ` · ${upcoming.length} upcoming` : ''}</>}</span>
         {searchQuery && <span style={{ color: 'var(--fg2)' }}>· matching "{searchQuery}"</span>}
       </div>
       {/* Grid */}
-      {tweaks.cardStyle === 'grid' ? (
+      {browseMode === 'views' ? <div className={'browse-view-results '+tweaks.cardStyle}>
+        <style>{`.browse-view-results.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),320px));gap:40px 28px}.browse-view-card{color:inherit;text-decoration:none;min-width:0;display:block}.browse-view-card:hover h3{color:var(--accent)}.browse-view-card h3{font-size:19px;line-height:1.25;font-weight:400;margin:14px 0 6px;letter-spacing:-.015em}.browse-view-results.list .browse-view-card{display:grid;grid-template-columns:120px minmax(0,1fr);gap:24px;padding:20px 0;border-bottom:1px solid var(--border)}.browse-view-results.list h3{margin-top:0}@media(max-width:540px){.browse-view-results.list .browse-view-card{grid-template-columns:90px minmax(0,1fr);gap:16px}}`}</style>
+        {views.map(({project:p,capture:c})=><a className="browse-view-card" key={c.vrId} href={projectPath(p)+'?view='+encodeURIComponent(c.vrId)}>
+          <div style={{position:'relative',aspectRatio:'16 / 9',alignSelf:'start'}}><ProjectThumb project={{...p,title:c.label,thumb:c.thumb||`https://i.ytimg.com/vi/${c.vrId}/hqdefault.jpg`,thumbIllustration:!!c.thumb,fallbackThumb:p.thumb}} size="lg"/></div>
+          <div><h3>{c.label}</h3><div style={{fontSize:12,color:'var(--fg2)',lineHeight:1.5}}>{p.title} · {p.location}</div>
+          {c.mediaType==='Static 360° Panorama' && <div style={{fontSize:11,color:'var(--fg3)',marginTop:7}}>Static 360° Panorama</div>}
+          <div style={{fontSize:11,color:'var(--accent)',lineHeight:1.6,marginTop:7}}>{captureSpaceTypes(c).join(' · ')}</div></div>
+        </a>)}
+        {!views.length && <p style={{color:'var(--fg3)'}}>No views match these filters.</p>}
+      </div> : tweaks.cardStyle === 'grid' ? (
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 320px))',
@@ -1176,7 +1201,7 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
           ))}
         </div>
       )}
-      <UpcomingSection projects={upcoming} cardStyle={tweaks.cardStyle} />
+      {browseMode==='projects' && <UpcomingSection projects={upcoming} cardStyle={tweaks.cardStyle} />}
     </div>
   );
 }
@@ -1221,7 +1246,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
   const captures = project.captures || [];
   const [activeIdx, setActiveIdx] = useState(0);
   // Reset to first capture when project changes
-  useEffect(() => { const type=new URLSearchParams(window.location.search).get('space'); const idx=type?captures.findIndex(c=>captureSpaceTypes(c).includes(type)):0; setActiveIdx(Math.max(0,idx)); }, [project.id]);
+  useEffect(() => { const params=new URLSearchParams(window.location.search); const type=params.get('space'); const view=params.get('view'); const idx=view?captures.findIndex(c=>c.vrId===view):type?captures.findIndex(c=>captureSpaceTypes(c).includes(type)):0; setActiveIdx(Math.max(0,idx)); }, [project.id]);
   const activeCapture = captures[activeIdx] || null;
   const [copyStatus, setCopyStatus] = useState('');
   useEffect(() => setCopyStatus(''), [activeCapture?.vrId]);
@@ -2396,9 +2421,19 @@ function resolveRoute(path, projects) {
   return selected ? { view: 'project', selected } : { view: Object.keys(PAGE_PATHS).find(key => PAGE_PATHS[key] === normalized) || 'missing', selected: null };
 }
 
-const WEBSITE_VERSION = '1.2.3';
+const WEBSITE_VERSION = '1.3.0';
 
 const WEBSITE_RELEASES = [
+  [
+    "1.3.0",
+    "October 10, 2026",
+    "Browse individual viewpoints",
+    [
+      "Added Projects / Views switching in Browse, with grid and list layouts for individual viewpoints.",
+      "Connected viewpoint results to project-tag and space-type filters, with search across viewpoint titles and tags.",
+      "Added direct links that open a project with the selected viewpoint, and a dismissible first-visit tip for the new browsing mode."
+    ]
+  ],
   [
     "1.2.3",
     "October 9, 2026",
