@@ -289,7 +289,8 @@
           "Water Feature",
           "Topography",
           "Seated view",
-          "Wall"
+          "Wall",
+          "Play"
         ],
         "thumb": "/assets/projects/views/0801-01.jpg",
         "vrId": "DW1hjYG1usg",
@@ -304,7 +305,8 @@
           "Water Feature",
           "Wall",
           "Topography",
-          "Seated view"
+          "Seated view",
+          "Play"
         ],
         "thumb": "/assets/projects/views/0801-02-v2.jpg",
         "vrId": "ReEQnDtwA0U",
@@ -320,7 +322,8 @@
         "spaceTypes": [
           "Water Feature",
           "Wall",
-          "Topography"
+          "Topography",
+          "Play"
         ],
         "thumb": "/assets/projects/views/0801-03-v2.jpg"
       }
