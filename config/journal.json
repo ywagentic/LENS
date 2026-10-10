@@ -1,5 +1,36 @@
 [
   {
+    "slug": "two-seattle-spaces",
+    "title": "Two public spaces in Seattle",
+    "date": "2026-10-10",
+    "dateLabel": "October 2026",
+    "paragraphs": [
+      "I’ve added two Seattle projects to LENS. Freeway Park is one of Lawrence Halprin’s classic works. Much of its appeal, for me, lies in the way it reinterprets streams and waterfalls through abstraction and a remarkably direct use of concrete. Its material language is plain and unadorned, yet the resulting spaces are rich in both spatial and visual layers.",
+      "re:Invent Plaza is a much smaller urban street-corner space, with a particularly comfortable scale and relationship between its seating, planting and fountain. The sculpture also makes it a useful place to think critically about the role of sculpture in the urban public domain—its scale, what it communicates, and how it addresses the public."
+    ],
+    "tags": [
+      "Seattle",
+      "New recordings"
+    ],
+    "links": [
+      {
+        "label": "Explore Freeway Park",
+        "href": "/projects/freeway-park/"
+      },
+      {
+        "label": "Explore re:Invent Plaza",
+        "href": "/projects/amazon-reinvent-plaza/"
+      },
+      {
+        "label": "Freeway Park — The Cultural Landscape Foundation",
+        "href": "https://www.tclf.org/freeway-park"
+      }
+    ],
+    "image": "/assets/projects/freeway-park.jpg",
+    "imageAlt": "Illustration of the layered concrete landscape at Freeway Park in Seattle.",
+    "published": true
+  },
+  {
     "slug": "lee-parks-tongva-video",
     "title": "Lee Parks’s video of Tongva Park",
     "date": "2026-10-04",
