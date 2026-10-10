@@ -1,52 +1,5 @@
 [
   {
-    "id": 16,
-    "title": "Freeway Park",
-    "subtitle": "Concrete plazas, fountains and planting above Interstate 5",
-    "location": "Seattle, Washington, USA",
-    "year": 1976,
-    "designer": "Lawrence Halprin & Associates",
-    "type": "Urban Park",
-    "types": [
-      "Urban Park"
-    ],
-    "vrType": "360° Video",
-    "vrTypes": [
-      "360° Video"
-    ],
-    "vrId": "",
-    "captures": [],
-    "plannedCaptures": [],
-    "visible": "2",
-    "expectedRelease": "",
-    "area": "Approx. 2.2 ha (5.5 acres)",
-    "color": "oklch(65% 0.06 140)",
-    "thumb": "/assets/projects/freeway-park.jpg",
-    "thumbIllustration": true,
-    "featured": false,
-    "dateCollected": "",
-    "contributor": "",
-    "coordinates": "47.609306,-122.330902",
-    "tags": [
-      "Urban",
-      "Water",
-      "Planting",
-      "Hardscape",
-      "Infrastructure"
-    ],
-    "links": [
-      {
-        "label": "Seattle Parks",
-        "url": "https://seattle.gov/parks/parks/freeway-park"
-      },
-      {
-        "label": "The Cultural Landscape Foundation",
-        "url": "https://www.tclf.org/freeway-park"
-      }
-    ],
-    "description": "Freeway Park occupies the air space above Interstate 5 in downtown Seattle. Opened in 1976, its linked plazas use board-formed concrete walls, raised planting beds and changes in level to create enclosed spaces above the highway. Evergreen planting and substantial water features give the park a distinct character within the surrounding city."
-  },
-  {
     "id": 25,
     "title": "University of Cincinnati Campus Landscape",
     "subtitle": "A pedestrian campus organized through connected open spaces",
@@ -307,5 +260,171 @@
       }
     ],
     "description": "Portland International Airport’s reconstructed main terminal is organized beneath an undulating mass-timber roof. Skylights, interior planting and a pre-security market hall introduce daylight and places to pause within the airport’s public circulation spaces. The main hall opened in 2024, with the remaining reconstruction completed in 2026."
+  },
+  {
+    "id": 16,
+    "title": "Freeway Park",
+    "subtitle": "Concrete plazas, fountains and planting above Interstate 5",
+    "location": "Seattle, Washington, USA",
+    "year": 1976,
+    "designer": "Lawrence Halprin & Associates",
+    "type": "Urban Park",
+    "types": [
+      "Urban Park"
+    ],
+    "vrType": "360° Video",
+    "vrTypes": [
+      "360° Video",
+      "Static 360° Panorama"
+    ],
+    "vrId": "DW1hjYG1usg",
+    "captures": [
+      {
+        "label": "Plaza — Canyon Fountain",
+        "code": "0801-01",
+        "description": "A seated view from a red movable chair at the edge of the plaza, looking across the open space toward the sculptural concrete forms of Canyon Fountain. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
+        "spaceTypes": [
+          "Seating",
+          "Plaza",
+          "Water Feature",
+          "Topography",
+          "Seated view",
+          "Wall"
+        ],
+        "thumb": "/assets/projects/views/0801-01.jpg",
+        "vrId": "DW1hjYG1usg",
+        "height": "Seated",
+        "mediaType": "360° Video"
+      },
+      {
+        "label": "Canyon Fountain — Lower Edge",
+        "code": "0801-02",
+        "description": "A seated 360° VR view from the lower edge of Canyon Fountain in Seattle’s Freeway Park, looking toward its layered concrete walls, ledges and stepped forms. The fountain was out of operation when this panorama was photographed in autumn 2025, following a leak discovered in summer 2024. It returned to operation in May 2026 after repairs. Created from a still 360° panorama. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
+        "spaceTypes": [
+          "Water Feature",
+          "Wall",
+          "Topography",
+          "Seated view"
+        ],
+        "thumb": "/assets/projects/views/0801-02-v2.jpg",
+        "vrId": "ReEQnDtwA0U",
+        "height": "Seated",
+        "mediaType": "Static 360° Panorama"
+      },
+      {
+        "label": "Canyon Fountain — Sunken Area",
+        "code": "0801-03",
+        "vrId": "YZU4gVDYe24",
+        "mediaType": "Static 360° Panorama",
+        "description": "A 360° view from the sunken area of Canyon Fountain in Seattle’s Freeway Park. The surrounding concrete walls and stepped landforms create a strongly enclosed space, with the viewpoint set within the sculptural canyon. The fountain was out of operation when this panorama was photographed, following a leak discovered in summer 2024. It returned to operation in May 2026 after repairs. Created from a still 360° panorama photographed during autumn 2025.",
+        "spaceTypes": [
+          "Water Feature",
+          "Wall",
+          "Topography"
+        ],
+        "thumb": "/assets/projects/views/0801-03-v2.jpg"
+      }
+    ],
+    "plannedCaptures": [],
+    "visible": "1",
+    "expectedRelease": "",
+    "area": "Approx. 2.2 ha (5.5 acres)",
+    "color": "oklch(65% 0.06 140)",
+    "thumb": "/assets/projects/freeway-park.jpg",
+    "thumbIllustration": true,
+    "featured": false,
+    "dateCollected": "Autumn 2025",
+    "contributor": "",
+    "coordinates": "",
+    "tags": [
+      "Urban",
+      "Water",
+      "Planting",
+      "Hardscape",
+      "Infrastructure"
+    ],
+    "links": [
+      {
+        "label": "Seattle Parks",
+        "url": "https://seattle.gov/parks/parks/freeway-park"
+      },
+      {
+        "label": "The Cultural Landscape Foundation",
+        "url": "https://www.tclf.org/freeway-park"
+      }
+    ],
+    "description": "Freeway Park occupies the air space above Interstate 5 in downtown Seattle. Opened in 1976, its linked plazas use board-formed concrete walls, raised planting beds and changes in level to create enclosed spaces above the highway. Evergreen planting and substantial water features give the park a distinct character within the surrounding city.",
+    "publishedAt": "2026-10-10"
+  },
+  {
+    "id": 31,
+    "title": "re:Invent Plaza",
+    "subtitle": "A planted urban plaza centered on a sculptural fountain",
+    "location": "Seattle, Washington, USA",
+    "year": 2019,
+    "designer": "Site Workshop",
+    "type": "Plaza",
+    "types": [
+      "Plaza"
+    ],
+    "vrType": "360° Video",
+    "vrTypes": [
+      "360° Video"
+    ],
+    "vrId": "dfMP1WeAKrI",
+    "captures": [
+      {
+        "label": "Seating Area — Sculpture Fountain",
+        "code": "0802-01",
+        "description": "From a seating area enclosed by planting, looking toward the water feature and Gerard Tsutakawa’s bronze sculpture Tonbi. Filmed during autumn 2025. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
+        "spaceTypes": [
+          "Seating",
+          "Planting",
+          "Water Feature",
+          "Sculpture",
+          "Seated view"
+        ],
+        "thumb": "/assets/projects/views/0802-01.jpg",
+        "vrId": "dfMP1WeAKrI",
+        "height": "Seated"
+      }
+    ],
+    "plannedCaptures": [],
+    "visible": "1",
+    "expectedRelease": "",
+    "area": "Approx. 0.77 ha (Block 20 site)",
+    "color": "oklch(65% 0.06 140)",
+    "thumb": "/assets/projects/amazon-reinvent-plaza.jpg",
+    "thumbIllustration": true,
+    "featured": false,
+    "dateCollected": "Autumn 2025",
+    "contributor": "",
+    "coordinates": "47.6164,-122.3395",
+    "tags": [
+      "Urban",
+      "Water",
+      "Planting",
+      "Hardscape"
+    ],
+    "links": [
+      {
+        "label": "Site Workshop — project",
+        "url": "https://www.siteworkshop.net/amazonblock20"
+      },
+      {
+        "label": "Amazon — re:Invent Plaza",
+        "url": "https://pugetsound.amazontours.com/re-invent-plaza"
+      },
+      {
+        "label": "Amazon — Tonbi sculpture",
+        "url": "https://www.seattlespheres.com/urban-arboretum/reinvent"
+      },
+      {
+        "label": "Block 20 site area — Washington Department of Ecology",
+        "url": "https://apps.ecology.wa.gov/cleanupsearch/document/123783"
+      }
+    ],
+    "description": "re:Invent Plaza is part of Amazon’s Block 20 in downtown Seattle. Designed by Site Workshop and completed in 2019, the plaza faces 7th Avenue and the Spheres. Gerard Tsutakawa’s bronze fountain sculpture Tonbi forms its focal point. Planted edges enclose seating areas, while a pedestrian passage connects the plaza to a second water feature within the block.",
+    "publishedAt": "2026-10-10"
   }
 ]

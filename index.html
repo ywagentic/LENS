@@ -232,6 +232,7 @@ function captureSpaceTypes(c) {
   if (['kYic2jDx61s', 'AphUgkL5358', '1HEh8N37O2E'].includes(c.vrId)) types.push('Canopy');
   if (['bu1FLEJ7aho', 'GKBIgSyo-7E', 'zqOyhpRXCew', 'roVzfn03OdU'].includes(c.vrId)) types.push('Topography');
   if (c.vrId === 'TMOCg1CHIME') types.push('Bridge', 'Overlook');
+  if (c.vrId === 'BP5CdxPtXYo') types.push('Wall');
   return [...new Set(types.map(t => t === 'Pergola' ? 'Canopy' : t))];
 }
 function projectTypes(p) {
@@ -1330,7 +1331,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
             color: 'oklch(100% 0 0 / 0.85)',
             background: 'oklch(0% 0 0 / 0.45)', backdropFilter: 'blur(6px)',
             padding: '6px 10px',
-          }}>{vrTypeLabel}</div>
+          }}>{activeCapture?.mediaType || vrTypeLabel}</div>
         )}
       </a>
 
@@ -1408,6 +1409,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
                       color: isActive ? 'var(--accent-bright)' : 'var(--fg)',
                       marginBottom: 0,
                     }}>{c.label}{c.description && <ViewInfo description={c.description} />}</div>
+                    {c.mediaType === 'Static 360° Panorama' && <div style={{fontSize:11,color:'var(--fg3)',marginTop:5}}>Static 360° Panorama</div>}
                     {captureSpaceTypes(c).length>0 && <div style={{fontSize:11,color:'var(--accent)',margin:'6px 0'}}>{captureSpaceTypes(c).join(' · ')}</div>}
 
                   </div>
@@ -2385,7 +2387,7 @@ function About({ projectCount, clipCount }) {
 // ─── APP ─────────────────────────────────────────────────────────────────────
 const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/', journal: '/journal/', releases: '/releases/' };
 function projectPath(project) {
-  const slug = { 29: 'circo-massimo', 30: 'portland-airport-main-terminal', 16: 'freeway-park', 25: 'university-of-cincinnati-campus', 26: 'fountain-square', 27: 'luxelakes-cpi-island', 28: 'luxelakes-love-island', 21: 'shenzhen-talent-park-phase-ii', 24: 'oct-harbour', 23: 'the-broad', 22: 'tongva-park', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
+  const slug = { 31: 'amazon-reinvent-plaza', 29: 'circo-massimo', 30: 'portland-airport-main-terminal', 16: 'freeway-park', 25: 'university-of-cincinnati-campus', 26: 'fountain-square', 27: 'luxelakes-cpi-island', 28: 'luxelakes-love-island', 21: 'shenzhen-talent-park-phase-ii', 24: 'oct-harbour', 23: 'the-broad', 22: 'tongva-park', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
   return `/projects/${slug}/`;
 }
 function resolveRoute(path, projects) {
