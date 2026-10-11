@@ -1054,6 +1054,26 @@ function siteAreaSquareMetres(value) {
   const multiplier = /^(km|square kilo)/.test(unit) ? 1000000 : /^(ha|hectare)/.test(unit) ? 10000 : /^acre/.test(unit) ? 4046.8564224 : /^(ft|sq\.?\s*ft)/.test(unit) ? 0.09290304 : 1;
   return Number(match[1]) * multiplier;
 }
+function CompactFilter({label, options, active, onChange, accent}) {
+  const [expanded,setExpanded] = useState(false);
+  const [limit,setLimit] = useState(1);
+  const root = React.useRef(null), measure = React.useRef(null);
+  const ordered = active && active!=='All' ? ['All',active,...options.filter(t=>t!=='All'&&t!==active)] : options;
+  const key = ordered.join('|');
+  useEffect(()=>{
+    const update=()=>{const available=root.current.clientWidth-88;let used=0,n=0;for(const child of measure.current.children){const width=child.getBoundingClientRect().width+(n?6:0);if(used+width>available&&n)break;used+=width;n++;}setLimit(Math.max(1,n));};
+    const observer=new ResizeObserver(update);observer.observe(root.current);update();return()=>observer.disconnect();
+  },[key]);
+  return <div style={{minWidth:0,flex:'1 1 100%'}}>
+    <div style={{fontSize:11,letterSpacing:'.04em',color:'var(--fg3)',textTransform:'uppercase',marginBottom:12}}>{label}</div>
+    <div ref={root} style={{position:'relative',maxWidth:720,display:'flex',gap:12,alignItems:'flex-start'}}>
+      <div ref={measure} aria-hidden="true" inert="" style={{position:'absolute',visibility:'hidden',display:'flex',gap:6,width:'max-content',pointerEvents:'none'}}>{ordered.map(t=><Tag key={t} label={t} active={active===t} accent={accent}/>)}</div>
+      <div role="group" aria-label={label} style={{display:'flex',gap:6,flexWrap:'wrap',minWidth:0,flex:1}}>{(expanded?ordered:ordered.slice(0,limit)).map(t=><Tag key={t} label={t} active={active===t} onClick={()=>onChange(t)} accent={accent}/>)}</div>
+      {limit<ordered.length && <button aria-expanded={expanded} aria-label={(expanded?'Show fewer ':'Show more ')+label.toLowerCase()} onClick={()=>setExpanded(!expanded)} style={{fontFamily:'Inter, sans-serif',fontSize:11,color:'var(--fg3)',background:'none',border:0,padding:'8px 0',whiteSpace:'nowrap',cursor:'pointer',flexShrink:0}}>{expanded?'Show less −':'Show more +'}</button>}
+    </div>
+  </div>;
+}
+
 function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, counts, onToggle }) {
   const [browseMode, setBrowseMode] = useState('projects');
   const [showViewHint, setShowViewHint] = useState(false);
@@ -1090,28 +1110,16 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
 
   return (
     <div className="browse-content" style={{ padding: '0 clamp(20px, 4vw, 56px) 96px', position: 'relative', zIndex: 1 }}>
-      <style>{`@media(max-width:900px){.browse-controls.has-view-hint{padding-bottom:64px}}`}</style>
+      <style>{`.browse-controls.has-view-hint{padding-bottom:64px}`}</style>
       {/* Filters */}
       <div style={{
         display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
         marginBottom: 36, flexWrap: 'wrap', gap: 24,
         paddingTop: 20, borderTop: '1px solid var(--border)',
       }}>
-        <div style={{ flex: '1 1 100%', minWidth: 0 }}>
-          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.04em', color: 'var(--fg3)', textTransform: 'uppercase', marginBottom: 12 }}>Filter by project tag</div>
-          <div role="group" aria-label="Filter by project tag" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: 720 }}>
-            {ALL_TAGS.map(t => (
-              <Tag key={t} label={t} active={activeTag === t} onClick={() => setActiveTag(t)} accent={tweaks.accentHue} />
-            ))}
-          </div>
-        </div>
-        <div style={{flex:'1 1 640px',minWidth:0}}>
-          <div style={{fontFamily:'Inter, sans-serif',fontSize:11,letterSpacing:'.04em',color:'var(--fg3)',textTransform:'uppercase',marginBottom:12}}>Filter by space type (individual views)</div>
-          <div role="group" aria-label="Filter by space type" style={{display:'flex',gap:6,flexWrap:'wrap',maxWidth:720}}>
-            <Tag label="All" active={!activeSpace} onClick={()=>setActiveSpace('')} accent={tweaks.accentHue}/>
-            {spaceOptions.map(t=><Tag key={t} label={t} active={activeSpace===t} onClick={()=>setActiveSpace(activeSpace===t?'':t)} accent={tweaks.accentHue}/>)}
-          </div>
-        </div>
+        <CompactFilter label="Filter by project tag" options={ALL_TAGS} active={activeTag} onChange={setActiveTag} accent={tweaks.accentHue}/>
+        <CompactFilter label="Filter by space type (individual views)" options={['All',...spaceOptions]} active={activeSpace||'All'} onChange={t=>setActiveSpace(t==='All'?'':t)} accent={tweaks.accentHue}/>
+        {(activeTag!=='All'||activeSpace) && <button onClick={()=>{setActiveTag('All');setActiveSpace('');}} style={{fontSize:12,color:'var(--fg3)',border:0,background:'none',padding:0,textDecoration:'underline',textUnderlineOffset:3,cursor:'pointer'}}>Clear filters</button>}
         <div className={'browse-controls'+(showViewHint?' has-view-hint':'')} style={{ display: 'flex', gap: 8, alignItems: 'flex-end', flexWrap: 'wrap', maxWidth: '100%', minWidth: 0 }}>
           <div style={{position:'relative',marginRight:8,flexShrink:0}}>
           <div role="group" aria-label="Browse projects or views" style={{display:'flex',border:'1px solid var(--border)'}}>
@@ -2431,6 +2439,7 @@ const WEBSITE_RELEASES = [
     [
       "Added Projects / Views switching in Browse, with grid and list layouts for individual viewpoints.",
       "Connected viewpoint results to project-tag and space-type filters, with search across viewpoint titles and tags.",
+      "Kept the first row of each filter group visible, with independent expand controls and selected tags retained when collapsed.",
       "Added direct links that open a project with the selected viewpoint, and a dismissible first-visit tip for the new browsing mode."
     ]
   ],
