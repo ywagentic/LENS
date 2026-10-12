@@ -16,12 +16,12 @@ for(const width of [320,1000]){
  for(const p of Object.values(province.positions))assert.ok(p.x>0&&p.x<1&&p.y>0&&p.y<1);
 }
 assert.ok(!source.includes('tile.openstreetmap.org'));
-assert.ok(!source.includes('onPointerMove'));
+assert.ok(!source.slice(source.indexOf('function AtlasMap('),source.indexOf('function recordingViewLabel(')).includes('onPointerMove'));
 assert.ok(!source.includes('Zoom in'));
 console.log('PASS: fixed World/China/Guangdong views, mobile positions, clustering, no free zoom or raster tiles.');
 
 assert.ok(!source.includes('ATLAS_REGION_PATHS'));
-assert.ok(source.includes('ATLAS_PROVINCE_LINES')); 
+assert.ok(source.includes('ATLAS_PROVINCE_LINES'));
 assert.ok(source.includes('Schematic view'));
 
 // Equal map-unit distances retain the same screen length at every aspect ratio.

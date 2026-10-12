@@ -405,10 +405,9 @@ function atlasClusters(projects,positions,width,height) {
 function atlasMarkerBackground(projects) {
   return projects.length > 0 && projects.every(isUpcoming) ? '#9b9f9c' : 'var(--accent)';
 }
-function AtlasMap({projects,onSelect,setView}) {
+function AtlasMap({projects,onSelect,setView,filter,setFilter}) {
   const [level,setLevel]=React.useState('world');
   const [selection,setSelection]=React.useState(null);
-  const [filter,setFilter]=React.useState('all');
   const [size,setSize]=React.useState({width:1000,height:560});
   const field=React.useRef(null);
   React.useEffect(()=>{const observer=new ResizeObserver(([e])=>setSize({width:e.contentRect.width,height:e.contentRect.height}));observer.observe(field.current);return()=>observer.disconnect();},[]);
@@ -442,7 +441,7 @@ function AtlasMap({projects,onSelect,setView}) {
       @media(max-width:760px){.atlas-map-page{padding:110px 20px 28px!important}.atlas-map-layout{grid-template-columns:minmax(0,1fr)}.atlas-map-field{height:300px}.atlas-map-toolbar select{max-width:100%;min-width:0}}
     `}</style>
     <h1 style={{fontWeight:200,fontSize:'clamp(40px,5vw,64px)',margin:0,letterSpacing:'-.025em'}}>Atlas</h1>
-    <p style={{color:'var(--fg3)',lineHeight:1.6,marginTop:12}}>Explore the collection by geography, year, or type. Select a group to see its region.</p>
+    <p style={{color:'var(--fg3)',lineHeight:1.6,marginTop:12}}>Explore the collection by geography, year, or type.</p>
     <AtlasCollectionStats projects={projects} />
     <p style={{fontSize:11,color:'var(--fg3)',marginTop:8}}>Green · Available <span aria-hidden="true"> / </span> Gray · Upcoming</p>
     <div className="atlas-map-toolbar">
@@ -492,319 +491,176 @@ function AtlasCollectionStats({ projects }) {
   </p>;
 }
 
+function atlasFieldLayout(groups, view) {
+  const nodes = [], anchors = [], ticks = [];
+  if (view === 'year') {
+    const dated = groups.filter(([label]) => /^\d{4}/.test(label));
+    const years = dated.map(([label]) => parseInt(label));
+    const min = Math.floor(Math.min(...years, 1970) / 10) * 10;
+    const max = Math.ceil(Math.max(...years, 2030) / 10) * 10;
+    const hasHistoric = groups.some(([label]) => !/^\d{4}/.test(label));
+    const left = hasHistoric ? 200 : 65, right = 935;
+    for (let year = min; year <= max; year += 10) ticks.push({label:year,x:left+(year-min)/(max-min)*(right-left)});
+    const placed = [];
+    groups.forEach(([label,items]) => {
+      const numeric = /^\d{4}/.test(label);
+      const x = numeric ? left+(parseInt(label)-min)/(max-min)*(right-left) : 80;
+      if (!numeric) anchors.push({label:label === 'Undated' ? 'Undated' : 'Historic',x:80,y:440});
+      items.forEach(p => {
+        let lane = 0;
+        while (placed.some(n => n.lane === lane && Math.abs(n.x-x)<42)) lane++;
+        const y = 370-lane*48;
+        placed.push({x,lane}); nodes.push({p,x,y,key:`${label}:${p.id}`,label});
+      });
+    });
+  } else {
+    // Offset neighboring groups while keeping a clear gap between their rays.
+    const centers = [[150,100],[485,72],[825,125],[310,245],[685,270],[135,385],[485,410],[850,390],[870,245]];
+    groups.forEach(([label,items],i) => {
+      const [x,y] = groups.length===1 ? [500,250] : centers[i] || [150+(i%3)*335,100+Math.floor(i/3)*150];
+      anchors.push({label,x,y});
+      items.forEach((p,j) => {
+        const angle = -Math.PI/2 + j*2*Math.PI/items.length;
+        const reach = [1.12, 0.94, 1.2, 1.02, 1.16][(i+j)%5];
+        nodes.push({p,x:x+Math.cos(angle)*148*reach,y:y+Math.sin(angle)*96*reach,cx:x,cy:y,key:`${label}:${p.id}`,label});
+      });
+    });
+    // Reserve an inset for node hit areas and labels around the outer groups.
+    nodes.forEach(n => {
+      n.x = Math.max(55, Math.min(945, 75 + n.x * 0.85));
+      n.y = Math.max(48, Math.min(452, 50 + n.y * 0.8));
+      n.cx = 75 + n.cx * 0.85;
+      n.cy = 50 + n.cy * 0.8;
+    });
+    anchors.forEach(a => { a.x = 75 + a.x * 0.85; a.y = 50 + a.y * 0.8; });
+  }
+  return {nodes,anchors,ticks};
+}
+
+function AtlasTypeNetwork({groups, selected, onSelect}) {
+  const svg = React.useRef(null), simulation = React.useRef(null), hoverExit = React.useRef(null);
+  React.useEffect(()=>()=>clearTimeout(hoverExit.current),[]);
+  const [frame, setFrame] = React.useState({nodes:[],links:[]});
+  const [hover, setHover] = React.useState(null);
+  const [activeType, setActiveType] = React.useState(null);
+  React.useEffect(() => {
+    const nodes=[], links=[];
+    const sector=2*Math.PI/Math.max(1,groups.length);
+    groups.forEach(([label,items],i)=>{
+      const angle=-Math.PI/2+i*sector;
+      const type={id:'type:'+label,label,kind:'type',x:500+Math.cos(angle)*210,y:280+Math.sin(angle)*115,vx:0,vy:0};
+      nodes.push(type);
+      items.forEach((p,j)=>{
+        const spread=sector*0.72;
+        const leafAngle=angle+(items.length===1?0:(j/(items.length-1)-0.5)*spread);
+        const depth=0.78+0.22*((j*2%3)/2);
+        const n={id:'project:'+label+':'+p.id,p,kind:'project',x:500+Math.cos(leafAngle)*430*depth,y:280+Math.sin(leafAngle)*225*depth,vx:0,vy:0};
+        nodes.push(n);
+        links.push({source:type,target:n,length:Math.hypot(n.x-type.x,n.y-type.y)});
+      });
+    });
+    let raf, heat=1, running=false;
+    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const model={nodes,links,drag:null,hover:null,rest:new Map(nodes.map(n=>[n.id,{x:n.x,y:n.y}])),reheat:()=>{heat=reduced?0:0.09;if(!running&&!reduced){running=true;raf=requestAnimationFrame(tick);}}};simulation.current=model;
+    const tick=()=>{
+      for(let iteration=0;iteration<2;iteration++){
+        const origin=model.rest.get(model.hover);
+        nodes.forEach(n=>{
+          const rest=model.rest.get(n.id);let tx=rest.x,ty=rest.y;
+          if(origin&&n.id!==model.hover){
+            const dx=rest.x-origin.x,dy=rest.y-origin.y,d=Math.max(1,Math.hypot(dx,dy));
+            const displacement=24/(1+d/240);
+            tx+=dx/d*displacement;ty+=dy/d*displacement;
+          }
+          n.vx+=(tx-n.x)*0.035*Math.min(1,heat/0.09);
+          n.vy+=(ty-n.y)*0.035*Math.min(1,heat/0.09);
+        });
+        nodes.forEach(n=>{if(model.drag===n)return;n.vx*=0.72;n.vy*=0.72;const speed=Math.hypot(n.vx,n.vy);const limit=heat>0.12?1.1:0.28;if(speed>limit){n.vx*=limit/speed;n.vy*=limit/speed;}n.x=Math.max(n.kind==='type'?95:30,Math.min(n.kind==='type'?905:970,n.x+n.vx));n.y=Math.max(40,Math.min(520,n.y+n.vy));});
+        heat*=0.985;
+      }
+      setFrame({nodes:[...nodes],links});
+      if(heat>0.008){running=true;raf=requestAnimationFrame(tick);}else running=false;
+    };
+    tick();return()=>cancelAnimationFrame(raf);
+  },[groups]);
+  React.useEffect(()=>{const model=simulation.current;if(model){if(!model.rest&&(hover||selected))model.rest=new Map(model.nodes.map(n=>[n.id,{x:n.x,y:n.y}]));model.hover=activeType||hover|| (selected?'project:'+selected.id:null);model.reheat();}},[activeType,activeType?null:hover,activeType?null:selected]);
+  const neighbors=new Set(hover?[hover]:[]);
+  frame.links.forEach(l=>{if(l.source.id===hover)neighbors.add(l.target.id);if(l.target.id===hover)neighbors.add(l.source.id);});
+  const move=e=>{const model=simulation.current;if(!model?.drag)return;const rect=svg.current.getBoundingClientRect();model.drag.x=Math.max(30,Math.min(970,(e.clientX-rect.left)/rect.width*1000));model.drag.y=Math.max(40,Math.min(520,(e.clientY-rect.top)/rect.height*560));model.drag.vx=0;model.drag.vy=0;model.reheat();};
+  return <div className="atlas-field-scroll"><svg ref={svg} viewBox="0 0 1000 560" aria-label="Project type network" style={{display:'block',width:'100%',minHeight:340,touchAction:'pan-y'}} onPointerMove={move} onPointerUp={()=>{if(simulation.current)simulation.current.drag=null;}} onPointerCancel={()=>{if(simulation.current)simulation.current.drag=null;}}>
+    {frame.links.map(l=><line key={l.source.id+l.target.id} x1={l.source.x} y1={l.source.y} x2={l.target.x} y2={l.target.y} stroke={hover&&(l.source.id===hover||l.target.id===hover)?'var(--accent)':'var(--fg3)'} strokeWidth={hover&&(l.source.id===hover||l.target.id===hover)?1.4:0.7} opacity={hover?neighbors.has(l.source.id)&&neighbors.has(l.target.id)?0.8:0.12:0.35} style={{transition:'opacity 180ms,stroke 180ms'}}/>)}
+    {frame.nodes.map(n=><g key={n.id} role="button" tabIndex="0" aria-label={n.kind==='type'?n.label:n.p.title} onMouseEnter={()=>{clearTimeout(hoverExit.current);setHover(n.id);if(n.kind==='type')setActiveType(n.id);}} onMouseLeave={()=>{clearTimeout(hoverExit.current);hoverExit.current=setTimeout(()=>setHover(null),140);}} onFocus={()=>{setHover(n.id);if(n.kind==='type')setActiveType(n.id);}} onBlur={()=>setHover(null)} onKeyDown={e=>{if((e.key==='Enter'||e.key===' ')&&n.p){e.preventDefault();onSelect(n.p);}}} onClick={()=>n.p&&onSelect(n.p)} onPointerDown={e=>{if(n.p)onSelect(n.p);if(e.pointerType==='touch')return;simulation.current.drag=n;simulation.current.reheat();e.currentTarget.setPointerCapture(e.pointerId);}} style={{cursor:'grab',opacity:hover&&!neighbors.has(n.id)?0.3:1,transition:'opacity 180ms'}}>
+      <circle cx={n.x} cy={n.y} r={n.kind==='type'?28:20} fill="transparent" stroke="none"/>
+      <circle pointerEvents="none" cx={n.x} cy={n.y} r={n.kind==='type'?13:5+2*Math.sqrt((n.p.captures||[]).length)+(hover===n.id||selected?.id===n.p?.id?2:0)} fill={n.kind==='type'?'var(--card-bg)':atlasMarkerBackground([n.p])} stroke={n.kind==='type'?'var(--fg2)':'var(--card-bg)'} strokeWidth={n.kind==='type'?1.2:2} style={{transition:'r 180ms'}}/>
+      {n.kind==='type'&&<text pointerEvents="none" x={n.x} y={n.y+29} textAnchor="middle" fontSize="13" fill="var(--fg2)" stroke="var(--card-bg)" strokeWidth="5" paintOrder="stroke">{n.label}</text>}
+      {n.p&&hover===n.id&&<text pointerEvents="none" x={Math.max(150,Math.min(850,n.x))} y={n.y-23} textAnchor="middle" fontSize="13" fill="var(--fg)" stroke="var(--card-bg)" strokeWidth="5" paintOrder="stroke">{n.p.title}</text>}
+    </g>)}
+  </svg></div>;
+}
+
 function Atlas({ projects, onSelect }) {
-  const [view, setView] = React.useState('map');     // 'map' | 'year' | 'type'
-  const [active, setActive] = React.useState(null);
-  const [filter, setFilter] = React.useState('all'); // 'all' | <type>
-
-  const typeOptions = React.useMemo(() => {
-    const set = new Set(projects.flatMap(projectTypes));
-    return ['all', ...Array.from(set).sort()];
-  }, [projects]);
-
-  const filtered = React.useMemo(() => (
-    (filter === 'all' ? projects : projects.filter(p => projectTypes(p).includes(filter))).flatMap(p => view === 'type' ? (filter === 'all' ? projectTypes(p) : [filter]).map(type => ({...p, id: `${p.id}:${type}`, typeCategory:type, sourceProject:p})) : [p])
-  ), [projects, filter, view]);
-
-  // Build positions for the active view
-  const { positions, columns } = React.useMemo(() => {
-    if (view === 'map') return { positions: positionsForMap(filtered), columns: null };
-    if (view === 'year') return positionsForYear(filtered);
-    if (view === 'type') return positionsForType(filtered);
-    return { positions: {}, columns: null };
-  }, [view, filtered]);
-
-  // Projects without positions in current view (e.g. no coords on map) — show offscreen
-  const visibleProjects = filtered.filter(p => positions[p.id]);
-
-  if (view === 'map') return <AtlasMap projects={projects} onSelect={onSelect} setView={setView} />;
-
-  return (
-    <>
-      <style>{`
-        .field-dot {
-          transition: cx 700ms cubic-bezier(.4,.1,.2,1),
-                      cy 700ms cubic-bezier(.4,.1,.2,1),
-                      r 250ms ease,
-                      opacity 200ms;
-          cursor: pointer;
-        }
-        .field-label {
-          transition: left 700ms cubic-bezier(.4,.1,.2,1),
-                      top 700ms cubic-bezier(.4,.1,.2,1),
-                      opacity 250ms;
-          pointer-events: none;
-        }
-        @keyframes fieldPulse {
-          0%   { r: 14; opacity: 0.4; }
-          70%  { r: 38; opacity: 0; }
-          100% { r: 14; opacity: 0; }
-        }
-        .field-pulse { animation: fieldPulse 2s ease-out infinite; }
-      `}</style>
-
-      <div style={{ paddingTop: 96, position: 'relative', zIndex: 1, height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxSizing: 'border-box' }}>
-        {/* Header — matches Browse alignment */}
-        <div style={{ padding: '24px 56px 20px', flex: '0 0 auto' }}>
-          <h1 style={{
-            fontFamily: 'Inter, sans-serif', fontWeight: 200,
-            fontSize: 'clamp(40px, 5vw, 64px)', letterSpacing: '-0.025em',
-            margin: 0, lineHeight: 1.05,
-          }}>Atlas</h1>
-          <p style={{
-            fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'var(--fg3)',
-            marginTop: 12, marginBottom: 0, maxWidth: 540, lineHeight: 1.55,
-          }}>
-            The collection as a field. Each dot is a project — rearrange by geography, year, or type, and hover to inspect.
-          </p>
-          <AtlasCollectionStats projects={projects} />
-        </div>
-
-        {/* Field + chrome */}
-        <div style={{ padding: '0 56px 24px', flex: '1 1 auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <div style={{
-            position: 'relative',
-            flex: '1 1 auto',
-            minHeight: 0,
-            maxWidth: 'min(100%, calc((100vh - 260px) * 2.1))',
-            margin: '0 auto',
-            width: '100%',
-            border: '1px solid var(--border)',
-            background: 'var(--card-bg)',
-            overflow: 'hidden',
-          }}>
-            {/* Backdrop varies by view */}
-            {view === 'map' && <MapBackdrop />}
-            {view === 'year' && <ColumnBackdrop columns={columns} axisLabel="year" />}
-            {view === 'type' && <ColumnBackdrop columns={columns} axisLabel="type" />}
-
-            {/* Dots — HTML divs so they stay round regardless of viewport aspect */}
-            {visibleProjects.map(p => {
-              const pos = positions[p.id];
-              const isActive = active && active.id === p.id;
-              const size = isActive ? 22 : 11;
-              return (
-                <React.Fragment key={p.id}>
-                  {isActive && (
-                    <div
-                      className="field-pulse-html"
-                      style={{
-                        position: 'absolute',
-                        left: `${pos.x * 100}%`,
-                        top: `${pos.y * 100}%`,
-                        width: size, height: size,
-                        marginLeft: -size/2, marginTop: -size/2,
-                        borderRadius: '50%',
-                        border: `1px solid ${isUpcoming(p) ? '#9b9f9c' : 'var(--accent)'}`,
-                        pointerEvents: 'none',
-                      }}
-                    />
-                  )}
-                  <div
-                    className="field-dot-html"
-                    onMouseEnter={() => setActive(p)}
-                    onMouseLeave={() => setActive(null)}
-                    onClick={() => isUpcoming(p) ? setActive(p) : onSelect(p.sourceProject || p)}
-                    style={{
-                      position: 'absolute',
-                      left: `${pos.x * 100}%`,
-                      top: `${pos.y * 100}%`,
-                      width: size, height: size,
-                      marginLeft: -size/2, marginTop: -size/2,
-                      borderRadius: '50%',
-                      background: atlasMarkerBackground([p]),
-                      cursor: 'pointer',
-                      transition: 'width 0.2s, height 0.2s, margin 0.2s',
-                    }}
-                  />
-                </React.Fragment>
-              );
-            })}
-
-            {/* Labels — HTML so type renders crisp */}
-            {visibleProjects.map(p => {
-              const pos = positions[p.id];
-              const isActive = active && active.id === p.id;
-              return (
-                <div
-                  key={p.id}
-                  className="field-label"
-                  style={{
-                    position: 'absolute',
-                    left: `${pos.x * 100}%`,
-                    top: `${pos.y * 100}%`,
-                    transform: 'translate(12px, -50%)',
-                    fontFamily: 'Inter, sans-serif',
-                    fontSize: 10,
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    color: isActive ? 'var(--fg)' : 'var(--fg3)',
-                    opacity: isActive ? 1 : 0.55,
-                    fontWeight: isActive ? 500 : 400,
-                    whiteSpace: 'nowrap',
-                    maxWidth: 220,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {p.title} · {recordingViewLabel(p)}
-                </div>
-              );
-            })}
-
-            {/* Bottom-left control panel — Arrange by + Filter merged */}
-            <div style={{
-              position: 'absolute', left: 20, bottom: 20,
-              display: 'flex', flexDirection: 'column',
-              background: 'rgba(255,255,255,0.85)',
-              backdropFilter: 'blur(8px)',
-              border: '1px solid var(--border)',
-            }}>
-              <div style={{ display: 'flex', gap: 6, padding: 4, alignItems: 'center' }}>
-                <span style={{
-                  fontFamily: 'Inter, sans-serif', fontSize: 10,
-                  letterSpacing: '0.14em', textTransform: 'uppercase',
-                  color: 'var(--fg4)', padding: '6px 8px 6px 10px',
-                  alignSelf: 'center', minWidth: 76,
-                }}>Arrange by</span>
-                {[
-                  { id: 'map', label: 'Geography' },
-                  { id: 'year', label: 'Year' },
-                  { id: 'type', label: 'Type' },
-                ].map(o => {
-                  const isActive = view === o.id;
-                  return (
-                    <button
-                      key={o.id}
-                      onClick={() => setView(o.id)}
-                      style={{
-                        background: isActive ? 'var(--fg)' : 'transparent',
-                        color: isActive ? 'var(--bg)' : 'var(--fg2)',
-                        border: 'none',
-                        padding: '6px 12px',
-                        fontFamily: 'Inter, sans-serif', fontSize: 12,
-                        cursor: 'pointer',
-                        letterSpacing: '0.02em',
-                        transition: 'background 0.15s, color 0.15s',
-                      }}
-                    >{o.label}</button>
-                  );
-                })}
-              </div>
-              <div style={{
-                borderTop: '1px solid var(--border)',
-                display: 'flex', gap: 4, padding: 4, alignItems: 'center', flexWrap: 'wrap',
-              }}>
-                <span style={{
-                  fontFamily: 'Inter, sans-serif', fontSize: 10,
-                  letterSpacing: '0.14em', textTransform: 'uppercase',
-                  color: 'var(--fg4)', padding: '6px 8px 6px 10px',
-                  alignSelf: 'center', minWidth: 76,
-                }}>Filter</span>
-                {typeOptions.map(t => {
-                  const isActive = filter === t;
-                  return (
-                    <button
-                      key={t}
-                      onClick={() => setFilter(t)}
-                      style={{
-                        background: isActive ? 'var(--accent-dim)' : 'transparent',
-                        color: isActive ? 'var(--accent-bright)' : 'var(--fg3)',
-                        border: 'none',
-                        padding: '6px 12px',
-                        fontFamily: 'Inter, sans-serif', fontSize: 11,
-                        cursor: 'pointer',
-                        letterSpacing: '0.04em',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >{t === 'all' ? 'All' : t}</button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Active project card — bottom-right */}
-            {active && (
-              <div style={{
-                position: 'absolute', right: 20, bottom: 20,
-                width: 320,
-                background: 'rgba(255,255,255,0.95)',
-                backdropFilter: 'blur(12px)',
-                border: '1px solid var(--border)',
-                padding: 18,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--accent)' }}>
-                    {active.type}{isUpcoming(active) ? ' · Upcoming' : ''}
-                  </div>
-                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'var(--fg4)' }}>{active.year}</div>
-                </div>
-                <div style={{
-                  fontFamily: 'Inter, sans-serif', fontSize: 22, fontWeight: 400,
-                  letterSpacing: '-0.015em', marginTop: 8, color: 'var(--fg)',
-                  lineHeight: 1.2,
-                }}>{active.title}</div>
-                <div style={{
-                  fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)',
-                  marginTop: 4, lineHeight: 1.4,
-                }}>{active.location} · {recordingViewLabel(active)}</div>
-                {active.subtitle && (
-                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', marginTop: 10, lineHeight: 1.5 }}>
-                    {active.subtitle}
-                  </div>
-                )}
-                {!isUpcoming(active) && <button
-                  onClick={() => onSelect(active.sourceProject || active)}
-                  style={{
-                    marginTop: 14,
-                    background: 'none', border: 'none',
-                    color: 'var(--accent-bright)',
-                    fontFamily: 'Inter, sans-serif', fontSize: 12,
-                    fontWeight: 500, letterSpacing: '0.04em',
-                    cursor: 'pointer', padding: 0,
-                    textDecoration: 'underline', textUnderlineOffset: 4,
-                  }}
-                >Open project →</button>}
-              </div>
-            )}
-
-            {/* Hint when nothing is active */}
-            {!active && (
-              <div style={{
-                position: 'absolute', right: 20, bottom: 20,
-                fontFamily: 'Inter, sans-serif', fontSize: 11,
-                letterSpacing: '0.12em', textTransform: 'uppercase',
-                color: 'var(--fg4)',
-                background: 'rgba(255,255,255,0.7)',
-                backdropFilter: 'blur(6px)',
-                padding: '8px 12px',
-                border: '1px solid var(--border)',
-              }}>
-                Hover a dot
-              </div>
-            )}
-          </div>
-
-          {/* Field meta — count below */}
-          <div style={{
-            display: 'flex', alignItems: 'baseline', justifyContent: 'space-between',
-            marginTop: 16, fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)',
-          }}>
-            <div>
-              Showing <span style={{ color: 'var(--fg)', fontWeight: 500 }}>{new Set(visibleProjects.map(p => (p.sourceProject || p).id)).size}</span> of {projects.length} projects
-              {view === 'map' && filtered.length > visibleProjects.length && (
-                <span style={{ color: 'var(--fg4)' }}> · {filtered.length - visibleProjects.length} lack coordinates</span>
-              )}
-            </div>
-            <div style={{ letterSpacing: '0.12em', textTransform: 'uppercase', fontSize: 11 }}>
-              Atlas / {view === 'map' ? 'Geography' : view === 'year' ? 'Chronology' : 'Typology'}
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+  const [view, setView] = React.useState('map');
+  const [filter, setFilter] = React.useState('all');
+  const [selected, setSelected] = React.useState(null);
+  const [hovered, setHovered] = React.useState(null);
+  const [hoveredType, setHoveredType] = React.useState(null);
+  const changeView = next => { setView(next); setSelected(null); setHovered(null); setHoveredType(null); };
+  const filtered = projects.filter(p => filter === 'all' || projectTypes(p).includes(filter));
+  const groupKey = filtered.map(p=>`${p.id}:${projectTypes(p).join(',')}:${p.year}`).join('|');
+  const groups = React.useMemo(() => {
+    const result = new Map();
+    filtered.forEach(p => {
+      const keys = view === 'year' ? [String(p.year || 'Undated')] : (filter === 'all' ? projectTypes(p) : [filter]);
+      keys.forEach(key => { if (!result.has(key)) result.set(key, []); result.get(key).push(p); });
+    });
+    const rank = key => key === 'Ancient Rome' ? -Infinity : Number.parseInt(key) || Infinity;
+    return [...result].sort(([a], [b]) => view === 'year' ? rank(a) - rank(b) || a.localeCompare(b) : a.localeCompare(b));
+  }, [groupKey, filter, view]);
+  const layout = atlasFieldLayout(groups, view);
+  if (view === 'map') return <AtlasMap projects={projects} onSelect={onSelect} setView={changeView} filter={filter} setFilter={setFilter} />;
+  const button = {border:'1px solid var(--border)',background:'var(--card-bg)',color:'var(--fg)',padding:'9px 12px',cursor:'pointer',font:'inherit',fontSize:12};
+  return <main className="atlas-group-page" style={{padding:'120px 56px 40px',minWidth:0}}>
+    <style>{`
+      .atlas-group-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:22px 0 14px}
+      .atlas-group-layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:20px;align-items:start}
+      .atlas-field-scroll{min-width:0;overflow-x:auto;border:1px solid var(--border);background:var(--card-bg)}
+      .atlas-spatial-field{position:relative;aspect-ratio:2/1;min-width:0;overflow:hidden}
+      .atlas-spatial-point{position:absolute;transform:translate(-50%,-50%);width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;background:transparent;cursor:pointer;z-index:2;transition:left 280ms ease,top 280ms ease}
+      .atlas-spatial-point i{width:12px;height:12px;border-radius:50%;transition:transform 280ms cubic-bezier(.2,.7,.2,1);display:block}
+      .atlas-spatial-point:hover i,.atlas-spatial-point:focus-visible i,.atlas-spatial-point[aria-pressed=true] i{transform:scale(1.5)}
+      .atlas-spatial-point:focus-visible{outline:1px solid var(--accent)}
+      .atlas-field-tooltip{position:absolute;transform:translate(-50%,-100%);font-size:12px;line-height:1.5;padding:8px 12px;background:var(--bg);border:1px solid var(--border);pointer-events:none;z-index:4;max-width:240px;width:max-content}
+      .atlas-type-ray{transition:x2 280ms ease,y2 280ms ease,stroke 180ms ease,opacity 180ms ease}
+      .atlas-type-anchor{transition:border-color 180ms ease,color 180ms ease;cursor:default}
+      .atlas-group-detail{border-top:1px solid var(--border);padding-top:22px;position:sticky;top:110px;min-width:0;overflow-wrap:anywhere}
+      @media(max-width:900px){.atlas-group-layout{grid-template-columns:minmax(0,1fr)}.atlas-group-detail{position:static}}
+      @media(max-width:760px){.atlas-spatial-field{min-width:700px}.atlas-group-page{padding:110px 20px 28px!important}.atlas-group{grid-template-columns:80px minmax(0,1fr);gap:12px}.atlas-group-toolbar select{max-width:100%}}
+      @media(prefers-reduced-motion:reduce){.atlas-spatial-point,.atlas-spatial-point i,.atlas-type-ray,.atlas-type-anchor{transition:none}}
+    `}</style>
+    <h1 style={{fontWeight:200,fontSize:'clamp(40px,5vw,64px)',margin:0,letterSpacing:'-.025em'}}>Atlas</h1>
+    <p style={{color:'var(--fg3)',lineHeight:1.6,marginTop:12}}>Explore the collection by geography, year, or type.</p>
+    <AtlasCollectionStats projects={projects}/>
+    <p style={{fontSize:11,color:'var(--fg3)',marginTop:12}}>Green · Available <span aria-hidden="true"> / </span> Gray · Upcoming</p>
+    <div className="atlas-group-toolbar">
+      <span style={{fontSize:12,color:'var(--fg3)'}}>Arrange by</span>
+      {['map','year','type'].map(v=><button key={v} aria-pressed={view===v} style={{...button,background:view===v?'var(--fg)':'transparent',color:view===v?'var(--bg)':'var(--fg)'}} onClick={()=>changeView(v)}>{v==='map'?'Geography':v==='year'?'Year':'Type'}</button>)}
+      <select aria-label="Filter projects by type" value={filter} onChange={e=>{setFilter(e.target.value);setSelected(null);}} style={button}><option value="all">All types</option>{[...new Set(projects.flatMap(projectTypes))].sort().map(t=><option key={t}>{t}</option>)}</select>
+    </div>
+    <div style={{fontSize:12,color:'var(--fg3)',padding:'6px 0',marginBottom:14}}>{view==='year'?'Project year':'Project type'} · {filtered.length} projects</div>
+    <div className="atlas-group-layout">
+      {view==='type'?<AtlasTypeNetwork groups={groups} selected={selected} onSelect={setSelected}/>:<div className="atlas-field-scroll"><div className="atlas-spatial-field" aria-label={view==='year'?'Project timeline':'Project type clusters'} onClick={e=>{if(!e.target.closest('.atlas-spatial-point'))setSelected(null);}}>
+        <svg viewBox="0 0 1000 500" preserveAspectRatio="none" aria-hidden="true" style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}}>
+          {view==='year'&&<><line x1={layout.ticks[0]?.x || 65} y1="420" x2="935" y2="420" stroke="var(--border)"/>{layout.ticks.map(t=><g key={t.label}><line x1={t.x} y1="415" x2={t.x} y2="425" stroke="var(--fg3)"/><text x={t.x} y="446" textAnchor="middle" fill="var(--fg3)" fontSize="13">{t.label}</text></g>)}{layout.nodes.map(n=><line key={n.key} x1={n.x} x2={n.x} y1={n.y+12} y2="410" stroke="var(--border)" strokeDasharray="2 5"/>)}{layout.anchors.length>0&&<path d="M135 417 l5 6 m5 -6 l5 6" fill="none" stroke="var(--fg3)"/>}</>}
+          {view==='type'&&layout.nodes.map(n=>{const expanded=hoveredType===n.label,active=expanded||hovered?.key===n.key||selected?.id===n.p.id;return <line className="atlas-type-ray" key={n.key} x1={n.cx} y1={n.cy} x2={n.x+(expanded?(n.x-n.cx)*0.08:0)} y2={n.y+(expanded?(n.y-n.cy)*0.08:0)} stroke={active?'var(--accent)':'var(--border)'} opacity={hoveredType&&!expanded?0.45:1} strokeWidth={active?1.4:1} vectorEffect="non-scaling-stroke"/>})}
+        </svg>
+        {layout.anchors.map(a=><div className="atlas-type-anchor" onMouseEnter={()=>view==='type'&&setHoveredType(a.label)} onMouseLeave={()=>setHoveredType(null)} key={a.label} style={{position:'absolute',left:`${a.x/10}%`,top:`${a.y/5}%`,transform:'translate(-50%,-50%)',fontSize:12,textAlign:'center',maxWidth:'24%',lineHeight:1.4,background:'var(--card-bg)',padding:view==='type'?'6px 12px':0,border:view==='type'?`1px solid ${hoveredType===a.label?'var(--accent)':'var(--border)'}`:undefined,borderRadius:view==='type'?20:0,color:view==='type'?'var(--fg2)':'var(--fg3)',zIndex:1}}>{a.label}</div>)}
+        {layout.nodes.map(n=><button key={n.key} className="atlas-spatial-point" aria-label={`${n.p.title} · ${n.label} · ${recordingViewLabel(n.p)}`} aria-pressed={selected?.id===n.p.id} style={{left:`${(n.x+(view==='type'&&hoveredType===n.label?(n.x-n.cx)*0.08:0))/10}%`,top:`${(n.y+(view==='type'&&hoveredType===n.label?(n.y-n.cy)*0.08:0))/5}%`}} onMouseEnter={()=>setHovered(n)} onMouseLeave={()=>setHovered(null)} onFocus={()=>setHovered(n)} onBlur={()=>setHovered(null)} onClick={()=>setSelected(n.p)}><i style={{background:atlasMarkerBackground([n.p]),...(view==='type'&&hoveredType===n.label?{transform:'scale(1.2)'}:{})}}/></button>)}
+        {hovered&&<div className="atlas-field-tooltip" style={{left:`${Math.max(16,Math.min(84,hovered.x/10))}%`,top:`${hovered.y/5-5}%`}}>{hovered.p.title}<br/><span style={{color:'var(--fg3)',fontSize:11}}>{hovered.p.year} · {recordingViewLabel(hovered.p)}</span></div>}
+        {!layout.nodes.length&&<p style={{padding:24,fontSize:13,color:'var(--fg3)'}}>No projects match this view.</p>}
+      </div></div>}
+      {selected&&<aside className="atlas-group-detail" aria-label="Selected project"><button style={button} onClick={()=>setSelected(null)}>Clear selection</button><h2 style={{fontSize:21,fontWeight:400,lineHeight:1.3,marginTop:20}}>{selected.title}</h2><p style={{fontSize:13,color:'var(--fg3)',lineHeight:1.6}}>{selected.location}<br/>{selected.year || '—'} · {recordingViewLabel(selected)}</p>{!isUpcoming(selected)&&<button style={{...button,marginTop:12}} onClick={()=>onSelect(selected)}>Open project →</button>}</aside>}
+    </div>
+  </main>;
 }
 
 if (typeof window !== 'undefined') Object.assign(window, { Atlas });
