@@ -612,12 +612,12 @@ function AtlasTypeNetwork({groups, selected, onSelect}) {
     };
     tick();return()=>cancelAnimationFrame(raf);
   },[groups]);
-  React.useEffect(()=>{const model=simulation.current;if(model){if(!model.rest&&(hover||selected))model.rest=new Map(model.nodes.map(n=>[n.id,{x:n.x,y:n.y}]));model.hover=activeType||hover|| (selected?'project:'+selected.id:null);model.reheat();}},[activeType,activeType?null:hover,activeType?null:selected]);
+  React.useEffect(()=>{const model=simulation.current;if(model){if(!model.rest&&(hover||selected))model.rest=new Map(model.nodes.map(n=>[n.id,{x:n.x,y:n.y}]));model.hover=activeType||hover;model.reheat();}},[activeType,activeType?null:hover,activeType?null:selected]);
   const highlight=hover?.startsWith('project:')?hover:(activeType||hover);
   const neighbors=new Set(highlight?[highlight]:[]);
   frame.links.forEach(l=>{if(l.source.id===highlight)neighbors.add(l.target.id);if(l.target.id===highlight)neighbors.add(l.source.id);});
   const move=e=>{const model=simulation.current;if(!model?.drag)return;const rect=svg.current.getBoundingClientRect();model.drag.x=Math.max(30,Math.min(970,(e.clientX-rect.left)/rect.width*1000));model.drag.y=Math.max(40,Math.min(520,(e.clientY-rect.top)/rect.height*560));model.drag.vx=0;model.drag.vy=0;model.reheat();};
-  return <div className="atlas-field-scroll"><svg ref={svg} viewBox="0 0 1000 560" aria-label="Project type network" style={{display:'block',width:'100%',minHeight:340,touchAction:'pan-y'}} onPointerMove={move} onPointerUp={()=>{if(simulation.current)simulation.current.drag=null;}} onPointerCancel={()=>{if(simulation.current)simulation.current.drag=null;}}>
+  return <div className="atlas-field-scroll"><svg ref={svg} onMouseLeave={()=>{clearTimeout(hoverExit.current);setHover(null);setActiveType(null);}} viewBox="0 0 1000 560" aria-label="Project type network" style={{display:'block',width:'100%',height:'100%',touchAction:'pan-y'}} onPointerMove={move} onPointerUp={()=>{if(simulation.current)simulation.current.drag=null;}} onPointerCancel={()=>{if(simulation.current)simulation.current.drag=null;}}>
     {frame.links.map(l=><line key={l.source.id+l.target.id} x1={l.source.x} y1={l.source.y} x2={l.target.x} y2={l.target.y} stroke={highlight&&(l.source.id===highlight||l.target.id===highlight)?'var(--accent)':'var(--fg3)'} strokeWidth={highlight&&(l.source.id===highlight||l.target.id===highlight)?1.4:0.7} opacity={highlight?neighbors.has(l.source.id)&&neighbors.has(l.target.id)?0.8:0.12:0.35} style={{transition:'opacity 180ms,stroke 180ms'}}/>)}
     {frame.nodes.map(n=><g key={n.id} role="button" tabIndex="0" aria-label={n.kind==='type'?n.label:n.p.title} onMouseEnter={()=>{clearTimeout(hoverExit.current);setHover(n.id);if(n.kind==='type')setActiveType(current=>current||n.id);}} onMouseLeave={()=>{clearTimeout(hoverExit.current);hoverExit.current=setTimeout(()=>setHover(null),140);}} onFocus={()=>{setHover(n.id);if(n.kind==='type')setActiveType(current=>current||n.id);}} onBlur={()=>setHover(null)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(n.kind==='type')setActiveType(n.id);else onSelect(n.p);}}} onClick={()=>{if(n.kind==='type')setActiveType(n.id);else onSelect(n.p);}} style={{cursor:'pointer',opacity:highlight&&!neighbors.has(n.id)?0.3:1,transition:'opacity 180ms'}}>
       <circle cx={n.x} cy={n.y} r={n.kind==='type'?28:20} fill="transparent" stroke="none"/>
@@ -653,8 +653,9 @@ function Atlas({ projects, onSelect }) {
     <style>{`
       .atlas-group-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:22px 0 14px}
       .atlas-group-layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:20px;align-items:start}
-      .atlas-field-scroll{min-width:0;overflow-x:auto;border:1px solid var(--border);background:var(--card-bg)}
-      .atlas-spatial-field{position:relative;aspect-ratio:2/1;min-width:0;overflow:hidden}
+      .atlas-field-scroll{min-width:0;height:clamp(360px,60vh,680px);overflow:hidden;border:1px solid var(--border);background:var(--card-bg);display:flex;justify-content:center;align-items:center}
+      .atlas-field-scroll>svg,.atlas-spatial-field{max-width:calc(clamp(360px,60vh,680px) * 1.785714);width:100%}
+      .atlas-spatial-field{position:relative;aspect-ratio:2/1;height:auto;max-height:100%;min-width:0;overflow:hidden}
       .atlas-spatial-point{position:absolute;transform:translate(-50%,-50%);width:40px;height:40px;display:grid;place-items:center;padding:0;border:0;background:transparent;cursor:pointer;z-index:2;transition:left 280ms ease,top 280ms ease}
       .atlas-spatial-point i{width:12px;height:12px;border-radius:50%;transition:transform 280ms cubic-bezier(.2,.7,.2,1);display:block}
       .atlas-spatial-point:hover i,.atlas-spatial-point:focus-visible i,.atlas-spatial-point[aria-pressed=true] i{transform:scale(1.5)}
@@ -663,8 +664,9 @@ function Atlas({ projects, onSelect }) {
       .atlas-type-ray{transition:x2 280ms ease,y2 280ms ease,stroke 180ms ease,opacity 180ms ease}
       .atlas-type-anchor{transition:border-color 180ms ease,color 180ms ease;cursor:default}
       .atlas-group-detail{border-top:1px solid var(--border);padding-top:22px;position:sticky;top:110px;min-width:0;overflow-wrap:anywhere}
-      @media(max-width:900px){.atlas-group-layout{grid-template-columns:minmax(0,1fr)}.atlas-group-detail{position:static}}
-      @media(max-width:760px){.atlas-spatial-field{min-width:700px}.atlas-group-page{padding:110px 20px 28px!important}.atlas-group{grid-template-columns:80px minmax(0,1fr);gap:12px}.atlas-group-toolbar select{max-width:100%}}
+      @media(max-width:760px){.atlas-field-scroll{height:300px}.atlas-field-scroll>svg,.atlas-spatial-field{max-width:535.714px}}
+      @media(max-width:760px){.atlas-group-layout{grid-template-columns:minmax(0,1fr)}.atlas-group-detail{position:static}}
+      @media(max-width:760px){.atlas-spatial-field{min-width:0}.atlas-group-page{padding:110px 20px 28px!important}.atlas-group{grid-template-columns:80px minmax(0,1fr);gap:12px}.atlas-group-toolbar select{max-width:100%}}
       @media(prefers-reduced-motion:reduce){.atlas-spatial-point,.atlas-spatial-point i,.atlas-type-ray,.atlas-type-anchor{transition:none}}
     `}</style>
     <h1 style={{fontWeight:200,fontSize:'clamp(40px,5vw,64px)',margin:0,letterSpacing:'-.025em'}}>Atlas</h1>
