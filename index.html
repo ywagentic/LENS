@@ -237,7 +237,16 @@ function captureSpaceTypes(c) {
 }
 function projectTypes(p) {
   const values = Array.isArray(p.types) ? p.types : String(p.type || '').split('|');
-  return [...new Set(values.map(t => t.trim()).filter(Boolean))];
+  const additional = {
+    9: ['Commercial Space'],
+    17: ['Waterfront'],
+    23: ['Plaza'],
+    24: ['Waterfront', 'Commercial Space', 'Plaza'],
+    27: ['Waterfront', 'Garden'],
+    28: ['Waterfront'],
+    16: ['Plaza']
+  }[Number(p.id)] || [];
+  return [...new Set([...values, ...additional].map(t => t.trim()).map(t => t === 'Urban Plaza' ? 'Plaza' : t).filter(Boolean))];
 }
 const UPCOMING_PROJECTS = [];
 function mergeUpcomingProjects(data) {
@@ -2438,7 +2447,8 @@ const WEBSITE_RELEASES = [
     "Atlas browsing",
     [
       "Redesigned the Year and Type views in Atlas, keeping the view controls in a consistent position.",
-      "Added a branching type network with project points sized by the number of available views.",
+      "Added a branching type network with project points sized by the number of available views. Projects with multiple types share one point connected to each category.",
+      "Added project type classifications and merged Urban Plaza into Plaza.",
       "Corrected recording titles for Huacheng Square and Yongqing Fang."
     ]
   ],

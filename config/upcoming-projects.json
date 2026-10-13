@@ -105,9 +105,11 @@
     "location": "Chengdu, Sichuan, China",
     "year": 2024,
     "designer": "Various",
-    "type": "Commercial Space",
+    "type": "Commercial Space|Waterfront|Garden",
     "types": [
-      "Commercial Space"
+      "Commercial Space",
+      "Waterfront",
+      "Garden"
     ],
     "vrType": "360° Video",
     "vrTypes": [
@@ -151,9 +153,10 @@
     "location": "Chengdu, Sichuan, China",
     "year": 2024,
     "designer": "Interesting Landscape",
-    "type": "Garden",
+    "type": "Garden|Waterfront",
     "types": [
-      "Garden"
+      "Garden",
+      "Waterfront"
     ],
     "vrType": "360° Video",
     "vrTypes": [
@@ -268,9 +271,10 @@
     "location": "Seattle, Washington, USA",
     "year": 1976,
     "designer": "Lawrence Halprin & Associates",
-    "type": "Urban Park",
+    "type": "Urban Park|Plaza",
     "types": [
-      "Urban Park"
+      "Urban Park",
+      "Plaza"
     ],
     "vrType": "360° Video",
     "vrTypes": [

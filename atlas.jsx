@@ -544,21 +544,50 @@ function AtlasTypeNetwork({groups, selected, onSelect}) {
   const [hover, setHover] = React.useState(null);
   const [activeType, setActiveType] = React.useState(null);
   React.useEffect(() => {
-    const nodes=[], links=[];
-    const sector=2*Math.PI/Math.max(1,groups.length);
-    groups.forEach(([label,items],i)=>{
+    const nodes=[], links=[], projectNodes=new Map();
+    // Put categories with shared projects next to one another.
+    const pending=[...groups], ordered=[];
+    if(pending.length)ordered.push(pending.shift());
+    while(pending.length){
+      const previous=new Set(ordered[ordered.length-1][1].map(p=>p.id));
+      let best=0,score=-1;
+      pending.forEach(([,items],i)=>{const shared=items.filter(p=>previous.has(p.id)).length;if(shared>score){score=shared;best=i;}});
+      ordered.push(pending.splice(best,1)[0]);
+    }
+    const sector=2*Math.PI/Math.max(1,ordered.length);
+    ordered.forEach(([label,items],i)=>{
       const angle=-Math.PI/2+i*sector;
-      const type={id:'type:'+label,label,kind:'type',x:500+Math.cos(angle)*210,y:280+Math.sin(angle)*115,vx:0,vy:0};
+      const type={id:'type:'+label,label,kind:'type',x:500+Math.cos(angle)*265,y:280+Math.sin(angle)*150,vx:0,vy:0};
       nodes.push(type);
       items.forEach((p,j)=>{
-        const spread=sector*0.72;
-        const leafAngle=angle+(items.length===1?0:(j/(items.length-1)-0.5)*spread);
-        const depth=0.78+0.22*((j*2%3)/2);
-        const n={id:'project:'+label+':'+p.id,p,kind:'project',x:500+Math.cos(leafAngle)*430*depth,y:280+Math.sin(leafAngle)*225*depth,vx:0,vy:0};
-        nodes.push(n);
-        links.push({source:type,target:n,length:Math.hypot(n.x-type.x,n.y-type.y)});
+        if(!projectNodes.has(p.id)){
+          const n={id:'project:'+p.id,p,kind:'project',x:0,y:0,vx:0,vy:0,parents:[],angle,order:j,total:items.length};
+          projectNodes.set(p.id,n);nodes.push(n);
+        }
+        const n=projectNodes.get(p.id);n.parents.push(type);
+        links.push({source:type,target:n});
       });
     });
+    projectNodes.forEach(n=>{
+      if(n.parents.length===1){
+        const leafAngle=n.angle+(n.total===1?0:(n.order/(n.total-1)-0.5)*sector*0.7);
+        const depth=0.78+0.22*((n.order*2%3)/2);
+        n.x=500+Math.cos(leafAngle)*430*depth;n.y=280+Math.sin(leafAngle)*225*depth;
+      }else{
+        n.x=n.parents.reduce((sum,p)=>sum+p.x,0)/n.parents.length;
+        n.y=n.parents.reduce((sum,p)=>sum+p.y,0)/n.parents.length;
+      }
+    });
+    // Resolve crowded junctions once, keeping interaction positions stable.
+    for(let pass=0;pass<80;pass++)for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+      const a=nodes[i],b=nodes[j];let dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+      const gap=a.kind==='type'||b.kind==='type'?65:38;
+      if(d>=gap)continue;
+      if(d<0.1){dx=Math.cos(i*2.4+j);dy=Math.sin(i*2.4+j);d=1;}
+      const push=(gap-d)*0.15;
+      if(a.kind==='project'){a.x-=dx/d*push;a.y-=dy/d*push;}
+      if(b.kind==='project'){b.x+=dx/d*push;b.y+=dy/d*push;}
+    }
     let raf, heat=1, running=false;
     const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const model={nodes,links,drag:null,hover:null,rest:new Map(nodes.map(n=>[n.id,{x:n.x,y:n.y}])),reheat:()=>{heat=reduced?0:0.09;if(!running&&!reduced){running=true;raf=requestAnimationFrame(tick);}}};simulation.current=model;
@@ -584,12 +613,13 @@ function AtlasTypeNetwork({groups, selected, onSelect}) {
     tick();return()=>cancelAnimationFrame(raf);
   },[groups]);
   React.useEffect(()=>{const model=simulation.current;if(model){if(!model.rest&&(hover||selected))model.rest=new Map(model.nodes.map(n=>[n.id,{x:n.x,y:n.y}]));model.hover=activeType||hover|| (selected?'project:'+selected.id:null);model.reheat();}},[activeType,activeType?null:hover,activeType?null:selected]);
-  const neighbors=new Set(hover?[hover]:[]);
-  frame.links.forEach(l=>{if(l.source.id===hover)neighbors.add(l.target.id);if(l.target.id===hover)neighbors.add(l.source.id);});
+  const highlight=hover?.startsWith('project:')?hover:(activeType||hover);
+  const neighbors=new Set(highlight?[highlight]:[]);
+  frame.links.forEach(l=>{if(l.source.id===highlight)neighbors.add(l.target.id);if(l.target.id===highlight)neighbors.add(l.source.id);});
   const move=e=>{const model=simulation.current;if(!model?.drag)return;const rect=svg.current.getBoundingClientRect();model.drag.x=Math.max(30,Math.min(970,(e.clientX-rect.left)/rect.width*1000));model.drag.y=Math.max(40,Math.min(520,(e.clientY-rect.top)/rect.height*560));model.drag.vx=0;model.drag.vy=0;model.reheat();};
   return <div className="atlas-field-scroll"><svg ref={svg} viewBox="0 0 1000 560" aria-label="Project type network" style={{display:'block',width:'100%',minHeight:340,touchAction:'pan-y'}} onPointerMove={move} onPointerUp={()=>{if(simulation.current)simulation.current.drag=null;}} onPointerCancel={()=>{if(simulation.current)simulation.current.drag=null;}}>
-    {frame.links.map(l=><line key={l.source.id+l.target.id} x1={l.source.x} y1={l.source.y} x2={l.target.x} y2={l.target.y} stroke={hover&&(l.source.id===hover||l.target.id===hover)?'var(--accent)':'var(--fg3)'} strokeWidth={hover&&(l.source.id===hover||l.target.id===hover)?1.4:0.7} opacity={hover?neighbors.has(l.source.id)&&neighbors.has(l.target.id)?0.8:0.12:0.35} style={{transition:'opacity 180ms,stroke 180ms'}}/>)}
-    {frame.nodes.map(n=><g key={n.id} role="button" tabIndex="0" aria-label={n.kind==='type'?n.label:n.p.title} onMouseEnter={()=>{clearTimeout(hoverExit.current);setHover(n.id);if(n.kind==='type')setActiveType(n.id);}} onMouseLeave={()=>{clearTimeout(hoverExit.current);hoverExit.current=setTimeout(()=>setHover(null),140);}} onFocus={()=>{setHover(n.id);if(n.kind==='type')setActiveType(n.id);}} onBlur={()=>setHover(null)} onKeyDown={e=>{if((e.key==='Enter'||e.key===' ')&&n.p){e.preventDefault();onSelect(n.p);}}} onClick={()=>n.p&&onSelect(n.p)} onPointerDown={e=>{if(n.p)onSelect(n.p);if(e.pointerType==='touch')return;simulation.current.drag=n;simulation.current.reheat();e.currentTarget.setPointerCapture(e.pointerId);}} style={{cursor:'grab',opacity:hover&&!neighbors.has(n.id)?0.3:1,transition:'opacity 180ms'}}>
+    {frame.links.map(l=><line key={l.source.id+l.target.id} x1={l.source.x} y1={l.source.y} x2={l.target.x} y2={l.target.y} stroke={highlight&&(l.source.id===highlight||l.target.id===highlight)?'var(--accent)':'var(--fg3)'} strokeWidth={highlight&&(l.source.id===highlight||l.target.id===highlight)?1.4:0.7} opacity={highlight?neighbors.has(l.source.id)&&neighbors.has(l.target.id)?0.8:0.12:0.35} style={{transition:'opacity 180ms,stroke 180ms'}}/>)}
+    {frame.nodes.map(n=><g key={n.id} role="button" tabIndex="0" aria-label={n.kind==='type'?n.label:n.p.title} onMouseEnter={()=>{clearTimeout(hoverExit.current);setHover(n.id);if(n.kind==='type')setActiveType(current=>current||n.id);}} onMouseLeave={()=>{clearTimeout(hoverExit.current);hoverExit.current=setTimeout(()=>setHover(null),140);}} onFocus={()=>{setHover(n.id);if(n.kind==='type')setActiveType(current=>current||n.id);}} onBlur={()=>setHover(null)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(n.kind==='type')setActiveType(n.id);else onSelect(n.p);}}} onClick={()=>{if(n.kind==='type')setActiveType(n.id);else onSelect(n.p);}} style={{cursor:'pointer',opacity:highlight&&!neighbors.has(n.id)?0.3:1,transition:'opacity 180ms'}}>
       <circle cx={n.x} cy={n.y} r={n.kind==='type'?28:20} fill="transparent" stroke="none"/>
       <circle pointerEvents="none" cx={n.x} cy={n.y} r={n.kind==='type'?13:5+2*Math.sqrt((n.p.captures||[]).length)+(hover===n.id||selected?.id===n.p?.id?2:0)} fill={n.kind==='type'?'var(--card-bg)':atlasMarkerBackground([n.p])} stroke={n.kind==='type'?'var(--fg2)':'var(--card-bg)'} strokeWidth={n.kind==='type'?1.2:2} style={{transition:'r 180ms'}}/>
       {n.kind==='type'&&<text pointerEvents="none" x={n.x} y={n.y+29} textAnchor="middle" fontSize="13" fill="var(--fg2)" stroke="var(--card-bg)" strokeWidth="5" paintOrder="stroke">{n.label}</text>}
