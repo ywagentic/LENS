@@ -616,10 +616,21 @@ function AtlasTypeNetwork({groups, selected, onSelect}) {
   const highlight=hover?.startsWith('project:')?hover:(activeType||hover);
   const neighbors=new Set(highlight?[highlight]:[]);
   frame.links.forEach(l=>{if(l.source.id===highlight)neighbors.add(l.target.id);if(l.target.id===highlight)neighbors.add(l.source.id);});
-  const move=e=>{const model=simulation.current;if(!model?.drag)return;const rect=svg.current.getBoundingClientRect();model.drag.x=Math.max(30,Math.min(970,(e.clientX-rect.left)/rect.width*1000));model.drag.y=Math.max(40,Math.min(520,(e.clientY-rect.top)/rect.height*560));model.drag.vx=0;model.drag.vy=0;model.reheat();};
+  const move=e=>{
+    const model=simulation.current;if(!model)return;
+    const rect=svg.current.getBoundingClientRect();
+    const scale=Math.min(rect.width/1000,rect.height/560);
+    const x=(e.clientX-rect.left-(rect.width-1000*scale)/2)/scale;
+    const y=(e.clientY-rect.top-(rect.height-560*scale)/2)/scale;
+    const near=model.nodes.some(n=>Math.hypot(x-n.x,y-n.y)<(n.kind==='type'?32:24));
+    if(near){clearTimeout(hoverExit.current);hoverExit.current=null;}
+    else if(!hoverExit.current){
+      hoverExit.current=setTimeout(()=>{setHover(null);setActiveType(null);hoverExit.current=null;},180);
+    }
+  };
   return <div className="atlas-field-scroll"><svg ref={svg} onMouseLeave={()=>{clearTimeout(hoverExit.current);setHover(null);setActiveType(null);}} viewBox="0 0 1000 560" aria-label="Project type network" style={{display:'block',width:'100%',height:'100%',touchAction:'pan-y'}} onPointerMove={move} onPointerUp={()=>{if(simulation.current)simulation.current.drag=null;}} onPointerCancel={()=>{if(simulation.current)simulation.current.drag=null;}}>
     {frame.links.map(l=><line key={l.source.id+l.target.id} x1={l.source.x} y1={l.source.y} x2={l.target.x} y2={l.target.y} stroke={highlight&&(l.source.id===highlight||l.target.id===highlight)?'var(--accent)':'var(--fg3)'} strokeWidth={highlight&&(l.source.id===highlight||l.target.id===highlight)?1.4:0.7} opacity={highlight?neighbors.has(l.source.id)&&neighbors.has(l.target.id)?0.8:0.12:0.35} style={{transition:'opacity 180ms,stroke 180ms'}}/>)}
-    {frame.nodes.map(n=><g key={n.id} role="button" tabIndex="0" aria-label={n.kind==='type'?n.label:n.p.title} onMouseEnter={()=>{clearTimeout(hoverExit.current);setHover(n.id);if(n.kind==='type')setActiveType(current=>current||n.id);}} onMouseLeave={()=>{clearTimeout(hoverExit.current);hoverExit.current=setTimeout(()=>setHover(null),140);}} onFocus={()=>{setHover(n.id);if(n.kind==='type')setActiveType(current=>current||n.id);}} onBlur={()=>setHover(null)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(n.kind==='type')setActiveType(n.id);else onSelect(n.p);}}} onClick={()=>{if(n.kind==='type')setActiveType(n.id);else onSelect(n.p);}} style={{cursor:'pointer',opacity:highlight&&!neighbors.has(n.id)?0.3:1,transition:'opacity 180ms'}}>
+    {frame.nodes.map(n=><g key={n.id} role="button" tabIndex="0" aria-label={n.kind==='type'?n.label:n.p.title} onMouseEnter={()=>{clearTimeout(hoverExit.current);hoverExit.current=null;setHover(n.id);if(n.kind==='type')setActiveType(current=>current||n.id);}} onMouseLeave={()=>{clearTimeout(hoverExit.current);hoverExit.current=setTimeout(()=>{setHover(null);setActiveType(null);hoverExit.current=null;},180);}} onFocus={()=>{setHover(n.id);if(n.kind==='type')setActiveType(current=>current||n.id);}} onBlur={()=>{clearTimeout(hoverExit.current);hoverExit.current=setTimeout(()=>{setHover(null);setActiveType(null);hoverExit.current=null;},180);}} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(n.kind==='type')setActiveType(n.id);else onSelect(n.p);}}} onClick={()=>{if(n.kind==='type')setActiveType(n.id);else onSelect(n.p);}} style={{cursor:'pointer',opacity:highlight&&!neighbors.has(n.id)?0.3:1,transition:'opacity 180ms'}}>
       <circle cx={n.x} cy={n.y} r={n.kind==='type'?28:20} fill="transparent" stroke="none"/>
       <circle pointerEvents="none" cx={n.x} cy={n.y} r={n.kind==='type'?13:5+2*Math.sqrt((n.p.captures||[]).length)+(hover===n.id||selected?.id===n.p?.id?2:0)} fill={n.kind==='type'?'var(--card-bg)':atlasMarkerBackground([n.p])} stroke={n.kind==='type'?'var(--fg2)':'var(--card-bg)'} strokeWidth={n.kind==='type'?1.2:2} style={{transition:'r 180ms'}}/>
       {n.kind==='type'&&<text pointerEvents="none" x={n.x} y={n.y+29} textAnchor="middle" fontSize="13" fill="var(--fg2)" stroke="var(--card-bg)" strokeWidth="5" paintOrder="stroke">{n.label}</text>}
