@@ -2364,6 +2364,24 @@ function Journal() {
   </main>;
 }
 
+function FundingSupport() {
+  const dialog = useRef(null);
+  return <>
+    <button type="button" onClick={()=>dialog.current.showModal()} style={{font:'inherit',color:'inherit',border:0,background:'none',padding:0,cursor:'pointer',textDecoration:'underline',textUnderlineOffset:3}}>funding support</button>
+    <dialog ref={dialog} aria-labelledby="funding-support-heading" onClick={e=>{if(e.target===dialog.current){const r=dialog.current.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.current.close();}}} style={{margin:'auto',inset:0,width:'min(520px, calc(100vw - 40px))',maxHeight:'calc(100dvh - 40px)',overflowY:'auto',boxSizing:'border-box',padding:24,border:'1px solid var(--border)',borderRadius:12,background:'var(--bg)',color:'var(--fg)',fontFamily:'Inter, sans-serif',textAlign:'left'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:16,marginBottom:16}}>
+        <h2 id="funding-support-heading" style={{fontSize:16,fontWeight:500,margin:0}}>Funding support</h2>
+        <button type="button" aria-label="Close funding support" onClick={()=>dialog.current.close()} style={{font:'inherit',fontSize:22,color:'var(--fg2)',border:0,background:'none',cursor:'pointer',padding:'0 4px'}}>×</button>
+      </div>
+      <p style={{fontSize:14,lineHeight:1.6,color:'var(--fg2)',margin:'0 0 20px'}}>LENS has received support through the following awards from the College of Architecture, University of Nebraska–Lincoln.</p>
+      <ul style={{paddingLeft:20,margin:0,fontSize:14,lineHeight:1.6}}>
+        <li style={{marginBottom:12}}>Robert and Helen Chastain Endowment Award</li>
+        <li>College of Architecture Friends Association (CAFA) Award</li>
+      </ul>
+    </dialog>
+  </>;
+}
+
 function About({ projectCount, clipCount }) {
   return (
     <div className="about-page" style={{ overflowWrap: 'anywhere', minWidth: 0, padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}>
@@ -2410,7 +2428,7 @@ function About({ projectCount, clipCount }) {
         <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 24 }}>About the project</div>
 
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.6, fontWeight: 400, marginBottom: 20 }}>
-          LENS has been developed and maintained since 2025, with the current web version completed in 2026. The project is authored by <span style={{ color: 'var(--fg)', fontWeight: 500 }}>Yujia Wang</span>, with funding support from the College of Architecture, University of Nebraska–Lincoln. Resources on this platform are currently applied in VR-based pedagogical work at <span style={{ color: 'var(--fg)', fontWeight: 500 }}>LARC 210 — Landscape Architecture Studio II</span>.
+          LENS has been developed and maintained since 2025, with the current web version completed in 2026. The project is authored by <span style={{ color: 'var(--fg)', fontWeight: 500 }}>Yujia Wang</span>, with <FundingSupport/> from the College of Architecture, University of Nebraska–Lincoln. Resources on this platform are currently applied in VR-based pedagogical work at <span style={{ color: 'var(--fg)', fontWeight: 500 }}>LARC 210 — Landscape Architecture Studio II</span>.
         </p>
 
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.6, fontWeight: 400, marginBottom: 20 }}>
