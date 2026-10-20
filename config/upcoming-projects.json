@@ -14,17 +14,45 @@
     "vrTypes": [
       "360° Video"
     ],
-    "vrId": "",
-    "captures": [],
+    "vrId": "oxPukrAsPUc",
+    "captures": [
+      {
+        "code": "0502-01",
+        "label": "Terraced Steps",
+        "description": "An immersive 360° VR experience from a seated position on the terraced steps at Sigma Sigma Commons, University of Cincinnati. The view looks across the campus landscape, with open lawns and university buildings beyond. Filmed during spring 2026. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
+        "height": "Seated",
+        "spaceTypes": [
+          "Seated view",
+          "Seating",
+          "Topography",
+          "Amphitheater"
+        ],
+        "vrId": "oxPukrAsPUc",
+        "thumb": "/assets/projects/views/0502-01-v3.jpg"
+      },
+      {
+        "code": "0502-02",
+        "label": "Boulder Seating Area",
+        "vrId": "LyDzEM_xB78",
+        "height": "Seated",
+        "spaceTypes": [
+          "Seated view",
+          "Seating",
+          "Topography"
+        ],
+        "thumb": "/assets/projects/views/0502-02-v3.jpg",
+        "description": "An immersive 360° VR experience from a seated position in a small space on the University of Cincinnati campus. A large boulder sits within one of a series of undulating landscape curves. Filmed during spring 2026. Taken at seated position. For optimum immersion and scale perception, please view this while seated."
+      }
+    ],
     "plannedCaptures": [],
-    "visible": "2",
+    "visible": "1",
     "expectedRelease": "",
     "area": "Approx. 81 ha (200-acre campus planning context)",
     "color": "oklch(65% 0.06 140)",
     "thumb": "/assets/projects/university-of-cincinnati-campus.jpg",
     "thumbIllustration": true,
     "featured": false,
-    "dateCollected": "",
+    "dateCollected": "Spring 2026",
     "contributor": "",
     "coordinates": "39.132986,-84.514622",
     "tags": [
@@ -47,7 +75,8 @@
       }
     ],
     "description": "Hargreaves Associates developed the University of Cincinnati’s campus master plan, approved in 1991, and a series of landscape projects over the following two decades. Connected quadrangles, lawns and pedestrian routes replaced roads and surface parking. Landforms and changes in level give the open spaces distinct characters while linking the campus as a whole. The approximately 200-acre figure describes the campus planning context, rather than the area of any single recorded space.",
-    "yearLabel": "Master plan approved"
+    "yearLabel": "Master plan approved",
+    "publishedAt": "2026-10-19"
   },
   {
     "id": 26,
@@ -203,14 +232,26 @@
     "vrTypes": [
       "360° Video"
     ],
-    "vrId": "",
-    "captures": [],
-    "visible": "2",
+    "vrId": "eJ2lxTA2ygE",
+    "captures": [
+      {
+        "code": "1001-01",
+        "label": "Long View",
+        "description": "An immersive 360° VR experience at Circo Massimo (Circus Maximus) in Rome, looking along the long, open basin and its sloping grassy banks. The former chariot-racing ground lies between the Palatine and Aventine hills and is now a public open space within the historic city. Filmed during summer 2025.",
+        "spaceTypes": [
+          "Topography"
+        ],
+        "vrType": "360° Video",
+        "vrId": "eJ2lxTA2ygE",
+        "thumb": "/assets/projects/views/1001-01.jpg"
+      }
+    ],
+    "visible": "1",
     "area": "600 × 140 m (historic circus dimensions)",
     "thumb": "/assets/projects/circo-massimo.jpg",
     "thumbIllustration": true,
     "featured": false,
-    "dateCollected": "",
+    "dateCollected": "Summer 2025",
     "coordinates": "41.886651,12.484509",
     "tags": [
       "Urban",
@@ -222,7 +263,9 @@
         "url": "https://www.turismoroma.it/en/places/circus-maximus"
       }
     ],
-    "description": "Circo Massimo occupies a long valley between Rome’s Palatine and Aventine hills. The former chariot-racing ground now forms a large open space within the historic city, with archaeological remains at its southeastern end."
+    "description": "Circo Massimo occupies a long valley between Rome’s Palatine and Aventine hills. The former chariot-racing ground now forms a large open space within the historic city, with archaeological remains at its southeastern end.",
+    "plannedCaptures": [],
+    "publishedAt": "2026-10-19"
   },
   {
     "id": 30,

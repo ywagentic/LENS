@@ -1,5 +1,33 @@
 [
   {
+    "slug": "rome-and-cincinnati",
+    "title": "Rome and Cincinnati",
+    "date": "2026-10-19",
+    "dateLabel": "October 19, 2026",
+    "paragraphs": [
+      "A recording from the 2025 study abroad program in Rome is now on LENS. Circo Massimo is a bit of an exception to the archive’s focus on contemporary work. Its immense scale makes it an excellent reference, quite apart from its significance as a historic landscape. I may include a small number of other historic landscapes where they offer a particularly useful point of reference.",
+      "I’ve also added two seated views of Hargreaves Associates’ campus landscape at the University of Cincinnati. This classic project combines large formal moves with smaller spaces that are cleverly shaped and comfortable to occupy. The terraces and curved edges bring a distinct experience of design to the campus while making room for a relaxed everyday public life."
+    ],
+    "tags": [
+      "Rome",
+      "Cincinnati",
+      "New recordings"
+    ],
+    "links": [
+      {
+        "label": "Circo Massimo",
+        "href": "/projects/circo-massimo/"
+      },
+      {
+        "label": "University of Cincinnati Campus Landscape",
+        "href": "/projects/university-of-cincinnati-campus/"
+      }
+    ],
+    "published": true,
+    "image": "/assets/projects/university-of-cincinnati-campus.jpg",
+    "imageAlt": "Terraced seating and campus lawns at the University of Cincinnati."
+  },
+  {
     "slug": "two-seattle-spaces",
     "title": "Two public spaces in Seattle",
     "date": "2026-10-10",

@@ -233,6 +233,7 @@ function captureSpaceTypes(c) {
   if (['bu1FLEJ7aho', 'GKBIgSyo-7E', 'zqOyhpRXCew', 'roVzfn03OdU'].includes(c.vrId)) types.push('Topography');
   if (c.vrId === 'TMOCg1CHIME') types.push('Bridge', 'Overlook');
   if (c.vrId === 'BP5CdxPtXYo') types.push('Wall');
+  if (['gaEUL4jyxEA', 'oxPukrAsPUc'].includes(c.vrId)) types.push('Amphitheater');
   return [...new Set(types.map(t => t === 'Pergola' ? 'Canopy' : t))];
 }
 function projectTypes(p) {
@@ -1238,6 +1239,9 @@ function youtubeDestination(capture, nav = (typeof navigator !== 'undefined' ? n
   };
 }
 const YOUTUBE_SEARCH_TITLES = {
+  'LyDzEM_xB78': 'Cincinnati University of Cincinnati / Boulder Seating Area | 360° VR | 0502-02',
+  'oxPukrAsPUc': 'Cincinnati University of Cincinnati / Terraced Steps | 360° VR | 0502-01',
+  'eJ2lxTA2ygE': 'Rome Circo Massimo / Long View | 360° VR | 1001-01',
   "gaEUL4jyxEA": "Santa Monica Tongva Park / Central Lawn — Upper Seating Terrace | 360° VR | 0601-01",
   "GKBIgSyo-7E": "Santa Monica Tongva Park / Shaded Playground — Upper View | 360° VR | 0601-02",
   "zqOyhpRXCew": "Santa Monica Tongva Park / Playground & Picnic Grove — Lower View | 360° VR | 0601-03",
