@@ -115,7 +115,7 @@ function positionsForYear(projects) {
     (groups[key] = groups[key] || []).push(p);
   });
   const years = Object.keys(groups).sort((a,b) => {
-    const rank = value => value === 'Ancient Rome' ? -Infinity : Number.parseInt(value) || Infinity;
+    const rank = value => value === 'Historic' ? -Infinity : Number.parseInt(value) || Infinity;
     return rank(a) - rank(b) || a.localeCompare(b);
   });
   const N = years.length;
@@ -654,7 +654,7 @@ function Atlas({ projects, onSelect }) {
       const keys = view === 'year' ? [String(p.year || 'Undated')] : (filter === 'all' ? projectTypes(p) : [filter]);
       keys.forEach(key => { if (!result.has(key)) result.set(key, []); result.get(key).push(p); });
     });
-    const rank = key => key === 'Ancient Rome' ? -Infinity : Number.parseInt(key) || Infinity;
+    const rank = key => key === 'Historic' ? -Infinity : Number.parseInt(key) || Infinity;
     return [...result].sort(([a], [b]) => view === 'year' ? rank(a) - rank(b) || a.localeCompare(b) : a.localeCompare(b));
   }, [groupKey, filter, view]);
   const layout = atlasFieldLayout(groups, view);
