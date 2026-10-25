@@ -2389,6 +2389,36 @@ function FundingSupport() {
   </>;
 }
 
+// Cumulative published catalogue totals; update when projects or views are released.
+const ARCHIVE_GROWTH = [
+  ['2026-09-12', 2, 3], ['2026-09-13', 3, 6], ['2026-09-26', 4, 8],
+  ['2026-09-27', 5, 12], ['2026-10-03', 6, 19], ['2026-10-10', 8, 23],
+  ['2026-10-19', 10, 26], ['2026-10-24', 11, 28], ['2026-10-25', 12, 29],
+];
+function ArchiveGrowthChart({ metric, label }) {
+  const rows = ARCHIVE_GROWTH;
+  const first = Date.parse(rows[0][0]);
+  const span = Date.parse(rows[rows.length - 1][0]) - first || 1;
+  const max = Math.ceil(Math.max(...rows.map(row => row[metric])) / 5) * 5;
+  const ticks = Array.from({length: max / 5 + 1}, (_, i) => i * 5);
+  const month = date => new Date(`${date}T00:00:00Z`).toLocaleString('en-US', {month:'short', timeZone:'UTC'});
+  const points = rows.map(row => ({ date: row[0], value: row[metric], x: 20 + (Date.parse(row[0]) - first) / span * 232, y: 84 - row[metric] / max * 64 }));
+  return <svg viewBox="0 0 272 116" role="img" aria-label={`${label} added over time, from ${rows[0][metric]} in September to ${rows[rows.length - 1][metric]} in October 2026`} style={{ display:'block', width:'100%', marginTop:16, overflow:'visible' }}>
+    <title>{`${label} — cumulative additions`}</title>
+    {ticks.map(value => <g key={value}>
+      <line x1="20" x2="252" y1={84-value/max*64} y2={84-value/max*64} stroke="var(--border)" strokeWidth="0.7" />
+      <text x="10" y={87-value/max*64} textAnchor="end" fill="var(--fg3)" fontSize="9" fontFamily="Inter, sans-serif">{value}</text>
+    </g>)}
+    <polyline points={points.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+    {points.map(p => <g key={p.date}>
+      <circle cx={p.x} cy={p.y} r="2.2" fill="var(--accent)" />
+      <circle cx={p.x} cy={p.y} r="8" fill="transparent"><title>{`${month(p.date)}: ${p.value} ${label.toLowerCase()}`}</title></circle>
+    </g>)}
+    <text x="20" y="106" fill="var(--fg3)" fontSize="9" fontFamily="Inter, sans-serif">{month(rows[0][0])}</text>
+    <text x="252" y="106" textAnchor="end" fill="var(--fg3)" fontSize="9" fontFamily="Inter, sans-serif">{month(rows[rows.length - 1][0])}</text>
+  </svg>;
+}
+
 function About({ projectCount, clipCount }) {
   return (
     <div className="about-page" style={{ overflowWrap: 'anywhere', minWidth: 0, padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}>
@@ -2427,6 +2457,7 @@ function About({ projectCount, clipCount }) {
             <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: 32, color: 'var(--accent)', marginBottom: 4 }}>{val}</div>
             <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, marginBottom: 8 }}>{label}</div>
             <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', lineHeight: 1.5 }}>{desc}</div>
+            {(label === 'Projects' || label === 'Views') && <ArchiveGrowthChart metric={label === 'Projects' ? 1 : 2} label={label} />}
           </div>
         ))}
       </div>
@@ -2463,9 +2494,17 @@ function resolveRoute(path, projects) {
   return selected ? { view: 'project', selected } : { view: Object.keys(PAGE_PATHS).find(key => PAGE_PATHS[key] === normalized) || 'missing', selected: null };
 }
 
-const WEBSITE_VERSION = '1.3.1';
+const WEBSITE_VERSION = '1.3.2';
 
 const WEBSITE_RELEASES = [
+  [
+    "1.3.2",
+    "October 25, 2026",
+    "Archive growth",
+    [
+      "Added separate cumulative history charts for published projects and views in About, with month labels and reference lines in increments of five."
+    ]
+  ],
   [
     "1.3.1",
     "October 12, 2026",
