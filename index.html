@@ -33,20 +33,20 @@
       --card-bg: #ffffff;
       --glass: rgba(255, 255, 255, 0.92);
     }
-    html { font-size: 16px; }
+    html { font-size: 16px; scroll-padding-top: 88px; scroll-padding-bottom: 24px; }
     a { color: inherit; text-decoration: none; }
     a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
     body {
       font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--fg);
-      min-height: 100vh;
+      min-height: 100svh;
       overflow-x: hidden;
       font-variant-numeric: tabular-nums;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
     }
-    #root { min-height: 100vh; position: relative; z-index: 1; }
+    #root { min-height: 100svh; position: relative; z-index: 1; }
 
     /* Scrollbar */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -635,11 +635,10 @@ function Nav({ view, onNav, onSearch, searchQuery, path }) {
   const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth < (lensLocale==='en'?1100:1280));
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
-    const el = document.getElementById('scroll-root');
-    if (!el) return;
-    const handler = () => setScrolled(el.scrollTop > 30);
-    el.addEventListener('scroll', handler);
-    return () => el.removeEventListener('scroll', handler);
+    const handler = () => setScrolled(window.scrollY > 30);
+    window.addEventListener('scroll', handler, {passive:true});
+    handler();
+    return () => window.removeEventListener('scroll', handler);
   }, []);
   useEffect(() => {
     const onResize = () => setIsNarrow(window.innerWidth < (lensLocale==='en'?1100:1280));
@@ -666,7 +665,7 @@ function Nav({ view, onNav, onSearch, searchQuery, path }) {
       WebkitBackdropFilter: scrolled ? 'blur(12px) saturate(1.1)' : 'none',
       borderBottom: '1px solid var(--border)',
       transition: 'background 0.3s',
-      padding: 'clamp(0px, 4vw, 56px) clamp(20px, 4vw, 56px)',
+      padding: '0 clamp(20px, 4vw, 56px)',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       gap: 16, flexWrap: 'nowrap',
       height: 64,
@@ -2846,8 +2845,8 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
         id="scroll-root"
         ref={scrollRef}
         style={{
-          height: '100vh', overflowY: 'auto', overflowX: 'hidden',
-          scrollBehavior: 'smooth',
+          minHeight: '100svh',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
       >
         <Nav path={initialPath} view={view} onNav={navigate} onSearch={setSearchQuery} searchQuery={searchQuery} />
