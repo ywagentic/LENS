@@ -99,3 +99,24 @@ assert.equal(lensLocalePath('/fr/browse/?view=test#views'),'/ar/browse/?view=tes
 const arProject=renderToStaticMarkup(React.createElement(App,{initialProjects:projects,initialPath:'/ar/projects/tongva-park/',freezeCatalogue:true}));
 assert(arProject.includes('dir="ltr"'),'Canonical video search titles must be isolated');
 console.log('PASS: Arabic RTL routes, isolated citation/tab order, native language directions and cross-language view URLs.');
+
+// Contribution panels render only after interaction; inspect them independently of route SSR.
+const secondary=require('../.build/server.cjs');
+const seenSecondary=new Set(),originalCreate=React.createElement;
+React.createElement=(type,props,...children)=>{
+ if(typeof type==='string'&&!['script','style','code','pre'].includes(type)&&props?.translate!=='no'){
+  for(const value of [...children.flat(Infinity),...['title','alt','placeholder','aria-label'].map(key=>props?.[key])])if(typeof value==='string'&&/[A-Za-z]{2}/.test(value)&&!/^https?:/.test(value))seenSecondary.add(value.trim().replace(/\s+/g,' '));
+ }
+ return originalCreate(type,props,...children);
+};
+lensSetLocale('en');
+try{for(const name of ['ContributeProtocol','ContributeWishlist','ContributeSubmit'])renderToStaticMarkup(originalCreate(secondary[name],{onBack(){}}));}finally{React.createElement=originalCreate;}
+for(const key of seenSecondary)if(key)for(const [locale,dict] of Object.entries(dictionaries))assert(typeof dict[key]==='string'&&dict[key].trim(),`Missing ${locale} secondary-panel translation: ${key}`);
+for(const locale of Object.keys(dictionaries)){
+ lensSetLocale(locale);
+ const protocol=renderToStaticMarkup(originalCreate(secondary.ContributeProtocol,{onBack(){}}));
+ assert(!protocol.includes('Use a 360° camera such as'),'Protocol prose must be translated');
+ assert(/1[.,]6/.test(protocol)&&/0[.,]65/.test(protocol)&&protocol.includes('2:1'),'Protocol measurements/export ratio preserved');
+}
+for(const key of ['Show less −','For clearer playback on Quest, open YouTube VR from your app library and find this recording there. This link opens the YouTube website.','Online submission is not available yet. Please email your file link and details to wang@unl.edu.','We could not confirm receipt. Your entries are still here. You can retry, or email wang@unl.edu to check before sending again.'])for(const [locale,dict] of Object.entries(dictionaries))assert(dict[key]&&dict[key]!==key,`Missing ${locale} interaction-state translation: ${key}`);
+console.log('PASS: protocol, wishlist and submission panel copy, plus hidden interaction states, covered in every dictionary.');

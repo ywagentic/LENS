@@ -26,7 +26,7 @@ await rm('.build', {recursive:true, force:true});
 await rm('dist', {recursive:true, force:true});
 await mkdir('.build', {recursive:true});
 await mkdir('dist', {recursive:true});
-const common = `import React from 'react';\n${await readFile('scripts/tweaks-production.jsx','utf8')}\n${i18n}\n${await readFile('atlas.jsx','utf8')}\n${app}\nexport {App, parseCSV, normalizeProjects, projectPath, PAGE_PATHS, SHEET_CSV_URL, isPublished, lensText, lensSetLocale, lensLocalePath, lensStripLocale, lensSearchText, lensCreateElement, LENS_LANGUAGES};`;
+const common = `import React from 'react';\n${await readFile('scripts/tweaks-production.jsx','utf8')}\n${i18n}\n${await readFile('atlas.jsx','utf8')}\n${app}\nexport {App, parseCSV, normalizeProjects, projectPath, PAGE_PATHS, SHEET_CSV_URL, isPublished, lensText, lensSetLocale, lensLocalePath, lensStripLocale, lensSearchText, lensCreateElement, LENS_LANGUAGES, ContributeProtocol, ContributeWishlist, ContributeSubmit};`;
 await writeFile('.build/app.jsx', common);
 await build({entryPoints:['.build/app.jsx'], outfile:'.build/server.cjs',bundle:true,jsxFactory:'lensCreateElement',platform:'node',format:'cjs',packages:'external',define:{'process.env.NODE_ENV':'"production"'}});
 const {App,parseCSV,normalizeProjects,projectPath,PAGE_PATHS,SHEET_CSV_URL,isPublished,lensText,lensSetLocale,lensLocalePath,LENS_LANGUAGES} = require('../.build/server.cjs');
