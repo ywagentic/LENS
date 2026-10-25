@@ -58,3 +58,31 @@ assert(hant.includes('class="chinese-script-toggle"'));
 assert(!html.includes('class="chinese-script-toggle"'),'No script toggle outside Chinese');
 assert(hant.includes('軟件')||toTraditional('软件')==='軟件','No regional vocabulary rewrite');
 console.log('PASS: Hant is generated from unchanged Hans copy; Chinese-only toggle, five route variants/four language choices, URLs and both-script search checked.');
+
+// New catalogue and Journal copy must be available in every maintained language.
+function contentTranslationKeys(catalogue, posts) {
+ const keys=new Set();
+ const add=value=>{if(typeof value==='string'&&/[A-Za-z\u3400-\u9fff]/.test(value)){const key=value.trim().replace(/\s+/g,' ');if(key)keys.add(key);}};
+ for(const project of catalogue){
+  for(const field of ['title','subtitle','description','location','area','dateCollected'])add(project[field]);
+  [...(project.types||[]),...(project.tags||[])].forEach(add);
+  for(const capture of project.captures||[]){add(capture.label);add(capture.description);(capture.spaceTypes||[]).forEach(add);}
+  for(const link of project.links||[])add(link.label);
+ }
+ for(const post of posts.filter(post=>post.published===true)){
+  for(const field of ['title','caption','imageAlt'])add(post[field]);
+  (post.paragraphs||[]).forEach(add);(post.tags||[]).forEach(add);(post.links||[]).forEach(link=>add(link.label));
+ }
+ return keys;
+}
+function checkContentTranslations(catalogue,posts){
+ for(const key of contentTranslationKeys(catalogue,posts))for(const [locale,dict] of Object.entries(dictionaries))
+  assert(typeof dict[key]==='string'&&dict[key].trim(),`Missing ${locale} content translation: ${key}`);
+}
+const posts=JSON.parse(fs.readFileSync('config/journal.json','utf8'));
+checkContentTranslations(projects,posts);
+assert.throws(()=>checkContentTranslations([...projects,{title:'New project awaiting translation'}],posts),/Missing .* content translation/);
+assert.throws(()=>checkContentTranslations([...projects,{captures:[{label:'New viewpoint awaiting translation'}]}],posts),/Missing .* content translation/);
+assert.throws(()=>checkContentTranslations(projects,[...posts,{published:true,paragraphs:['New Journal entry awaiting translation']}]),/Missing .* content translation/);
+assert.doesNotThrow(()=>checkContentTranslations(projects,[...posts,{published:false,paragraphs:['Private unfinished draft']} ]));
+console.log('PASS: project, View and published Journal translation coverage blocks incomplete language releases; private drafts excluded.');
