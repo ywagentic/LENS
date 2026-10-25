@@ -96,7 +96,7 @@
     "vrId": "rm9AwCZ6vMo",
     "captures": [
       {
-        "label": "Plaza Edge — Fountain View",
+        "label": "Suspended Art Installation",
         "code": "0503-01",
         "vrId": "rm9AwCZ6vMo",
         "height": "Standing",
@@ -105,8 +105,8 @@
           "Sculpture",
           "Water Feature"
         ],
-        "thumb": "/assets/projects/views/0503-01.jpg",
-        "description": "An immersive 360° VR experience from the tree-lined edge of Fountain Square in downtown Cincinnati, looking across the open plaza toward the Tyler Davidson Fountain. Suspended iridescent spheres hang among the trees above the recording position. The fountain was not running at the time of recording. Filmed during spring 2026."
+        "thumb": "/assets/projects/views/0503-01-art-installation.jpg",
+        "description": "An immersive 360° VR experience beneath an array of suspended iridescent spheres at Fountain Square in downtown Cincinnati. The spheres are strung between the trees, framing views across the plaza toward the Tyler Davidson Fountain. Filmed during spring 2026."
       }
     ],
     "plannedCaptures": [],
