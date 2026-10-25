@@ -17,8 +17,8 @@ const projects = [...live.filter(p => p.id !== draft.id), ...normalizeProjects([
 const path = projectPath(draft);
 await rm('.preview', {recursive:true, force:true});
 await cp('dist', '.preview', {recursive:true});
-await writeFile('.build/preview.jsx', `import React from 'react';import {createRoot} from 'react-dom/client';import {App} from './app.jsx';createRoot(document.getElementById('root')).render(<App initialProjects={JSON.parse(document.getElementById('catalogue-data').textContent)} initialPath={window.location.pathname} freezeCatalogue={true}/>);`);
-await build({entryPoints:['.build/preview.jsx'],outfile:'.preview/assets/preview.js',bundle:true,minify:true,define:{'process.env.NODE_ENV':'"production"'}});
+await writeFile('.build/preview.jsx', `import React from 'react';import {createRoot} from 'react-dom/client';import {App, lensCreateElement} from './app.jsx';createRoot(document.getElementById('root')).render(<App initialProjects={JSON.parse(document.getElementById('catalogue-data').textContent)} initialPath={window.location.pathname} freezeCatalogue={true}/>);`);
+await build({entryPoints:['.build/preview.jsx'],outfile:'.preview/assets/preview.js',bundle:true,jsxFactory:'lensCreateElement',minify:true,define:{'process.env.NODE_ENV':'"production"'}});
 const previewVersion = createHash('sha256').update(await readFile('.preview/assets/preview.js')).digest('hex').slice(0,12);
 const escape = s=>s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
 const head = template.split('<head>')[1].split('</head>')[0]

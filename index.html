@@ -95,6 +95,9 @@
     .home-identity-description { font-size: 16px; line-height: 1.55; color: var(--fg3); margin-top: 16px; }
     @media (max-width: 880px) { .home-identity { grid-template-columns: 1fr; gap: 16px; margin-bottom: 32px; } }
     @media (min-width: 1440px) { .home-content .upcoming-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
+    @media(max-width:420px){.language-trigger{padding:0 6px!important}.language-trigger svg{display:none}}
+    html[lang="es"] .brand-descriptor,html[lang="pt-BR"] .brand-descriptor{display:none;max-width:220px;white-space:normal;line-height:1.3}
+    @media(min-width:1680px){html[lang="es"] .brand-descriptor,html[lang="pt-BR"] .brand-descriptor{display:inline-block}}
     .brand-descriptor { display: none; border-left: 1px solid var(--border); margin-left: 2px; padding-left: 10px; font-size: 12px; font-weight: 400; letter-spacing: 0; line-height: 20px; color: var(--fg3); }
     @media (min-width: 1400px) { .brand-descriptor { display: inline-block; } }
     .view-info { display: none; position: relative; margin-left: 8px; vertical-align: middle; font-size: 11px; font-weight: 400; color: var(--fg3); }
@@ -107,6 +110,7 @@
 <body>
 <div id="root"></div>
 <script type="text/babel" src="scripts/tweaks-production.jsx"></script>
+<script type="text/babel" src="scripts/i18n.jsx"></script>
 <script type="text/babel" src="atlas.jsx"></script>
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
@@ -622,9 +626,9 @@ function Tag({ label, active, onClick, accent }) {
 }
 
 // ─── NAV ─────────────────────────────────────────────────────────────────────
-function Nav({ view, onNav, onSearch, searchQuery }) {
+function Nav({ view, onNav, onSearch, searchQuery, path }) {
   const [scrolled, setScrolled] = useState(false);
-  const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth < 960);
+  const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth < (lensLocale==='en'?1100:1280));
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     const el = document.getElementById('scroll-root');
@@ -634,7 +638,7 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
     return () => el.removeEventListener('scroll', handler);
   }, []);
   useEffect(() => {
-    const onResize = () => setIsNarrow(window.innerWidth < 960);
+    const onResize = () => setIsNarrow(window.innerWidth < (lensLocale==='en'?1100:1280));
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -704,7 +708,8 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+        <LanguageSelector pagePath={path} />
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           <svg style={{ position: 'absolute', left: 10, color: 'var(--fg4)', pointerEvents: 'none' }} width={12} height={12} viewBox="0 0 16 16" fill="none">
             <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/>
@@ -719,7 +724,7 @@ function Nav({ view, onNav, onSearch, searchQuery }) {
               border: '1px solid var(--border)', borderRadius: 0,
               background: 'transparent', fontFamily: 'Inter, sans-serif',
               fontSize: 12, color: 'var(--fg)', outline: 'none',
-              width: 'clamp(110px, 14vw, 160px)',
+              width: 'clamp(82px, 11vw, 140px)',
               transition: 'border-color 0.15s',
             }}
             onFocus={e => { e.target.style.borderColor = 'var(--fg)'; }}
@@ -1103,7 +1108,7 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
 
   const matches = projects.filter(p => {
     const matchTag = activeTag === 'All' || p.tags.includes(activeTag) || projectTypes(p).includes(activeTag);
-    const matchSearch = !searchQuery || p.title.toLowerCase().includes(searchQuery.toLowerCase()) || p.location.toLowerCase().includes(searchQuery.toLowerCase()) || p.designer.toLowerCase().includes(searchQuery.toLowerCase()) || (browseMode === 'views' && (p.captures||[]).some(c=>[c.label,...captureSpaceTypes(c)].join(' ').toLowerCase().includes(searchQuery.toLowerCase())));
+    const matchSearch = !searchQuery || lensSearchText([p.title,p.location,p.designer,...projectTypes(p),...(p.tags||[])]).includes(searchQuery.toLocaleLowerCase()) || (browseMode === 'views' && (p.captures||[]).some(c=>lensSearchText([c.label,...captureSpaceTypes(c)]).includes(searchQuery.toLowerCase())));
     return matchTag && matchSearch && (!activeSpace || (p.captures||[]).some(c=>captureSpaceTypes(c).includes(activeSpace)));
   }).sort((a, b) => {
     if (sortBy === 'recent') return comparePublicationDate(a, b);
@@ -1121,7 +1126,7 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
 
   const filtered = matches.filter(isPublished).map(p=>({...p, matchedSpace:activeSpace, matchedViews:activeSpace ? p.captures.filter(c=>captureSpaceTypes(c).includes(activeSpace)).length : null}));
   const upcoming = matches.filter(isUpcoming);
-  const views = filtered.flatMap(project => project.captures.filter(c => (!activeSpace || captureSpaceTypes(c).includes(activeSpace)) && (!searchQuery || [project.title,project.location,project.designer,c.label,...captureSpaceTypes(c)].join(' ').toLowerCase().includes(searchQuery.toLowerCase()))).map(capture=>({project,capture})));
+  const views = filtered.flatMap(project => project.captures.filter(c => (!activeSpace || captureSpaceTypes(c).includes(activeSpace)) && (!searchQuery || lensSearchText([project.title,project.location,project.designer,c.label,...captureSpaceTypes(c)]).includes(searchQuery.toLowerCase()))).map(capture=>({project,capture})));
 
   return (
     <div className="browse-content" style={{ padding: '0 clamp(20px, 4vw, 56px) 96px', position: 'relative', zIndex: 1 }}>
@@ -1194,8 +1199,8 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
         marginBottom: 32,
         display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', overflowWrap: 'anywhere',
       }}>
-        <span>{browseMode==='views' ? `${views.length} views · ${filtered.length} projects` : <>{filtered.length} available {filtered.length === 1 ? 'project' : 'projects'}{upcoming.length > 0 ? ` · ${upcoming.length} upcoming` : ''}</>}</span>
-        {searchQuery && <span style={{ color: 'var(--fg2)' }}>· matching "{searchQuery}"</span>}
+        <span>{browseMode==='views' ? `${views.length} views · ${filtered.length} projects` : <>{lensLocale==='en'?`${filtered.length} available ${filtered.length === 1 ? 'project' : 'projects'}`:lensFormat(filtered.length===1?'{count} available project':'{count} available projects',{count:filtered.length})}{upcoming.length > 0 ? ` · ${upcoming.length} upcoming` : ''}</>}</span>
+        {searchQuery && <span translate="no" style={{ color: 'var(--fg2)' }}>{'· '+lensFormat('Matching “{query}”',{query:searchQuery})}</span>}
       </div>
       {/* Grid */}
       {browseMode === 'views' ? <div className={'browse-view-results '+tweaks.cardStyle}>
@@ -1408,7 +1413,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
         </ol>
         <p style={{ ...SMALL, marginTop: 12 }}>Open the app manually; clicking a YouTube link in the browser may keep you on the website.</p>
         {searchTitle ? <>
-          <p style={{ ...SMALL, marginTop: 12, userSelect: 'text' }}>{searchTitle}</p>
+          <p style={{ ...SMALL, marginTop: 12, userSelect: 'text' }} translate="no">{searchTitle}</p>
           <button onClick={copySearchTitle} style={{ marginTop: 12, padding: '10px 14px', border: '1px solid var(--border)', background: 'var(--card-bg)', color: 'var(--fg)', cursor: 'pointer' }}>Copy video title</button>
           <p role="status" style={{ ...SMALL, marginTop: 8 }}>{copyStatus}</p>
         </> : <p style={{ ...SMALL, marginTop: 12 }}>Search for “{project.title}” on the channel.</p>}
@@ -1431,7 +1436,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
               return (
                 <button
                   key={i}
-                  onClick={() => setActiveIdx(i)}
+                  onClick={() => { setActiveIdx(i); const url = new URL(window.location.href); url.searchParams.set('view',c.vrId); window.history.replaceState(null,'',url.pathname+url.search+url.hash); }}
                   style={{
                     display: 'grid',
                     gridTemplateColumns: '52px 1fr auto auto',
@@ -2268,7 +2273,7 @@ function Journal() {
   const [month, setMonth] = useState('');
   const months = [...new Set(JOURNAL_POSTS.map(post => post.date.slice(0,7)))];
   const topics = [...new Set(JOURNAL_POSTS.flatMap(post => post.tags || []))];
-  const shown = JOURNAL_POSTS.filter(post => (!month || post.date.startsWith(month)) && (!topic || (post.tags || []).includes(topic)) && [post.title, ...(post.paragraphs || []), post.imageAlt || '', post.caption || '', ...(post.tags || []), ...(post.links || []).map(link => link.label)].join(' ').toLowerCase().includes(query.trim().toLowerCase()));
+  const shown = JOURNAL_POSTS.filter(post => (!month || post.date.startsWith(month)) && (!topic || (post.tags || []).includes(topic)) && lensSearchText([post.title, ...(post.paragraphs || []), post.imageAlt || '', post.caption || '', ...(post.tags || []), ...(post.links || []).map(link => link.label)]).includes(query.trim().toLowerCase()));
   const journalRef = React.useRef(null);
   useEffect(() => {
     const root = journalRef.current;
@@ -2360,12 +2365,12 @@ function Journal() {
     <div className="journal-layout">
     <nav className="journal-timeline" aria-label="Notes by month">
       <button aria-pressed={!month} onClick={()=>setMonth('')}>All dates</button>
-      {months.map(value=><button key={value} aria-pressed={month===value} onClick={()=>setMonth(month===value?'':value)}>{new Date(value+'-01T12:00:00Z').toLocaleDateString('en-US',{month:'short',year:'numeric',timeZone:'UTC'})}</button>)}
+      {months.map(value=><button key={value} aria-pressed={month===value} onClick={()=>setMonth(month===value?'':value)}>{new Date(value+'-01T12:00:00Z').toLocaleDateString(LENS_LANGUAGES[lensLocale].tag,{month:'short',year:'numeric',timeZone:'UTC'})}</button>)}
     </nav>
     <div className="journal-wall">{[...months.filter(value=>shown.some(post=>post.slug!=='journal-begins' && post.date.startsWith(value))), ...(shown.some(post=>post.slug==='journal-begins')?['introduction']:[])].map(value=><section className="journal-month" key={value} aria-label={value}>
-      <h2 className="journal-month-label">{value==='introduction'?'About these notes':new Date(value+'-01T12:00:00Z').toLocaleDateString('en-US',{month:'long',year:'numeric',timeZone:'UTC'})}</h2>
+      <h2 className="journal-month-label">{value==='introduction'?'About these notes':new Date(value+'-01T12:00:00Z').toLocaleDateString(LENS_LANGUAGES[lensLocale].tag,{month:'long',year:'numeric',timeZone:'UTC'})}</h2>
       <div className="journal-month-cards">{shown.filter(post=>value==='introduction'?post.slug==='journal-begins':post.slug!=='journal-begins' && post.date.startsWith(value)).map(post=><article className={'journal-note'+(!post.title && !post.paragraphs?.length?' photo-only':'')} key={post.slug} id={post.slug}>
-      <time dateTime={post.date} style={{fontSize:11,letterSpacing:'.06em',color:'var(--fg3)'}}>{post.dateLabel || new Date(post.date+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'})}</time>
+      <time dateTime={post.date} style={{fontSize:11,letterSpacing:'.06em',color:'var(--fg3)'}}>{post.dateLabel || new Date(post.date+'T12:00:00Z').toLocaleDateString(LENS_LANGUAGES[lensLocale].tag,{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'})}</time>
       {post.title && <h3 style={{fontSize:23,fontWeight:400,lineHeight:1.2,letterSpacing:'-.02em',margin:'20px 0 16px'}}>{post.title}</h3>}
       {post.image && <figure style={{margin:0}}><img src={post.image} alt={post.imageAlt || ''} />{post.caption && <figcaption style={{fontSize:12,lineHeight:1.5,color:'var(--fg3)',marginTop:12}}>{post.caption}</figcaption>}</figure>}
       {(post.paragraphs || []).map((text,i)=><p key={i}>{text}</p>)}
@@ -2440,9 +2445,9 @@ function ArchiveGrowthChart({ rows, metric, label }) {
   const span = Date.parse(rows[rows.length - 1][0]) - first || 1;
   const max = Math.max(5, Math.ceil(Math.max(...rows.map(row => row[metric])) / 5) * 5);
   const ticks = Array.from({length: max / 5 + 1}, (_, i) => i * 5);
-  const month = date => new Date(`${date}T00:00:00Z`).toLocaleString('en-US', {month:'short', timeZone:'UTC'});
+  const month = date => new Date(`${date}T00:00:00Z`).toLocaleString(LENS_LANGUAGES[lensLocale].tag, {month:'short', timeZone:'UTC'});
   const points = rows.map(row => ({ date: row[0], value: row[metric], x: 20 + (Date.parse(row[0]) - first) / span * 232, y: 84 - row[metric] / max * 64 }));
-  return <svg viewBox="0 0 272 116" role="img" aria-label={`${label} added over time, from ${rows[0][metric]} in ${month(rows[0][0])} ${rows[0][0].slice(0,4)} to ${rows[rows.length - 1][metric]} in ${month(rows[rows.length - 1][0])} ${rows[rows.length - 1][0].slice(0,4)}`} style={{ display:'block', width:'100%', marginTop:16, overflow:'visible' }}>
+  return <svg viewBox="0 0 272 116" role="img" aria-label={`${lensText(label)}: ${rows[0][metric]} (${month(rows[0][0])} ${rows[0][0].slice(0,4)}) → ${rows[rows.length - 1][metric]} (${month(rows[rows.length - 1][0])} ${rows[rows.length - 1][0].slice(0,4)})`} style={{ display:'block', width:'100%', marginTop:16, overflow:'visible' }}>
     <title>{`${label} — cumulative additions`}</title>
     {ticks.map(value => <g key={value}>
       <line x1="20" x2="252" y1={84-value/max*64} y2={84-value/max*64} stroke="var(--border)" strokeWidth="0.7" />
@@ -2451,7 +2456,7 @@ function ArchiveGrowthChart({ rows, metric, label }) {
     <polyline points={points.map(p => `${p.x},${p.y}`).join(' ')} fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
     {points.map(p => <g key={p.date}>
       <circle cx={p.x} cy={p.y} r="2.2" fill="var(--accent)" />
-      <circle cx={p.x} cy={p.y} r="8" fill="transparent"><title>{`${month(p.date)}: ${p.value} ${label.toLowerCase()}`}</title></circle>
+      <circle cx={p.x} cy={p.y} r="8" fill="transparent"><title>{`${month(p.date)}: ${p.value} ${lensText(label)}`}</title></circle>
     </g>)}
     <text x="20" y="106" fill="var(--fg3)" fontSize="9" fontFamily="Inter, sans-serif">{month(rows[0][0])}</text>
     <text x="252" y="106" textAnchor="end" fill="var(--fg3)" fontSize="9" fontFamily="Inter, sans-serif">{month(rows[rows.length - 1][0])}</text>
@@ -2529,14 +2534,25 @@ function projectPath(project) {
   return `/projects/${slug}/`;
 }
 function resolveRoute(path, projects) {
+  path = lensStripLocale(path);
   const normalized = path === '/' ? '/' : path.replace(/\/+$/, '') + '/';
   const selected = projects.find(p => isPublished(p) && projectPath(p) === normalized);
   return selected ? { view: 'project', selected } : { view: Object.keys(PAGE_PATHS).find(key => PAGE_PATHS[key] === normalized) || 'missing', selected: null };
 }
 
-const WEBSITE_VERSION = '1.3.2';
+const WEBSITE_VERSION = '1.4.0';
 
 const WEBSITE_RELEASES = [
+  [
+    "1.4.0",
+    "October 25, 2026",
+    "Multilingual archive",
+    [
+      "Added Simplified Chinese, Spanish and Brazilian Portuguese versions of the archive, including project information, viewing guidance and Journal entries.",
+      "Added a language selector with a Codex translation notice; switching languages keeps the current page and selected viewpoint.",
+      "Enabled searching translated project and viewpoint terms."
+    ]
+  ],
   [
     "1.3.2",
     "October 25, 2026",
@@ -2762,7 +2778,7 @@ function CitationControl() {
       <div role="tablist" aria-label="Citation style" style={{display:'flex', gap:4, borderBottom:'1px solid var(--border)', marginBottom:16}}>
         {styles.map((name, index) => <button key={name} type="button" role="tab" id={`citation-tab-${index}`} aria-selected={style === name} aria-controls="citation-content" tabIndex={style === name ? 0 : -1} onClick={() => chooseStyle(name)} onKeyDown={e => handleTabKey(e, index)} style={{font:'inherit', fontSize:12, padding:'8px 12px', border:0, borderBottom:style === name ? '2px solid var(--accent)' : '2px solid transparent', background:'none', color:style === name ? 'var(--fg)' : 'var(--fg3)', cursor:'pointer'}}>{name}</button>)}
       </div>
-      <p role="tabpanel" id="citation-content" aria-labelledby={`citation-tab-${styles.indexOf(style)}`} ref={text} style={{fontSize:13, lineHeight:1.7, color:'var(--fg2)', overflowWrap:'anywhere', margin:'0 0 20px'}}>{citation.slice(0, titleStart)}<em>{citation.slice(titleStart, titleEnd)}</em>{citation.slice(titleEnd)}</p>
+      <p role="tabpanel" id="citation-content" translate="no" aria-labelledby={`citation-tab-${styles.indexOf(style)}`} ref={text} style={{fontSize:13, lineHeight:1.7, color:'var(--fg2)', overflowWrap:'anywhere', margin:'0 0 20px'}}>{citation.slice(0, titleStart)}<em>{citation.slice(titleStart, titleEnd)}</em>{citation.slice(titleEnd)}</p>
       <button type="button" onClick={copyCitation} style={{font:'inherit', fontSize:12, padding:'8px 14px', border:'1px solid var(--border)', borderRadius:6, background:'var(--bg2)', color:'var(--fg)', cursor:'pointer'}}>{copied ? 'Copied' : 'Copy citation'}</button>
       <span role="status" style={{position:"absolute",width:1,height:1,overflow:"hidden",clipPath:"inset(50%)"}}>{copied ? 'Citation copied to clipboard.' : ''}</span>
     </dialog>
@@ -2770,6 +2786,7 @@ function CitationControl() {
 }
 
 function App({ initialProjects = null, initialPath = '/', freezeCatalogue = false }) {
+  lensSetLocale(lensLocaleFromPath(initialPath));
   const route = resolveRoute(initialPath, initialProjects || []);
   const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const { voted, counts, toggle } = useVotes();
@@ -2794,11 +2811,11 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
   }, []);
 
   const navigate = (target) => {
-    window.location.assign(PAGE_PATHS[target] || '/');
+    window.location.assign(lensLocalePath(PAGE_PATHS[target] || '/'));
   };
 
   const selectProject = (p) => {
-    window.location.assign(projectPath(p)+(p.matchedSpace?'?space='+encodeURIComponent(p.matchedSpace):''));
+    window.location.assign(lensLocalePath(projectPath(p))+(p.matchedSpace?'?space='+encodeURIComponent(p.matchedSpace):''));
   };
 
   const published = projects.filter(isPublished);
@@ -2822,7 +2839,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
           scrollBehavior: 'smooth',
         }}
       >
-        <Nav view={view} onNav={navigate} onSearch={setSearchQuery} searchQuery={searchQuery} />
+        <Nav path={initialPath} view={view} onNav={navigate} onSearch={setSearchQuery} searchQuery={searchQuery} />
         <div style={{ zIndex: 1, position: 'relative' }} key={view + (selected?.id ?? '')}>
           {loading && (
             <div style={{
@@ -2886,7 +2903,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
           {!loading && view === 'releases' && <ReleaseHistory />}
           {!loading && view === 'for educators' && <ForEducators onBrowse={() => navigate('browse')} />}
           {!loading && view === 'contribute' && <Contribute onNav={navigate} />}
-          {!loading && view === 'journal' && <Journal path={initialPath} />}
+          {!loading && view === 'journal' && <Journal path={lensStripLocale(initialPath)} />}
           {!loading && view === 'about' && <About projects={published} projectCount={published.length} clipCount={published.reduce((total, project) => total + project.captures.length, 0)} />}
           {!loading && <footer style={{ margin: '0 clamp(20px, 4vw, 56px)', padding: '24px 0 32px', borderTop: '1px solid var(--border)', fontFamily: 'Inter, sans-serif', fontSize: 12, lineHeight: 1.6, color: 'var(--fg3)' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 24, rowGap: 6 }}>
