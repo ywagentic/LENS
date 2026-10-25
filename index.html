@@ -167,8 +167,8 @@ function parseCSV(text) {
     // Fallback: legacy single vrId/vrType becomes one capture
     if (obj.captures) {
       obj.captures = obj.captures.split('|').map(c => {
-        const [label, vrId, description, height, code, spaceTypes, thumb] = c.split('::').map(s => (s || '').trim());
-        return vrId ? { label: label || 'View', vrId, description: description || '', height: height || '', code: code || '', ...(spaceTypes ? {spaceTypes:spaceTypes.split(';')} : {}), ...(thumb ? {thumb} : {}) } : null;
+        const [label, vrId, description, height, code, spaceTypes, thumb, publishedAt] = c.split('::').map(s => (s || '').trim());
+        return vrId ? { label: label || 'View', vrId, description: description || '', height: height || '', code: code || '', ...(spaceTypes ? {spaceTypes:spaceTypes.split(';')} : {}), ...(thumb ? {thumb} : {}), ...(publishedAt ? {publishedAt} : {}) } : null;
       }).filter(Boolean);
     } else if (obj.vrId) {
       obj.captures = [{ label: 'Main view', vrId: obj.vrId, description: '', height: '' }];
@@ -282,6 +282,11 @@ function normalizeProjects(data) {
     }
     if (!p.vrTypes) {
       p.vrTypes = p.vrType ? [p.vrType] : [];
+    }
+    // Preserve identities and first-publication dates for legacy Huacheng sheet rows.
+    if (Number(p.id) === 20) {
+      const legacy = {'0_J7l3HbcX0':'0302-01', 'sFw9p5A91HY':'0302-02'};
+      p.captures = p.captures.map(c => legacy[c.vrId] ? {...c, code:c.code || legacy[c.vrId], publishedAt:c.publishedAt || '2026-09-12'} : c);
     }
     p.captures = p.captures.map(c => ({...c, label:({'kYic2jDx61s':'Swing Canopy','0_J7l3HbcX0':'Palm-lined Promenade','sFw9p5A91HY':'Sunken Plaza — Upper Steps','BP5CdxPtXYo':'Pedestrian Plaza'}[c.vrId] || c.label), description:c.vrId === 'kYic2jDx61s' ? (c.description || '').replace(/pergola/gi, 'canopy') : c.description, spaceTypes:captureSpaceTypes(c)}));
     if (isUpcoming(p)) { p.captures = []; p.vrId = ''; }
@@ -2389,21 +2394,55 @@ function FundingSupport() {
   </>;
 }
 
-// Cumulative published catalogue totals; update when projects or views are released.
-const ARCHIVE_GROWTH = [
-  ['2026-09-12', 2, 3], ['2026-09-13', 3, 6], ['2026-09-26', 4, 8],
-  ['2026-09-27', 5, 12], ['2026-10-03', 6, 19], ['2026-10-10', 8, 23],
-  ['2026-10-19', 10, 26], ['2026-10-24', 11, 28], ['2026-10-25', 12, 29],
-];
-function ArchiveGrowthChart({ metric, label }) {
-  const rows = ARCHIVE_GROWTH;
+// First archive publication dates, independent of capture dates and video replacements.
+const VIEW_RELEASE_DATES = {
+  'BP5CdxPtXYo':'2026-09-12', '0301-01':'2026-09-12',
+  '0302-01':'2026-09-12', '0302-02':'2026-09-12',
+  '0501-01':'2026-09-13', '0501-02':'2026-09-13', '0501-04':'2026-09-13',
+  '0401-01':'2026-09-26', '0401-02':'2026-09-26',
+  '0701-01':'2026-09-27', '0701-02':'2026-09-27', '0701-03':'2026-09-27', '0701-04':'2026-09-27',
+  '0601-01':'2026-10-03', '0601-02':'2026-10-03', '0601-03':'2026-10-03', '0601-04':'2026-10-03',
+  '0601-05':'2026-10-03', '0601-06':'2026-10-03', '0601-07':'2026-10-03',
+  '0801-01':'2026-10-10', '0801-02':'2026-10-10', '0801-03':'2026-10-10', '0802-01':'2026-10-10',
+  '0502-01':'2026-10-19', '0502-02':'2026-10-19', '1001-01':'2026-10-19',
+  '0301-02':'2026-10-24', '0503-01':'2026-10-24', '0803-01':'2026-10-25',
+};
+function archiveGrowthHistory(projects) {
+  const events = new Map();
+  const seen = new Set();
+  const date = (value, context) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value || '') || !Number.isFinite(Date.parse(`${value}T00:00:00Z`)) || new Date(`${value}T00:00:00Z`).toISOString().slice(0,10) !== value)
+      throw new Error(`Missing or invalid first publication date: ${context}`);
+    return value;
+  };
+  const add = (day, metric) => {
+    if (!events.has(day)) events.set(day, [0,0]);
+    events.get(day)[metric] += 1;
+  };
+  projects.filter(isPublished).forEach(project => {
+    const published = date(project.publishedAt || PROJECT_RELEASE_DATES[project.id], project.title);
+    add(published, 0);
+    project.captures.forEach(capture => {
+      const key = `${project.id}:${capture.code || capture.vrId}`;
+      if (seen.has(key)) throw new Error(`Duplicate recording identity: ${key}`);
+      seen.add(key);
+      const released = date(capture.publishedAt || VIEW_RELEASE_DATES[capture.code || capture.vrId], capture.code || capture.label);
+      if (released < published) throw new Error(`Recording predates project publication: ${key}`);
+      add(released, 1);
+    });
+  });
+  let projectCount = 0, viewCount = 0;
+  return [...events.entries()].sort(([a],[b]) => a.localeCompare(b)).map(([day, counts]) => [day, projectCount += counts[0], viewCount += counts[1]]);
+}
+function ArchiveGrowthChart({ rows, metric, label }) {
+  if (!rows.length) return null;
   const first = Date.parse(rows[0][0]);
   const span = Date.parse(rows[rows.length - 1][0]) - first || 1;
-  const max = Math.ceil(Math.max(...rows.map(row => row[metric])) / 5) * 5;
+  const max = Math.max(5, Math.ceil(Math.max(...rows.map(row => row[metric])) / 5) * 5);
   const ticks = Array.from({length: max / 5 + 1}, (_, i) => i * 5);
   const month = date => new Date(`${date}T00:00:00Z`).toLocaleString('en-US', {month:'short', timeZone:'UTC'});
   const points = rows.map(row => ({ date: row[0], value: row[metric], x: 20 + (Date.parse(row[0]) - first) / span * 232, y: 84 - row[metric] / max * 64 }));
-  return <svg viewBox="0 0 272 116" role="img" aria-label={`${label} added over time, from ${rows[0][metric]} in September to ${rows[rows.length - 1][metric]} in October 2026`} style={{ display:'block', width:'100%', marginTop:16, overflow:'visible' }}>
+  return <svg viewBox="0 0 272 116" role="img" aria-label={`${label} added over time, from ${rows[0][metric]} in ${month(rows[0][0])} ${rows[0][0].slice(0,4)} to ${rows[rows.length - 1][metric]} in ${month(rows[rows.length - 1][0])} ${rows[rows.length - 1][0].slice(0,4)}`} style={{ display:'block', width:'100%', marginTop:16, overflow:'visible' }}>
     <title>{`${label} — cumulative additions`}</title>
     {ticks.map(value => <g key={value}>
       <line x1="20" x2="252" y1={84-value/max*64} y2={84-value/max*64} stroke="var(--border)" strokeWidth="0.7" />
@@ -2419,7 +2458,8 @@ function ArchiveGrowthChart({ metric, label }) {
   </svg>;
 }
 
-function About({ projectCount, clipCount }) {
+function About({ projectCount, clipCount, projects }) {
+  const growth = archiveGrowthHistory(projects);
   return (
     <div className="about-page" style={{ overflowWrap: 'anywhere', minWidth: 0, padding: 'clamp(96px, 10vw, 128px) clamp(20px, 3vw, 40px) 96px', maxWidth: 760, margin: '0 auto', position: 'relative', zIndex: 1 }}>
       <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.05, marginBottom: 24 }}>About LENS</h1>
@@ -2457,7 +2497,7 @@ function About({ projectCount, clipCount }) {
             <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: 32, color: 'var(--accent)', marginBottom: 4 }}>{val}</div>
             <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500, fontSize: 14, marginBottom: 8 }}>{label}</div>
             <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', lineHeight: 1.5 }}>{desc}</div>
-            {(label === 'Projects' || label === 'Views') && <ArchiveGrowthChart metric={label === 'Projects' ? 1 : 2} label={label} />}
+            {(label === 'Projects' || label === 'Views') && <ArchiveGrowthChart rows={growth} metric={label === 'Projects' ? 1 : 2} label={label} />}
           </div>
         ))}
       </div>
@@ -2847,7 +2887,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
           {!loading && view === 'for educators' && <ForEducators onBrowse={() => navigate('browse')} />}
           {!loading && view === 'contribute' && <Contribute onNav={navigate} />}
           {!loading && view === 'journal' && <Journal path={initialPath} />}
-          {!loading && view === 'about' && <About projectCount={published.length} clipCount={published.reduce((total, project) => total + project.captures.length, 0)} />}
+          {!loading && view === 'about' && <About projects={published} projectCount={published.length} clipCount={published.reduce((total, project) => total + project.captures.length, 0)} />}
           {!loading && <footer style={{ margin: '0 clamp(20px, 4vw, 56px)', padding: '24px 0 32px', borderTop: '1px solid var(--border)', fontFamily: 'Inter, sans-serif', fontSize: 12, lineHeight: 1.6, color: 'var(--fg3)' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 24, rowGap: 6 }}>
               <div>
