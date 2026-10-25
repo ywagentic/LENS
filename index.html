@@ -85,7 +85,7 @@
       .browse-controls { width: 100%; }
       .browse-controls select { flex: 1 1 130px; }
       .browse-content .project-card-list { grid-template-columns: 80px minmax(0, 1fr) !important; gap: 12px 16px !important; }
-      .browse-content .project-card-list > :nth-child(3) { grid-column: 2; text-align: left !important; }
+      .browse-content .project-card-list > :nth-child(3) { grid-column: 2; text-align: start !important; }
       .browse-content .project-card-list > :nth-child(4) { grid-column: 2; }
     }
 
@@ -100,7 +100,7 @@
     @media(min-width:1680px){html[lang="es"] .brand-descriptor,html[lang="pt-BR"] .brand-descriptor{display:inline-block}}
     .brand-descriptor { display: none; border-left: 1px solid var(--border); margin-left: 2px; padding-left: 10px; font-size: 12px; font-weight: 400; letter-spacing: 0; line-height: 20px; color: var(--fg3); }
     @media (min-width: 1400px) { .brand-descriptor { display: inline-block; } }
-    .view-info { display: none; position: relative; margin-left: 8px; vertical-align: middle; font-size: 11px; font-weight: 400; color: var(--fg3); }
+    .view-info { display: none; position: relative; margin-inline-start: 8px; vertical-align: middle; font-size: 11px; font-weight: 400; color: var(--fg3); }
     @media (hover: hover) and (pointer: fine) and (min-width: 721px) { .view-info { display: inline-flex; } }
     .view-info-icon { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border: 1px solid currentColor; border-radius: 50%; font-style: normal; }
     .view-info-text { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 10px); inset-inline-start: -12px; width: min(300px, 55vw); padding: 12px 14px; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,.12); font-size: 12px; line-height: 1.5; text-align: start; z-index: 20; pointer-events: none; transition: opacity .15s; }
@@ -911,7 +911,7 @@ function RecentAdditions({projects, renderCard}) {
   const ordered = [...projects].sort(comparePublicationDate);
   useEffect(() => {
     const el = rail.current;
-    const update = () => setHasMore(el.scrollWidth - el.clientWidth - el.scrollLeft > 2);
+    const update = () => setHasMore(el.scrollWidth - el.clientWidth - Math.abs(el.scrollLeft) > 2);
     const observer = new ResizeObserver(update);
     observer.observe(el);
     el.addEventListener('scroll', update, {passive:true});
@@ -923,6 +923,7 @@ function RecentAdditions({projects, renderCard}) {
       .recent-rail{display:flex;gap:28px;overflow-x:auto;scroll-snap-type:x proximity;padding:0 0 20px;scrollbar-width:none}
       .recent-rail::-webkit-scrollbar{display:none}
       .recent-rail.has-more{mask-image:linear-gradient(to right,#000 0%,#000 88%,transparent 100%)}
+      html[dir="rtl"] .recent-rail.has-more{mask-image:linear-gradient(to left,#000 0%,#000 88%,transparent 100%)}
       .recent-item{flex:0 0 311px;min-width:0;scroll-snap-align:start}
       @media(max-width:600px){.recent-rail{gap:20px}}
       @media(max-width:350px){.recent-item{flex-basis:calc(100vw - 40px)}}
@@ -1451,7 +1452,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
                     background: isActive ? 'var(--accent-dim)' : (i % 2 === 0 ? 'var(--card-bg)' : 'transparent'),
                     border: 'none',
                     borderTop: i > 0 ? '1px solid var(--border)' : 'none',
-                    borderLeft: isActive ? '3px solid var(--accent)' : '3px solid transparent',
+                    borderInlineStart: isActive ? '3px solid var(--accent)' : '3px solid transparent',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                     transition: 'background 0.15s, border-color 0.15s',
@@ -2354,7 +2355,7 @@ function Journal() {
       .journal-note p{font-size:15px;line-height:1.65;margin:0 0 16px;color:var(--fg2)}
       .journal-note img{width:100%;display:block;margin:0 0 20px}
       .journal-note footer{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}
-      .journal-note footer button{font:inherit;font-size:11px;border:0;padding:0;background:none;color:var(--fg3);cursor:pointer;text-decoration:underline;text-underline-offset:3px;margin-right:8px}
+      .journal-note footer button{font:inherit;font-size:11px;border:0;padding:0;background:none;color:var(--fg3);cursor:pointer;text-decoration:underline;text-underline-offset:3px;margin-inline-end:8px}
       .journal-links{display:flex;flex-direction:column;gap:10px;margin-top:20px}
       .journal-links a{font-size:13px;color:var(--accent);line-height:1.5}
       @media(max-width:1050px){.journal-month-cards{gap:40px}.journal-layout{gap:24px;grid-template-columns:90px minmax(0,1fr)}}
@@ -2738,7 +2739,7 @@ function ReleaseHistory() {
 
     {WEBSITE_RELEASES.map(([version, date, title, changes]) => <section key={version} style={{ borderTop: '1px solid var(--border)', padding: '24px 0 28px' }}>
       <div style={{ ...LABEL, marginBottom: 10 }}>{date}</div>
-      <h2 style={{ ...H2, marginBottom: 8 }}>v{version}</h2>
+      <h2 style={{ ...H2, marginBottom: 8 }}><bdi dir="ltr">v{version}</bdi></h2>
       <p style={{ ...SMALL, color: 'var(--fg)', margin: '0 0 12px' }}>{title}</p>
       <ul style={{ ...SMALL, paddingLeft: 20, margin: 0 }}>{changes.map(change => <li key={change} style={{ marginBottom: 6 }}>{change}</li>)}</ul>
     </section>)}
@@ -2918,7 +2919,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
                 <div>LENS: A Digital Archive of Urban Public Space</div>
               </div>
               <div style={{ marginLeft: 'auto' }}>
-                <div>Website v{WEBSITE_VERSION}</div>
+                <div>Website v <bdi dir="ltr">{WEBSITE_VERSION}</bdi></div>
                 <a href="/releases/" onClick={e => { e.preventDefault(); navigate('releases'); }} style={{ display: 'block', width: 'fit-content', marginLeft: 'auto', marginTop: 0, color: 'inherit', textDecoration: 'underline', textUnderlineOffset: 3 }}>Release history</a>
               </div>
             </div>
