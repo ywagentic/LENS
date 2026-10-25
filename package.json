@@ -26,5 +26,8 @@
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "opencc-js": "1.4.2"
+  }
 }

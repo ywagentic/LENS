@@ -708,8 +708,9 @@ function Nav({ view, onNav, onSearch, searchQuery, path }) {
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: lensLocale.startsWith('zh')?6:10, flexShrink: 0 }}>
         <LanguageSelector pagePath={path} />
+        <ChineseScriptToggle pagePath={path} />
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           <svg style={{ position: 'absolute', left: 10, color: 'var(--fg4)', pointerEvents: 'none' }} width={12} height={12} viewBox="0 0 16 16" fill="none">
             <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/>
@@ -2550,7 +2551,8 @@ const WEBSITE_RELEASES = [
     [
       "Added Simplified Chinese, Spanish and Brazilian Portuguese versions of the archive, including project information, viewing guidance and Journal entries.",
       "Added a language selector with a Codex translation notice; switching languages keeps the current page and selected viewpoint.",
-      "Enabled searching translated project and viewpoint terms."
+      "Enabled searching translated project and viewpoint terms.",
+      "Added a Simplified / Traditional Chinese switch beside the language selector on Chinese pages."
     ]
   ],
   [

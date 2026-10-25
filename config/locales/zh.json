@@ -1257,5 +1257,6 @@
   "Multilingual archive": "多语言档案",
   "Added Simplified Chinese, Spanish and Brazilian Portuguese versions of the archive, including project information, viewing guidance and Journal entries.": "新增简体中文、西班牙语及巴西葡萄牙语版本，涵盖项目资料、观看说明和札记。",
   "Added a language selector with a Codex translation notice; switching languages keeps the current page and selected viewpoint.": "新增语言选择入口及 Codex 翻译声明；切换语言时保留当前页面和所选视点。",
-  "Enabled searching translated project and viewpoint terms.": "支持使用翻译后的项目与视点相关词语进行搜索。"
+  "Enabled searching translated project and viewpoint terms.": "支持使用翻译后的项目与视点相关词语进行搜索。",
+  "Added a Simplified / Traditional Chinese switch beside the language selector on Chinese pages.": "在中文页面的语言按钮旁新增简繁切换。"
 }

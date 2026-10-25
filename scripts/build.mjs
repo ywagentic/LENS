@@ -2,6 +2,7 @@ import { readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { build } from 'esbuild';
 import React from 'react';
+import * as OpenCC from 'opencc-js';
 import { analyticsMarkup } from './analytics.mjs';
 import { renderToString } from 'react-dom/server';
 const require = createRequire(import.meta.url);
@@ -17,6 +18,8 @@ for (const post of journal) {
 }
 const upcomingProjects = JSON.parse(await readFile('config/upcoming-projects.json', 'utf8'));
 const translations = Object.fromEntries(await Promise.all(['zh','es','pt'].map(async code => [code, JSON.parse(await readFile(`config/locales/${code}.json`, 'utf8'))])));
+const toTraditional = OpenCC.Converter({from:'cn',to:'t'});
+translations['zh-hant'] = Object.fromEntries(Object.entries(translations.zh).map(([key,value])=>[key,toTraditional(value)]));
 const i18n = (await readFile('scripts/i18n.jsx','utf8')).replace('const LENS_MESSAGES = {};', 'const LENS_MESSAGES = '+JSON.stringify(translations).replaceAll('<','\\u003c')+';');
 const app = source.split('<script type="text/babel">')[1].split('const root = ReactDOM.createRoot')[0].replace('const UPCOMING_PROJECTS = [];', 'const UPCOMING_PROJECTS = ' + JSON.stringify(upcomingProjects).replaceAll('<','\\u003c') + ';').replace('const JOURNAL_POSTS = [];', 'const JOURNAL_POSTS = ' + JSON.stringify(journal).replaceAll('<','\\u003c') + ';');
 await rm('.build', {recursive:true, force:true});

@@ -1257,5 +1257,6 @@
   "Multilingual archive": "Archivo multilingüe",
   "Added Simplified Chinese, Spanish and Brazilian Portuguese versions of the archive, including project information, viewing guidance and Journal entries.": "Se han añadido versiones del archivo en chino simplificado, español y portugués de Brasil, con información de los proyectos, instrucciones de visualización y entradas del diario.",
   "Added a language selector with a Codex translation notice; switching languages keeps the current page and selected viewpoint.": "Se ha añadido un selector de idioma con un aviso sobre las traducciones de Codex; al cambiar de idioma se conservan la página y el punto de vista seleccionados.",
-  "Enabled searching translated project and viewpoint terms.": "Ahora se pueden buscar términos traducidos de los proyectos y puntos de vista."
+  "Enabled searching translated project and viewpoint terms.": "Ahora se pueden buscar términos traducidos de los proyectos y puntos de vista.",
+  "Added a Simplified / Traditional Chinese switch beside the language selector on Chinese pages.": "Se ha añadido un selector de caracteres chinos simplificados o tradicionales junto al selector de idioma en las páginas en chino."
 }

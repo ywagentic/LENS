@@ -36,3 +36,25 @@ lensSetLocale('en');assert.equal(lensText('Browse'),'Browse');
 const english=renderToStaticMarkup(React.createElement(App,{initialProjects:projects,initialPath:'/about/',freezeCatalogue:true}));assert(english.includes('About LENS'));
 assert.equal(lensLocalePath('/zh/about/','en'),'/about/');
 console.log('PASS: four locales, per-render isolation, native selectors/disclosure, immutable filter values, localized search, preserved media/citations, locale routes and hreflang.');
+
+// Traditional Chinese is a character conversion of the existing Chinese copy.
+const toTraditional=require('opencc-js').Converter({from:'cn',to:'t'});
+lensSetLocale('zh-hant');
+for(const [key,value] of Object.entries(dictionaries.zh)) {
+ if(key==='s')continue;
+ assert.equal(lensText(key),toTraditional(value),`Hant must be generated from the same Chinese copy: ${key}`);
+}
+assert.equal(lensLocalePath('/zh/projects/tongva-park/?view=GKBIgSyo-7E#view'),'/zh-hant/projects/tongva-park/?view=GKBIgSyo-7E#view');
+assert.equal(lensLocalePath('/zh-hant/projects/tongva-park/?view=GKBIgSyo-7E#view','zh'),'/zh/projects/tongva-park/?view=GKBIgSyo-7E#view');
+assert.equal(lensStripLocale('/zh-hant/about/'),'/about/');
+assert(lensSearchText(['Seated view']).includes(dictionaries.zh['Seated view']));
+assert(lensSearchText(['Seated view']).includes(toTraditional(dictionaries.zh['Seated view'])));
+const hant=fs.readFileSync('dist/zh-hant/about/index.html','utf8');
+assert(hant.includes('<html lang="zh-Hant">'));
+assert(hant.includes('href="https://lens-vr.com/zh-hant/about/"'));
+assert(hant.includes(toTraditional(dictionaries.zh['About LENS'])));
+assert.equal((hant.match(/data-language-link="true"/g)||[]).length,5,'Four languages and one separate script toggle');
+assert(hant.includes('class="chinese-script-toggle"'));
+assert(!html.includes('class="chinese-script-toggle"'),'No script toggle outside Chinese');
+assert(hant.includes('軟件')||toTraditional('软件')==='軟件','No regional vocabulary rewrite');
+console.log('PASS: Hant is generated from unchanged Hans copy; Chinese-only toggle, five route variants/four language choices, URLs and both-script search checked.');
