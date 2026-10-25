@@ -93,17 +93,31 @@
     "vrTypes": [
       "360° Video"
     ],
-    "vrId": "",
-    "captures": [],
+    "vrId": "rm9AwCZ6vMo",
+    "captures": [
+      {
+        "label": "Plaza Edge — Fountain View",
+        "code": "0503-01",
+        "vrId": "rm9AwCZ6vMo",
+        "height": "Standing",
+        "spaceTypes": [
+          "Plaza",
+          "Sculpture",
+          "Water Feature"
+        ],
+        "thumb": "/assets/projects/views/0503-01.jpg",
+        "description": "An immersive 360° VR experience from the tree-lined edge of Fountain Square in downtown Cincinnati, looking across the open plaza toward the Tyler Davidson Fountain. Suspended iridescent spheres hang among the trees above the recording position. The fountain was not running at the time of recording. Filmed during spring 2026."
+      }
+    ],
     "plannedCaptures": [],
-    "visible": "2",
+    "visible": "1",
     "expectedRelease": "",
     "area": "Approx. 0.8 ha (2 acres)",
     "color": "oklch(65% 0.06 140)",
     "thumb": "/assets/projects/fountain-square.jpg",
     "thumbIllustration": true,
     "featured": false,
-    "dateCollected": "",
+    "dateCollected": "Spring 2026",
     "contributor": "",
     "coordinates": "39.10161,-84.51250",
     "tags": [
@@ -125,7 +139,8 @@
         "url": "https://myfountainsquare.com/history/"
       }
     ],
-    "description": "Fountain Square is a civic gathering place in downtown Cincinnati, centered on the historic Tyler Davidson Fountain. OLIN’s revitalization relocated the fountain to open up space for events and seating, with planting and street trees defining the plaza’s edges. The square reopened in 2006; OLIN lists the project as completed in 2007."
+    "description": "Fountain Square is a civic gathering place in downtown Cincinnati, centered on the historic Tyler Davidson Fountain. OLIN’s revitalization relocated the fountain to open up space for events and seating, with planting and street trees defining the plaza’s edges. The square reopened in 2006; OLIN lists the project as completed in 2007.",
+    "publishedAt": "2026-10-24"
   },
   {
     "id": 27,
