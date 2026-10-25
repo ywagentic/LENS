@@ -1262,5 +1262,7 @@
   "LENS in more languages": "LENS 的多语言版本",
   "As LENS has begun to attract users from around the world, I’ve been thinking about how a public database should accommodate people who use different languages. With AI assistance, providing multilingual versions with reasonably accurate translations is no longer so difficult.": "随着 LENS 开始迎来世界各地的使用者，我开始思考，作为一个公共数据库，它应该能够照顾使用不同语言的人。有了 AI 的助力，提供多语言版本并让翻译大致准确，也没有那么困难了。",
   "I’m happy to share that LENS is now available in English, Chinese, Spanish, Portuguese, French and Arabic.": "很高兴告诉大家，LENS 现已提供英语、中文、西班牙语、葡萄牙语、法语和阿拉伯语版本。",
-  "Added Chinese, Spanish, Portuguese, French and Arabic versions of the archive, including project information, viewing guidance and Journal entries.": "新增中文、西班牙语、葡萄牙语、法语和阿拉伯语版本，涵盖项目信息、观看指南及札记。"
+  "Added Chinese, Spanish, Portuguese, French and Arabic versions of the archive, including project information, viewing guidance and Journal entries.": "新增中文、西班牙语、葡萄牙语、法语和阿拉伯语版本，涵盖项目信息、观看指南及札记。",
+  "Added automatic language selection based on device preferences and remembered manual language choices.": "新增按设备偏好自动选择语言，并记住手动选择的语言。",
+  "Refined Arabic right-to-left layouts across desktop and mobile, including navigation, filters, lists and dialogs.": "优化阿拉伯语在桌面和手机上的从右向左排版，包括导航、筛选、列表和弹窗。"
 }
