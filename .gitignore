@@ -49,3 +49,6 @@ thumbs/
 # Local YouTube thumbnail exports
 thumbnail/
 output/
+
+# Local source recordings
+/[Vv]ideos/

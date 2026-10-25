@@ -475,5 +475,91 @@
     ],
     "description": "re:Invent Plaza is part of Amazon’s Block 20 in downtown Seattle. Designed by Site Workshop and completed in 2019, the plaza faces 7th Avenue and the Spheres. Gerard Tsutakawa’s bronze fountain sculpture Tonbi forms its focal point. Planted edges enclose seating areas, while a pedestrian passage connects the plaza to a second water feature within the block.",
     "publishedAt": "2026-10-10"
+  },
+  {
+    "id": 9,
+    "votes": "0",
+    "title": "Yongqing Fang Renewal",
+    "subtitle": "Micro-renovation of historic Xiguan alleyways",
+    "location": "Guangzhou, China",
+    "year": 2017,
+    "designer": "Lab D+H",
+    "type": "Plaza · Commercial Space",
+    "vrType": "360° Video",
+    "vrId": "BP5CdxPtXYo",
+    "description": "A landscape-led micro-renovation of historic Xiguan alleyways in Guangzhou's old town. Paving, drainage and shared courtyards were upgraded without relocating existing residents, making it a reference case for incremental heritage regeneration in southern China.",
+    "area": "3,000 m² (2017 landscape scope)",
+    "color": "oklch(66% 0.09 35)",
+    "thumb": "/assets/projects/yongqing-fang.jpg",
+    "featured": false,
+    "dateCollected": "",
+    "contributor": "",
+    "coordinates": "23.117505, 113.232170",
+    "links": [
+      {
+        "label": "ASLA Award",
+        "url": "https://www.asla.org/2020awards/518.html"
+      },
+      {
+        "label": "Landezine",
+        "url": "https://landezine.com/yongqing-fang-guangzhou-by-lab-dh/"
+      },
+      {
+        "label": "Landscape project area — Lab D+H",
+        "url": "https://www.gooood.cn/yongqing-fang-lab-dh.htm"
+      }
+    ],
+    "tag_Urban": "TRUE",
+    "tag_Water": "FALSE",
+    "tag_Ecological": "FALSE",
+    "tag_Planting": "FALSE",
+    "tag_Hardscape": "TRUE",
+    "tag_Restoration": "TRUE",
+    "tag_Adaptive_Reuse": "TRUE",
+    "tag_Tropical": "FALSE",
+    "tag_Infrastructure": "FALSE",
+    "tag_Prairie": "FALSE",
+    "visible": "1",
+    "captures": [
+      {
+        "label": "Pedestrian Plaza",
+        "vrId": "BP5CdxPtXYo",
+        "description": "",
+        "height": "",
+        "code": "0301-01",
+        "thumb": "/assets/projects/views/0301-01.jpg",
+        "spaceTypes": [
+          "Wall"
+        ]
+      },
+      {
+        "label": "Tree-shaded Street",
+        "vrId": "RzDVz5Vgcmw",
+        "description": "An immersive 360° VR experience on a tree-shaded pedestrian street in Yongqing Fang, Guangzhou. Brick façades and storefronts line the lane, with seating and a narrow water feature along its edge. Filmed during summer 2025.",
+        "height": "Standing",
+        "code": "0301-02",
+        "spaceTypes": [
+          "Seating",
+          "Water Feature",
+          "Wall"
+        ],
+        "thumb": "/assets/projects/views/0301-02.jpg"
+      }
+    ],
+    "expectedRelease": "",
+    "tags": [
+      "Urban",
+      "Hardscape",
+      "Restoration",
+      "Adaptive Reuse"
+    ],
+    "vrTypes": [
+      "360° Video"
+    ],
+    "types": [
+      "Plaza",
+      "Commercial Space"
+    ],
+    "thumbIllustration": true
   }
 ]
