@@ -2547,9 +2547,19 @@ function resolveRoute(path, projects) {
   return selected ? { view: 'project', selected } : { view: Object.keys(PAGE_PATHS).find(key => PAGE_PATHS[key] === normalized) || 'missing', selected: null };
 }
 
-const WEBSITE_VERSION = '1.4.0';
+const WEBSITE_VERSION = '1.4.1';
 
 const WEBSITE_RELEASES = [
+  [
+    "1.4.1",
+    "October 25, 2026",
+    "Bug fixes",
+    [
+      "Completed missing translations in contribution guides, submission forms and interactive help.",
+      "Fixed browser back and forward navigation for contribution subpages, while preserving the current section when switching languages.",
+      "Fixed page scrolling and navigation height so page content and footers remain accessible."
+    ]
+  ],
   [
     "1.4.0",
     "October 25, 2026",

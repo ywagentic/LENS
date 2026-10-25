@@ -1289,5 +1289,9 @@
   "For clearer playback on Quest, open YouTube VR from your app library and find this recording there. This link opens the YouTube website.": "لتشغيل أوضح على Quest، افتح YouTube VR من مكتبة تطبيقاتك وابحث عن هذا التسجيل هناك. يفتح هذا الرابط موقع YouTube على الويب.",
   "Online submission is not available yet. Please email your file link and details to wang@unl.edu.": "الإرسال عبر الإنترنت غير متاح بعد. يُرجى إرسال رابط ملفك والتفاصيل عبر البريد الإلكتروني إلى wang@unl.edu.",
   "We could not confirm receipt. Your entries are still here. You can retry, or email wang@unl.edu to check before sending again.": "تعذّر علينا تأكيد الاستلام. لا تزال بياناتك هنا. يمكنك إعادة المحاولة، أو مراسلة wang@unl.edu للتحقق قبل الإرسال مجددًا.",
-  "Show less −": "إظهار أقل −"
+  "Show less −": "إظهار أقل −",
+  "Bug fixes": "إصلاحات الأخطاء",
+  "Completed missing translations in contribution guides, submission forms and interactive help.": "استُكملت الترجمات الناقصة في أدلة المساهمة ونماذج الإرسال والمساعدة التفاعلية.",
+  "Fixed browser back and forward navigation for contribution subpages, while preserving the current section when switching languages.": "أُصلح الرجوع والتقدم في المتصفح ضمن صفحات المساهمة الفرعية، مع الحفاظ على القسم الحالي عند تبديل اللغة.",
+  "Fixed page scrolling and navigation height so page content and footers remain accessible.": "أُصلح تمرير الصفحات وارتفاع شريط التنقل لضمان إمكانية الوصول إلى المحتوى وتذييلات الصفحات."
 }

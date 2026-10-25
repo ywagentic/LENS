@@ -1289,5 +1289,9 @@
   "For clearer playback on Quest, open YouTube VR from your app library and find this recording there. This link opens the YouTube website.": "Pour une lecture plus nette sur Quest, ouvrez YouTube VR depuis votre bibliothèque d’applications et recherchez-y cet enregistrement. Ce lien ouvre le site web de YouTube.",
   "Online submission is not available yet. Please email your file link and details to wang@unl.edu.": "L’envoi en ligne n’est pas encore disponible. Veuillez envoyer le lien de votre fichier et les informations correspondantes à wang@unl.edu.",
   "We could not confirm receipt. Your entries are still here. You can retry, or email wang@unl.edu to check before sending again.": "Nous n’avons pas pu confirmer la réception. Vos informations sont toujours présentes. Vous pouvez réessayer ou écrire à wang@unl.edu pour vérifier avant un nouvel envoi.",
-  "Show less −": "Afficher moins −"
+  "Show less −": "Afficher moins −",
+  "Bug fixes": "Corrections de bugs",
+  "Completed missing translations in contribution guides, submission forms and interactive help.": "Ajout des traductions manquantes dans les guides de contribution, les formulaires d’envoi et l’aide interactive.",
+  "Fixed browser back and forward navigation for contribution subpages, while preserving the current section when switching languages.": "Correction de la navigation précédente et suivante du navigateur dans les sous-pages de contribution, avec conservation de la section actuelle lors du changement de langue.",
+  "Fixed page scrolling and navigation height so page content and footers remain accessible.": "Correction du défilement des pages et de la hauteur de navigation pour que le contenu et les pieds de page restent accessibles."
 }
