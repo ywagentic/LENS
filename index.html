@@ -2004,12 +2004,12 @@ function ContributeSubmit({ onBack }) {
 
 function Contribute({ onNav }) {
   const [subView, setSubView] = useState('index');
-  useEffect(()=>{const section=new URLSearchParams(window.location.search).get('section');if(['protocol','wishlist','submit'].includes(section))setSubView(section);},[]);
-  const selectSection=section=>{setSubView(section);const url=new URL(window.location.href);if(section==='index')url.searchParams.delete('section');else url.searchParams.set('section',section);window.history.replaceState({},'',url.pathname+url.search+url.hash);};
-  if (subView === 'protocol') return <ContributeProtocol onBack={() => selectSection('index')} />;
-  if (subView === 'wishlist') return <ContributeWishlist onBack={() => selectSection('index')} />;
-  if (subView === 'submit') return <ContributeSubmit onBack={() => selectSection('index')} />;
-  return <ContributeIndex onSubNav={selectSection} />;
+  const navigation=useRef(null);
+  useEffect(()=>{navigation.current=createContributionNavigation(window,setSubView);return ()=>{navigation.current.destroy();navigation.current=null;};},[]);
+  if (subView === 'protocol') return <ContributeProtocol onBack={() => navigation.current.back()} />;
+  if (subView === 'wishlist') return <ContributeWishlist onBack={() => navigation.current.back()} />;
+  if (subView === 'submit') return <ContributeSubmit onBack={() => navigation.current.back()} />;
+  return <ContributeIndex onSubNav={section=>navigation.current.open(section)} />;
 }
 // ─── FOR EDUCATORS ──────────────────────────────────────────────────────────
 
