@@ -106,7 +106,7 @@
           "Water Feature"
         ],
         "thumb": "/assets/projects/views/0503-01-art-installation.jpg",
-        "description": "An immersive 360° VR experience beneath an array of suspended iridescent spheres at Fountain Square in downtown Cincinnati. The spheres are strung between the trees, framing views across the plaza toward the Tyler Davidson Fountain. Filmed during spring 2026."
+        "description": "An immersive 360° VR experience beneath an array of suspended iridescent spheres at Fountain Square in downtown Cincinnati. Filmed during spring 2026."
       }
     ],
     "plannedCaptures": [],
@@ -361,7 +361,7 @@
       {
         "label": "Canyon Fountain — Lower Edge",
         "code": "0801-02",
-        "description": "A seated 360° VR view from the lower edge of Canyon Fountain in Seattle’s Freeway Park, looking toward its layered concrete walls, ledges and stepped forms. The fountain was out of operation when this panorama was photographed in autumn 2025, following a leak discovered in summer 2024. It returned to operation in May 2026 after repairs. Created from a still 360° panorama. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
+        "description": "A seated 360° VR view from the lower edge of Canyon Fountain in Seattle’s Freeway Park, looking toward its layered concrete walls, ledges and stepped forms. The fountain was out of operation when this panorama was photographed in spring 2026, following a leak discovered in summer 2024. It returned to operation in May 2026 after repairs. Created from a still 360° panorama. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
         "spaceTypes": [
           "Water Feature",
           "Wall",
@@ -379,7 +379,7 @@
         "code": "0801-03",
         "vrId": "YZU4gVDYe24",
         "mediaType": "Static 360° Panorama",
-        "description": "A 360° view from the sunken area of Canyon Fountain in Seattle’s Freeway Park. The surrounding concrete walls and stepped landforms create a strongly enclosed space, with the viewpoint set within the sculptural canyon. The fountain was out of operation when this panorama was photographed, following a leak discovered in summer 2024. It returned to operation in May 2026 after repairs. Created from a still 360° panorama photographed during autumn 2025.",
+        "description": "A 360° view from the sunken area of Canyon Fountain in Seattle’s Freeway Park. The surrounding concrete walls and stepped landforms create a strongly enclosed space, with the viewpoint set within the sculptural canyon. The fountain was out of operation when this panorama was photographed, following a leak discovered in summer 2024. It returned to operation in May 2026 after repairs. Created from a still 360° panorama photographed during spring 2026.",
         "spaceTypes": [
           "Water Feature",
           "Wall",
@@ -397,7 +397,7 @@
     "thumb": "/assets/projects/freeway-park.jpg",
     "thumbIllustration": true,
     "featured": false,
-    "dateCollected": "Autumn 2025",
+    "dateCollected": "Spring 2026",
     "contributor": "",
     "coordinates": "",
     "tags": [
@@ -440,7 +440,7 @@
       {
         "label": "Seating Area — Sculpture Fountain",
         "code": "0802-01",
-        "description": "From a seating area enclosed by planting, looking toward the water feature and Gerard Tsutakawa’s bronze sculpture Tonbi. Filmed during autumn 2025. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
+        "description": "From a seating area enclosed by planting, looking toward the water feature and Gerard Tsutakawa’s bronze sculpture Tonbi. Filmed during spring 2026. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
         "spaceTypes": [
           "Seating",
           "Planting",
@@ -461,7 +461,7 @@
     "thumb": "/assets/projects/amazon-reinvent-plaza.jpg",
     "thumbIllustration": true,
     "featured": false,
-    "dateCollected": "Autumn 2025",
+    "dateCollected": "Spring 2026",
     "contributor": "",
     "coordinates": "47.6164,-122.3395",
     "tags": [
@@ -577,5 +577,64 @@
       "Commercial Space"
     ],
     "thumbIllustration": true
+  },
+  {
+    "id": 32,
+    "title": "re:Invent Waterfall Garden",
+    "subtitle": "A planted stair garden with waterfall terraces and seating",
+    "location": "Seattle, Washington, USA",
+    "year": 2019,
+    "designer": "Site Workshop",
+    "type": "Garden",
+    "types": [
+      "Garden"
+    ],
+    "vrType": "360° Video",
+    "vrTypes": [
+      "360° Video"
+    ],
+    "vrId": "i81g_yuDuIA",
+    "captures": [
+      {
+        "code": "0803-01",
+        "label": "Waterfall Terrace",
+        "vrId": "i81g_yuDuIA",
+        "description": "An immersive 360° VR experience on a terrace beside the waterfall in re:Invent Waterfall Garden, Seattle. Board-formed concrete water walls, a pool and dense planting sit alongside stepped paths and timber benches. Filmed during spring 2026.",
+        "height": "Standing",
+        "spaceTypes": [
+          "Water Feature",
+          "Seating",
+          "Planting",
+          "Topography",
+          "Wall"
+        ],
+        "thumb": "/assets/projects/reinvent-waterfall-garden.jpg"
+      }
+    ],
+    "plannedCaptures": [],
+    "visible": "1",
+    "expectedRelease": "",
+    "area": "",
+    "color": "oklch(65% 0.06 140)",
+    "thumb": "/assets/projects/reinvent-waterfall-garden.jpg",
+    "thumbIllustration": true,
+    "featured": false,
+    "dateCollected": "Spring 2026",
+    "contributor": "",
+    "coordinates": "47.61678,-122.33913",
+    "tags": [
+      "Urban",
+      "Water",
+      "Planting",
+      "Hardscape"
+    ],
+    "links": [
+      {
+        "label": "Site Workshop — project",
+        "url": "https://www.siteworkshop.net/amazonblock20"
+      }
+    ],
+    "description": "This small waterfall garden is part of Amazon’s re:Invent block in downtown Seattle. Designed by Site Workshop and completed in 2019, it combines a planted stair passage with seating terraces and a water feature cascading over board-formed concrete into a pool containing glacial erratics found during excavation.",
+    "publishedAt": "2026-10-25"
   }
 ]

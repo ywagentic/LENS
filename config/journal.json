@@ -1,5 +1,64 @@
 [
   {
+    "slug": "small-spaces-to-linger-in",
+    "title": "Small spaces to linger in",
+    "date": "2026-10-25",
+    "dateLabel": "October 2026",
+    "paragraphs": [
+      "I’ve added another view of Yongqing Fang, a particularly comfortable space with a large tree, stepped seating and water. Small-scale urban blocks can be relaxed and inviting too.",
+      "An intimate waterfall garden in Seattle is also now online. Planting, water and careful control of ground form and scale make this small space engaging, human-scaled and inviting to stay."
+    ],
+    "tags": [
+      "Guangzhou",
+      "Seattle",
+      "New recordings"
+    ],
+    "links": [
+      {
+        "label": "Yongqing Fang",
+        "href": "/projects/yongqing-fang/"
+      },
+      {
+        "label": "re:Invent Waterfall Garden",
+        "href": "/projects/reinvent-waterfall-garden/"
+      }
+    ],
+    "published": true,
+    "image": "/assets/projects/reinvent-waterfall-garden.jpg",
+    "imageAlt": "Waterfall, planting and a small seating terrace in Seattle."
+  },
+  {
+    "slug": "cincinnati-recordings-complete",
+    "title": "The Cincinnati recordings",
+    "date": "2026-10-25",
+    "dateLabel": "October 2026",
+    "paragraphs": [
+      "The three spaces I recorded during my CELA trip to Cincinnati are finally all online: Smale Riverfront Park, the University of Cincinnati campus and Fountain Square.",
+      "The suspended art installation at Fountain Square adds a playful contemporary presence to the plaza. Its implied overhead plane makes it a useful reference for studying enclosure and perceived scale, including how the dimensions and spacing of the array shape the space beneath it."
+    ],
+    "tags": [
+      "Cincinnati",
+      "New recordings"
+    ],
+    "links": [
+      {
+        "label": "Fountain Square",
+        "href": "/projects/fountain-square/"
+      },
+      {
+        "label": "Smale Riverfront Park",
+        "href": "/projects/smale-riverfront-park/"
+      },
+      {
+        "label": "University of Cincinnati",
+        "href": "/projects/university-of-cincinnati-campus/"
+      }
+    ],
+    "published": true,
+    "image": "/assets/projects/views/0503-01-art-installation.jpg",
+    "imageAlt": "Suspended iridescent spheres forming an overhead array at Fountain Square."
+  },
+  {
     "slug": "rome-and-cincinnati",
     "title": "Rome and Cincinnati",
     "date": "2026-10-19",
@@ -293,11 +352,11 @@
   },
   {
     "slug": "seattle-fieldwork",
-    "title": "A November visit to Seattle",
-    "date": "2025-11-01",
-    "dateLabel": "November 2025",
+    "title": "A spring visit to Seattle",
+    "date": "2026-03-17",
+    "dateLabel": "March 2026",
     "paragraphs": [
-      "I made a recording trip to Seattle in November, visiting several established landscape projects as well as the new Waterfront Park on Elliott Bay. The waterfront had celebrated its opening that September, shortly before my visit. I also had the chance to meet someone from GGN, who generously spent several hours chatting with me about design and the creative process at the practice. I really enjoyed the conversation!"
+      "I made a recording trip to Seattle in March, visiting several established landscape projects as well as the new Waterfront Park on Elliott Bay. The waterfront had celebrated its opening the previous September. I also had the chance to meet someone from GGN, who generously spent several hours chatting with me about design and the creative process at the practice. I really enjoyed the conversation!"
     ],
     "tags": [
       "Seattle",
