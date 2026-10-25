@@ -4,7 +4,7 @@ const LENS_LANGUAGES = {
   en:{name:'English',code:'EN',tag:'en'},
   zh:{name:'简体中文',code:'中文',tag:'zh-Hans'},
   es:{name:'Español',code:'ES',tag:'es'},
-  pt:{name:'Português (Brasil)',code:'PT',tag:'pt-BR'},
+  pt:{name:'Português',code:'PT',tag:'pt-BR'},
 };
 let lensLocale = 'en';
 function lensLocaleFromPath(path) { const code=String(path||'/').match(/^\/(zh|es|pt)(?:\/|$)/)?.[1]; return code || 'en'; }
