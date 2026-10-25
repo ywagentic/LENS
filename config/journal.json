@@ -1,5 +1,25 @@
 [
   {
+    "slug": "lens-in-more-languages",
+    "title": "LENS in more languages",
+    "date": "2026-10-25",
+    "dateLabel": "October 2026",
+    "paragraphs": [
+      "As LENS has begun to attract users from around the world, I’ve been thinking about how a public database should accommodate people who use different languages. With AI assistance, providing multilingual versions with reasonably accurate translations is no longer so difficult.",
+      "I’m happy to share that LENS is now available in English, Chinese, Spanish, Portuguese, French and Arabic."
+    ],
+    "tags": [
+      "Archive updates"
+    ],
+    "links": [
+      {
+        "label": "Browse the collection",
+        "href": "/browse/"
+      }
+    ],
+    "published": true
+  },
+  {
     "slug": "small-spaces-to-linger-in",
     "title": "Small spaces to linger in",
     "date": "2026-10-25",

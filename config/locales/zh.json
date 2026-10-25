@@ -1258,5 +1258,9 @@
   "Added Simplified Chinese, Spanish and Brazilian Portuguese versions of the archive, including project information, viewing guidance and Journal entries.": "新增简体中文、西班牙语及巴西葡萄牙语版本，涵盖项目资料、观看说明和札记。",
   "Added a language selector with a Codex translation notice; switching languages keeps the current page and selected viewpoint.": "新增语言选择入口及 Codex 翻译声明；切换语言时保留当前页面和所选视点。",
   "Enabled searching translated project and viewpoint terms.": "支持使用翻译后的项目与视点相关词语进行搜索。",
-  "Added a Simplified / Traditional Chinese switch beside the language selector on Chinese pages.": "在中文页面的语言按钮旁新增简繁切换。"
+  "Added a Simplified / Traditional Chinese switch beside the language selector on Chinese pages.": "在中文页面的语言按钮旁新增简繁切换。",
+  "LENS in more languages": "LENS 的多语言版本",
+  "As LENS has begun to attract users from around the world, I’ve been thinking about how a public database should accommodate people who use different languages. With AI assistance, providing multilingual versions with reasonably accurate translations is no longer so difficult.": "随着 LENS 开始迎来世界各地的使用者，我开始思考，作为一个公共数据库，它应该能够照顾使用不同语言的人。有了 AI 的助力，提供多语言版本并让翻译大致准确，也没有那么困难了。",
+  "I’m happy to share that LENS is now available in English, Chinese, Spanish, Portuguese, French and Arabic.": "很高兴告诉大家，LENS 现已提供英语、中文、西班牙语、葡萄牙语、法语和阿拉伯语版本。",
+  "Added Chinese, Spanish, Portuguese, French and Arabic versions of the archive, including project information, viewing guidance and Journal entries.": "新增中文、西班牙语、葡萄牙语、法语和阿拉伯语版本，涵盖项目信息、观看指南及札记。"
 }

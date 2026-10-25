@@ -9,7 +9,7 @@
   <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=Noto+Sans+Arabic:wght@400;500;600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
@@ -103,8 +103,12 @@
     .view-info { display: none; position: relative; margin-left: 8px; vertical-align: middle; font-size: 11px; font-weight: 400; color: var(--fg3); }
     @media (hover: hover) and (pointer: fine) and (min-width: 721px) { .view-info { display: inline-flex; } }
     .view-info-icon { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border: 1px solid currentColor; border-radius: 50%; font-style: normal; }
-    .view-info-text { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 10px); left: -12px; width: min(300px, 55vw); padding: 12px 14px; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,.12); font-size: 12px; line-height: 1.5; text-align: left; z-index: 20; pointer-events: none; transition: opacity .15s; }
+    .view-info-text { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 10px); inset-inline-start: -12px; width: min(300px, 55vw); padding: 12px 14px; background: var(--bg); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; box-shadow: 0 4px 16px rgba(0,0,0,.12); font-size: 12px; line-height: 1.5; text-align: start; z-index: 20; pointer-events: none; transition: opacity .15s; }
     .view-info:hover .view-info-text, .view-info:focus .view-info-text { visibility: visible; opacity: 1; }
+  html[dir="rtl"] body {font-family:"Noto Sans Arabic",Tahoma,sans-serif;}
+    html[dir="rtl"] .brand-descriptor {border-left:0;border-right:1px solid var(--border);margin-left:0;margin-right:2px;padding-left:0;padding-right:10px;}
+    html[dir="rtl"] svg {direction:ltr;}
+    html[dir="rtl"] [translate="no"] {unicode-bidi:isolate;}
   </style>
 </head>
 <body>
@@ -712,7 +716,7 @@ function Nav({ view, onNav, onSearch, searchQuery, path }) {
         <LanguageSelector pagePath={path} />
         <ChineseScriptToggle pagePath={path} />
         <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <svg style={{ position: 'absolute', left: 10, color: 'var(--fg4)', pointerEvents: 'none' }} width={12} height={12} viewBox="0 0 16 16" fill="none">
+          <svg style={{ position: 'absolute', insetInlineStart: 10, color: 'var(--fg4)', pointerEvents: 'none' }} width={12} height={12} viewBox="0 0 16 16" fill="none">
             <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5"/>
             <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
@@ -721,7 +725,7 @@ function Nav({ view, onNav, onSearch, searchQuery, path }) {
             onChange={e => onSearch(e.target.value)}
             placeholder="Search"
             style={{
-              paddingLeft: 28, paddingRight: 12, paddingTop: 7, paddingBottom: 7,
+              paddingInlineStart: 28, paddingInlineEnd: 12, paddingTop: 7, paddingBottom: 7,
               border: '1px solid var(--border)', borderRadius: 0,
               background: 'transparent', fontFamily: 'Inter, sans-serif',
               fontSize: 12, color: 'var(--fg)', outline: 'none',
@@ -751,7 +755,7 @@ function Nav({ view, onNav, onSearch, searchQuery, path }) {
       </div>
       {isNarrow && menuOpen && (
         <div style={{
-          position: 'absolute', top: 64, right: 16,
+          position: 'absolute', top: 64, insetInlineEnd: 16,
           background: 'var(--bg)',
           border: '1px solid var(--border)',
           boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
@@ -1146,10 +1150,10 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
           <div role="group" aria-label="Browse projects or views" style={{display:'flex',border:'1px solid var(--border)'}}>
             {['projects','views'].map(mode=><button key={mode} aria-pressed={browseMode===mode} onClick={()=>{setBrowseMode(mode);if(mode==='views') dismissViewHint();}} style={{fontFamily:'Inter, sans-serif',fontSize:12,padding:'8px 12px',border:0,cursor:'pointer',background:browseMode===mode?'var(--fg)':'transparent',color:browseMode===mode?'var(--bg)':'var(--fg3)'}}>{mode==='projects'?'Projects':'Views'}</button>)}
           </div>
-          {showViewHint && <div role="status" style={{position:'absolute',top:'calc(100% + 10px)',left:0,width:214,maxWidth:'calc(100vw - 48px)',boxSizing:'border-box',padding:'10px 28px 10px 12px',background:'#fff',color:'var(--fg2)',border:'1px solid var(--border)',borderRadius:6,boxShadow:'0 3px 10px rgba(0,0,0,.045)',zIndex:5,fontSize:11,lineHeight:1.5}}>
+          {showViewHint && <div role="status" style={{position:'absolute',top:'calc(100% + 10px)',insetInlineStart:0,width:214,maxWidth:'calc(100vw - 48px)',boxSizing:'border-box',paddingBlock:10,paddingInlineStart:12,paddingInlineEnd:28,background:'#fff',color:'var(--fg2)',border:'1px solid var(--border)',borderRadius:6,boxShadow:'0 3px 10px rgba(0,0,0,.045)',zIndex:5,fontSize:11,lineHeight:1.5}}>
             <span>Try <strong style={{fontWeight:600}}>Views</strong> to browse individual viewpoints.</span>
-            <button aria-label="Dismiss viewing tip" onClick={dismissViewHint} style={{position:'absolute',top:7,right:8,border:0,background:'none',padding:2,color:'inherit',opacity:.65,fontSize:16,cursor:'pointer'}}>×</button>
-            <span aria-hidden="true" style={{position:'absolute',bottom:'calc(100% - 5px)',left:92,width:10,height:10,background:'#fff',borderTop:'1px solid #b8b8b8',borderLeft:'1px solid #b8b8b8',transform:'rotate(45deg)'}}/>
+            <button aria-label="Dismiss viewing tip" onClick={dismissViewHint} style={{position:'absolute',top:7,insetInlineEnd:8,border:0,background:'none',padding:2,color:'inherit',opacity:.65,fontSize:16,cursor:'pointer'}}>×</button>
+            <span aria-hidden="true" style={{position:'absolute',bottom:'calc(100% - 5px)',insetInlineStart:92,width:10,height:10,background:'#fff',borderTop:'1px solid #b8b8b8',borderLeft:'1px solid #b8b8b8',transform:'rotate(45deg)'}}/>
           </div>}
           </div>
           <select
@@ -2324,9 +2328,9 @@ function Journal() {
       .journal-topic{font:inherit;font-size:12px;border:0;background:transparent;padding:8px 10px;color:var(--fg3);cursor:pointer}
       .journal-topic[aria-pressed=true]{background:var(--accent-dim);color:var(--accent)}
       .journal-layout{display:grid;grid-template-columns:108px minmax(0,1fr);gap:36px;align-items:start}
-      .journal-timeline{position:sticky;top:110px;border-left:1px solid var(--border);display:flex;flex-direction:column;gap:20px;padding:8px 0}
-      .journal-timeline button{position:relative;text-align:left;background:none;border:0;padding:0 0 0 18px;font:inherit;font-size:12px;color:var(--fg3);cursor:pointer}
-      .journal-timeline button:before{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:var(--border);left:-3px;top:5px}
+      .journal-timeline{position:sticky;top:110px;border-inline-start:1px solid var(--border);display:flex;flex-direction:column;gap:20px;padding:8px 0}
+      .journal-timeline button{position:relative;text-align:start;background:none;border:0;padding:0;padding-inline-start:18px;font:inherit;font-size:12px;color:var(--fg3);cursor:pointer}
+      .journal-timeline button:before{content:"";position:absolute;width:5px;height:5px;border-radius:50%;background:var(--border);inset-inline-start:-3px;top:5px}
       .journal-timeline button[aria-pressed=true]{color:var(--accent)}
       .journal-timeline button[aria-pressed=true]:before{background:var(--accent)}
       .journal-wall{min-width:0}
@@ -2354,7 +2358,7 @@ function Journal() {
       .journal-links{display:flex;flex-direction:column;gap:10px;margin-top:20px}
       .journal-links a{font-size:13px;color:var(--accent);line-height:1.5}
       @media(max-width:1050px){.journal-month-cards{gap:40px}.journal-layout{gap:24px;grid-template-columns:90px minmax(0,1fr)}}
-      @media(max-width:640px){.journal-page{padding-top:104px}.journal-layout{display:block}.journal-timeline{position:static;flex-direction:row;flex-wrap:wrap;border-left:0;border-bottom:1px solid var(--border);padding:0 0 18px;margin-bottom:24px}.journal-timeline button{padding-left:12px}.journal-timeline button:before{left:0}.journal-month-cards{grid-template-columns:1fr;gap:36px}.journal-note:nth-child(even){margin-top:0}.journal-month{margin-bottom:56px}.journal-search{width:100%}.journal-tools{margin-bottom:32px}}
+      @media(max-width:640px){.journal-page{padding-top:104px}.journal-layout{display:block}.journal-timeline{position:static;flex-direction:row;flex-wrap:wrap;border-inline-start:0;border-bottom:1px solid var(--border);padding:0 0 18px;margin-bottom:24px}.journal-timeline button{padding-inline-start:12px}.journal-timeline button:before{inset-inline-start:0}.journal-month-cards{grid-template-columns:1fr;gap:36px}.journal-note:nth-child(even){margin-top:0}.journal-month{margin-bottom:56px}.journal-search{width:100%}.journal-tools{margin-bottom:32px}}
     `}</style>
     {JOURNAL_POSTS.some(post=>post.demo) && <p style={{fontSize:12,color:'var(--accent)',marginBottom:20}}>LOCAL DESIGN PREVIEW · Sample notes, not published announcements</p>}
     <header className="journal-heading"><h1>Journal</h1><p style={{fontSize:15,lineHeight:1.6,color:'var(--fg3)'}}>Field notes, new recordings and small updates.</p></header>
@@ -2549,7 +2553,7 @@ const WEBSITE_RELEASES = [
     "October 25, 2026",
     "Multilingual archive",
     [
-      "Added Simplified Chinese, Spanish and Brazilian Portuguese versions of the archive, including project information, viewing guidance and Journal entries.",
+      "Added Chinese, Spanish, Portuguese, French and Arabic versions of the archive, including project information, viewing guidance and Journal entries.",
       "Added a language selector with a Codex translation notice; switching languages keeps the current page and selected viewpoint.",
       "Enabled searching translated project and viewpoint terms.",
       "Added a Simplified / Traditional Chinese switch beside the language selector on Chinese pages."
@@ -2777,10 +2781,10 @@ function CitationControl() {
         <h2 id="citation-heading" style={{fontSize:16, fontWeight:500, margin:0}}>Cite LENS</h2>
         <button type="button" aria-label="Close citation" onClick={() => dialog.current.close()} style={{font:'inherit', fontSize:22, color:'var(--fg2)', border:0, background:'none', cursor:'pointer', padding:'0 4px'}}>×</button>
       </div>
-      <div role="tablist" aria-label="Citation style" style={{display:'flex', gap:4, borderBottom:'1px solid var(--border)', marginBottom:16}}>
+      <div role="tablist" dir="ltr" aria-label="Citation style" style={{display:'flex', gap:4, borderBottom:'1px solid var(--border)', marginBottom:16}}>
         {styles.map((name, index) => <button key={name} type="button" role="tab" id={`citation-tab-${index}`} aria-selected={style === name} aria-controls="citation-content" tabIndex={style === name ? 0 : -1} onClick={() => chooseStyle(name)} onKeyDown={e => handleTabKey(e, index)} style={{font:'inherit', fontSize:12, padding:'8px 12px', border:0, borderBottom:style === name ? '2px solid var(--accent)' : '2px solid transparent', background:'none', color:style === name ? 'var(--fg)' : 'var(--fg3)', cursor:'pointer'}}>{name}</button>)}
       </div>
-      <p role="tabpanel" id="citation-content" translate="no" aria-labelledby={`citation-tab-${styles.indexOf(style)}`} ref={text} style={{fontSize:13, lineHeight:1.7, color:'var(--fg2)', overflowWrap:'anywhere', margin:'0 0 20px'}}>{citation.slice(0, titleStart)}<em>{citation.slice(titleStart, titleEnd)}</em>{citation.slice(titleEnd)}</p>
+      <p role="tabpanel" id="citation-content" dir="ltr" translate="no" aria-labelledby={`citation-tab-${styles.indexOf(style)}`} ref={text} style={{fontSize:13, lineHeight:1.7, color:'var(--fg2)', overflowWrap:'anywhere', margin:'0 0 20px'}}>{citation.slice(0, titleStart)}<em>{citation.slice(titleStart, titleEnd)}</em>{citation.slice(titleEnd)}</p>
       <button type="button" onClick={copyCitation} style={{font:'inherit', fontSize:12, padding:'8px 14px', border:'1px solid var(--border)', borderRadius:6, background:'var(--bg2)', color:'var(--fg)', cursor:'pointer'}}>{copied ? 'Copied' : 'Copy citation'}</button>
       <span role="status" style={{position:"absolute",width:1,height:1,overflow:"hidden",clipPath:"inset(50%)"}}>{copied ? 'Citation copied to clipboard.' : ''}</span>
     </dialog>

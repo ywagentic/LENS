@@ -17,7 +17,7 @@ for (const post of journal) {
  if (post.image && !/^\/assets\/(journal|projects)\//.test(post.image)) throw new Error('Journal images must be local');
 }
 const upcomingProjects = JSON.parse(await readFile('config/upcoming-projects.json', 'utf8'));
-const translations = Object.fromEntries(await Promise.all(['zh','es','pt'].map(async code => [code, JSON.parse(await readFile(`config/locales/${code}.json`, 'utf8'))])));
+const translations = Object.fromEntries(await Promise.all(['zh','es','pt','fr','ar'].map(async code => [code, JSON.parse(await readFile(`config/locales/${code}.json`, 'utf8'))])));
 const toTraditional = OpenCC.Converter({from:'cn',to:'t'});
 translations['zh-hant'] = Object.fromEntries(Object.entries(translations.zh).map(([key,value])=>[key,toTraditional(value)]));
 const i18n = (await readFile('scripts/i18n.jsx','utf8')).replace('const LENS_MESSAGES = {};', 'const LENS_MESSAGES = '+JSON.stringify(translations).replaceAll('<','\\u003c')+';');
@@ -79,7 +79,7 @@ for(const route of [...localizedRoutes,{locale:'en',path:'/404/',title:'Page not
   {'@type':route.project?'WebPage':(['home','browse','atlas'].includes(route.view)?'CollectionPage':'WebPage'),'@id':url+'#webpage',url,name:pageTitle,description:pageDescription,inLanguage:LENS_LANGUAGES[route.locale].tag,isPartOf:{'@id':origin+'/#website'},...(route.project?{about:{'@type':'Place',name:route.project.title,address:route.project.location,url,...(route.project.coordinates?{geo:{'@type':'GeoCoordinates',latitude:Number(route.project.coordinates.split(',')[0]),longitude:Number(route.project.coordinates.split(',')[1])}}:{})}}:{})}
  ]};
  const metadata = `<title>${escape(pageTitle)}</title><meta name="description" content="${escape(pageDescription)}"><link rel="canonical" href="${url}"><meta name="robots" content="${(route.missing || process.env.LENS_JOURNAL_FILE)?'noindex, follow':'index, follow'}"><meta property="og:type" content="website"><meta property="og:site_name" content="LENS"><meta property="og:title" content="${escape(pageTitle)}"><meta property="og:description" content="${escape(pageDescription)}"><meta property="og:url" content="${url}"><meta property="og:image" content="${escape(picture)}"><meta name="twitter:card" content="${route.project?'summary_large_image':'summary'}"><script type="application/ld+json">${json(schema)}</script>`;
- const html = `<!DOCTYPE html><html lang="${LENS_LANGUAGES[route.locale].tag}"><head>${head}${metadata}${alternates}</head><body><div id="root">${renderToString(React.createElement(App,{initialProjects:projects,initialPath:route.path}))}</div><script id="catalogue-data" type="application/json">${json(projects)}</script><script defer src="${js}"></script>${(route.missing || process.env.LENS_JOURNAL_FILE) ? '' : analytics}</body></html>`;
+ const html = `<!DOCTYPE html><html lang="${LENS_LANGUAGES[route.locale].tag}" dir="${route.locale==='ar'?'rtl':'ltr'}"><head>${head}${metadata}${alternates}</head><body><div id="root">${renderToString(React.createElement(App,{initialProjects:projects,initialPath:route.path}))}</div><script id="catalogue-data" type="application/json">${json(projects)}</script><script defer src="${js}"></script>${(route.missing || process.env.LENS_JOURNAL_FILE) ? '' : analytics}</body></html>`;
  const file = route.missing?'dist/404.html':`dist${route.path}index.html`;
  await mkdir(file.slice(0,file.lastIndexOf('/')),{recursive:true});await writeFile(file,html);
 }
