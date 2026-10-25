@@ -533,12 +533,13 @@
         ]
       },
       {
-        "label": "Tree-shaded Street",
+        "label": "Tree Plaza",
         "vrId": "RzDVz5Vgcmw",
-        "description": "An immersive 360° VR experience on a tree-shaded pedestrian street in Yongqing Fang, Guangzhou. Brick façades and storefronts line the lane, with seating and a narrow water feature along its edge. Filmed during summer 2025.",
+        "description": "An immersive 360° VR experience in a small plaza organized around a large tree in Yongqing Fang, Guangzhou. Stepped seating wraps around the tree, with a cascading water feature beside the seating and storefronts enclosing the space. Filmed during summer 2025.",
         "height": "Standing",
         "code": "0301-02",
         "spaceTypes": [
+          "Plaza",
           "Seating",
           "Water Feature",
           "Wall"
