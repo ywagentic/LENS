@@ -16,7 +16,7 @@ for(const [code,dict] of Object.entries(dictionaries)){
  assert.equal(lensLocalePath('/es/browse/'),`/${code}/browse/`);
  assert.equal(lensLocalePath('/assets/projects/test.jpg'),'/assets/projects/test.jpg');
  assert.equal(lensLocalePath('https://youtube.com/watch?v=abcdefghijk'),'https://youtube.com/watch?v=abcdefghijk');
- assert.equal(lensText('37 Views'),`37 ${dict['Views']}`);
+ assert.equal(lensText('37 Views'),code==='ar'?`${dict['Views']}: 37`:`37 ${dict['Views']}`);
  assert.equal(lensStripLocale(`/${code}/about/`),'/about/');
  assert(lensSearchText(['Seated view']).includes(dict['Seated view'].toLocaleLowerCase()));
  const page=fs.readFileSync(`dist/${code}/about/index.html`,'utf8');
@@ -120,3 +120,13 @@ for(const locale of Object.keys(dictionaries)){
 }
 for(const key of ['Show less −','For clearer playback on Quest, open YouTube VR from your app library and find this recording there. This link opens the YouTube website.','Online submission is not available yet. Please email your file link and details to wang@unl.edu.','We could not confirm receipt. Your entries are still here. You can retry, or email wang@unl.edu to check before sending again.'])for(const [locale,dict] of Object.entries(dictionaries))assert(dict[key]&&dict[key]!==key,`Missing ${locale} interaction-state translation: ${key}`);
 console.log('PASS: protocol, wishlist and submission panel copy, plus hidden interaction states, covered in every dictionary.');
+
+lensSetLocale('ar');
+for(const count of [0,1,2,5,12,29,100]){
+ assert.equal(lensText(`${count} views`),`${dictionaries.ar.Views}: ${count}`);
+ assert.equal(lensText(`${count} projects`),`${dictionaries.ar.Projects}: ${count}`);
+}
+assert.equal(lensText('29 views · 12 projects'),`${dictionaries.ar.Views}: 29 · ${dictionaries.ar.Projects}: 12`);
+console.log('PASS: Arabic count labels preserve values without incorrect number-dependent inflection.');
+
+assert.equal(lensText('Green · Available'),dictionaries.ar['Green · Available'],'Existing translated composite labels must keep their full translation');

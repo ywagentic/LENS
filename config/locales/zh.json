@@ -1294,5 +1294,6 @@
   "Completed missing translations in contribution guides, submission forms and interactive help.": "补齐贡献指南、投稿表单和交互帮助中遗漏的翻译。",
   "Fixed browser back and forward navigation for contribution subpages, while preserving the current section when switching languages.": "修复贡献区次级页面的浏览器前进、后退，并在切换语言时保留当前页面。",
   "Fixed page scrolling and navigation height so page content and footers remain accessible.": "修复页面滚动和导航栏高度，确保正文和页尾可以正常查看。",
-  "Archiposition — Project article": "有方 — 项目报道"
+  "Archiposition — Project article": "有方 — 项目报道",
+  "Refined Arabic translations for more natural phrasing and consistent terminology.": "调整阿拉伯语译文，使表达更自然、术语更一致。"
 }

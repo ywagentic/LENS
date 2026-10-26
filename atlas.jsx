@@ -483,6 +483,7 @@ function AtlasCollectionStats({ projects }) {
   const published = projects.filter(isPublished);
   const upcoming = projects.filter(isUpcoming).length;
   const clips = published.reduce((total, project) => total + (project.captures || []).length, 0);
+  if(lensLocale==='ar')return <p aria-label="Archive statistics" style={{fontSize:13,color:'var(--fg3)',lineHeight:1.5,marginTop:12}}>{`${lensText('Projects')}: ${published.length} · ${lensText('Views')}: ${clips}${upcoming>0?' · '+lensText('Upcoming')+': '+upcoming:''}`}</p>;
   return <p aria-label="Archive statistics" style={{fontSize:13,color:'var(--fg3)',lineHeight:1.5,marginTop:12}}>
     <span style={{color:'var(--fg)'}}>{published.length}</span> Projects
     <span aria-hidden="true"> · </span>

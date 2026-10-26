@@ -23,6 +23,15 @@ function lensText(value, locale=lensLocale) {
   const key=value.trim().replace(/\s+/g,' ');
   if(!key)return value;
   if(key==='s'&&(locale.startsWith('zh')||locale==='ar'))return '';
+  if(locale==='ar') {
+    if(key.includes(' · ')&&LENS_MESSAGES[locale]?.[key]===undefined)return value.split(' · ').map(part=>lensText(part,locale)).join(' · ');
+    const count=key.match(/^(\d+)\s+(views?|projects?|notes?|upcoming)$/i);
+    if(count) {
+      const noun=count[2].toLowerCase();
+      const label=/^view/.test(noun)?'Views':/^project/.test(noun)?'Projects':/^note/.test(noun)?'notes':'Upcoming';
+      return lensText(label,locale)+': '+count[1];
+    }
+  }
   const translated=LENS_MESSAGES[locale]?.[key];
   if(translated===undefined) {
     if(key.startsWith('Show ')&&key.endsWith(' in list'))return lensText('Show {name} in list',locale).replace('{name}',lensText(key.slice(5,-8),locale));

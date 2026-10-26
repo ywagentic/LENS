@@ -1095,7 +1095,7 @@ function CompactFilter({label, options, active, onChange, accent}) {
   return <div style={{minWidth:0,flex:'1 1 100%'}}>
     <div style={{fontSize:11,letterSpacing:'.04em',color:'var(--fg3)',textTransform:'uppercase',marginBottom:12}}>{label}</div>
     <div ref={root} style={{position:'relative',maxWidth:720,display:'flex',gap:12,alignItems:'flex-start'}}>
-      <div ref={measure} aria-hidden="true" inert="" style={{position:'absolute',visibility:'hidden',display:'flex',gap:6,width:'max-content',pointerEvents:'none'}}>{ordered.map(t=><Tag key={t} label={t} active={active===t} accent={accent}/>)}</div>
+      <div aria-hidden="true" inert="" style={{position:'absolute',inset:0,overflow:'hidden',visibility:'hidden',pointerEvents:'none'}}><div ref={measure} style={{display:'flex',gap:6,width:'max-content'}}>{ordered.map(t=><Tag key={t} label={t} active={active===t} accent={accent}/>)}</div></div>
       <div role="group" aria-label={label} style={{display:'flex',gap:6,flexWrap:'wrap',minWidth:0,flex:1}}>{(expanded?ordered:ordered.slice(0,limit)).map(t=><Tag key={t} label={t} active={active===t} onClick={()=>onChange(t)} accent={accent}/>)}</div>
       {limit<ordered.length && <button aria-expanded={expanded} aria-label={(expanded?'Show fewer ':'Show more ')+label.toLowerCase()} onClick={()=>setExpanded(!expanded)} style={{fontFamily:'Inter, sans-serif',fontSize:11,color:'var(--fg3)',background:'none',border:0,padding:'8px 0',whiteSpace:'nowrap',cursor:'pointer',flexShrink:0}}>{expanded?'Show less −':'Show more +'}</button>}
     </div>
@@ -2560,7 +2560,8 @@ const WEBSITE_RELEASES = [
     [
       "Completed missing translations in contribution guides, submission forms and interactive help.",
       "Fixed browser back and forward navigation for contribution subpages, while preserving the current section when switching languages.",
-      "Fixed page scrolling and navigation height so page content and footers remain accessible."
+      "Fixed page scrolling and navigation height so page content and footers remain accessible.",
+      "Refined Arabic translations for more natural phrasing and consistent terminology."
     ]
   ],
   [

@@ -1294,5 +1294,6 @@
   "Completed missing translations in contribution guides, submission forms and interactive help.": "Se completaron las traducciones que faltaban en las guías de contribución, los formularios de envío y la ayuda interactiva.",
   "Fixed browser back and forward navigation for contribution subpages, while preserving the current section when switching languages.": "Se corrigió la navegación hacia atrás y adelante del navegador en las subpáginas de contribución, conservando la sección actual al cambiar de idioma.",
   "Fixed page scrolling and navigation height so page content and footers remain accessible.": "Se corrigieron el desplazamiento de las páginas y la altura de la navegación para mantener accesibles el contenido y el pie de página.",
-  "Archiposition — Project article": "Archiposition — Artículo del proyecto"
+  "Archiposition — Project article": "Archiposition — Artículo del proyecto",
+  "Refined Arabic translations for more natural phrasing and consistent terminology.": "Se revisaron las traducciones al árabe para lograr una redacción más natural y una terminología coherente."
 }
