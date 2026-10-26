@@ -277,6 +277,9 @@ function normalizeProjects(data) {
       p.links = [...(p.links || [])];
       if (!p.links.some(link => link.url === fact.url)) p.links.push({label:fact.label,url:fact.url});
     }
+    if (Number(p.id) === 21) {
+      p.links = [...(p.links || []).filter(link => !link.url.includes('archiposition.com/items/20250617102853')), {label:'Archiposition — Project article',url:'https://www.archiposition.com/items/20250617102853'}];
+    }
     if (Number(p.id) === 17) p.description = (p.description || '').replace(/pergola/gi, 'canopy');
     p.types = projectTypes(p);
     p.type = p.types.join(' · ');

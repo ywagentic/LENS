@@ -1293,5 +1293,6 @@
   "Bug fixes": "إصلاحات الأخطاء",
   "Completed missing translations in contribution guides, submission forms and interactive help.": "استُكملت الترجمات الناقصة في أدلة المساهمة ونماذج الإرسال والمساعدة التفاعلية.",
   "Fixed browser back and forward navigation for contribution subpages, while preserving the current section when switching languages.": "أُصلح الرجوع والتقدم في المتصفح ضمن صفحات المساهمة الفرعية، مع الحفاظ على القسم الحالي عند تبديل اللغة.",
-  "Fixed page scrolling and navigation height so page content and footers remain accessible.": "أُصلح تمرير الصفحات وارتفاع شريط التنقل لضمان إمكانية الوصول إلى المحتوى وتذييلات الصفحات."
+  "Fixed page scrolling and navigation height so page content and footers remain accessible.": "أُصلح تمرير الصفحات وارتفاع شريط التنقل لضمان إمكانية الوصول إلى المحتوى وتذييلات الصفحات.",
+  "Archiposition — Project article": "Archiposition — مقال عن المشروع"
 }
