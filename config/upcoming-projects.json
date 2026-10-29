@@ -19,13 +19,14 @@
       {
         "code": "0502-01",
         "label": "Terraced Steps",
-        "description": "An immersive 360° VR experience from a seated position on the terraced steps at Sigma Sigma Commons, University of Cincinnati. The view looks across the campus landscape, with open lawns and university buildings beyond. Filmed during spring 2026. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
-        "height": "Seated",
+        "description": "An immersive 360° VR experience from a seated position on the terraced steps at Sigma Sigma Commons, University of Cincinnati. The view looks across the campus landscape, with open lawns and university buildings beyond. Filmed during spring 2026. Recorded while seated on the ground. For optimum immersion and scale perception, please view this while seated on the ground.",
+        "height": "Ground-seated",
         "spaceTypes": [
           "Seated view",
           "Seating",
           "Topography",
-          "Amphitheater"
+          "Amphitheater",
+          "Ground-seated view"
         ],
         "vrId": "oxPukrAsPUc",
         "thumb": "/assets/projects/views/0502-01-v3.jpg"
@@ -759,14 +760,15 @@
       {
         "code": "1101-01",
         "label": "Fountain — Stepped Seating",
-        "description": "An immersive 360° VR experience from the curved stepped seating overlooking Bill Naito Legacy Fountain in Portland’s Waterfront Park. Water jets cross the shallow fountain plaza below, with the Saturday Market pavilion and Burnside Bridge nearby. Filmed during spring 2026. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
-        "height": "Seated",
+        "description": "An immersive 360° VR experience from the curved stepped seating overlooking Bill Naito Legacy Fountain in Portland’s Waterfront Park. Water jets cross the shallow fountain plaza below, with the Saturday Market pavilion and Burnside Bridge nearby. Filmed during spring 2026. Recorded while seated on the ground. For optimum immersion and scale perception, please view this while seated on the ground.",
+        "height": "Ground-seated",
         "spaceTypes": [
           "Plaza",
           "Water Feature",
           "Seating",
           "Amphitheater",
-          "Seated view"
+          "Seated view",
+          "Ground-seated view"
         ],
         "vrId": "fs4icvUC67Q",
         "thumb": "/assets/projects/bill-naito-legacy-fountain.jpg",
@@ -775,13 +777,14 @@
       {
         "code": "1101-02",
         "label": "Fountain-Level Seating",
-        "description": "An immersive 360° VR experience at the lower edge of Bill Naito Legacy Fountain in Portland’s Waterfront Park. The view looks across the water jets and curved seating terraces, with the riverfront promenade beyond. Filmed during spring 2026. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
-        "height": "Seated",
+        "description": "An immersive 360° VR experience at the lower edge of Bill Naito Legacy Fountain in Portland’s Waterfront Park. The view looks across the water jets and curved seating terraces, with the riverfront promenade beyond. Filmed during spring 2026. Recorded while seated on the ground. For optimum immersion and scale perception, please view this while seated on the ground.",
+        "height": "Ground-seated",
         "spaceTypes": [
           "Plaza",
           "Water Feature",
           "Seating",
-          "Seated view"
+          "Seated view",
+          "Ground-seated view"
         ],
         "vrId": "ddPO_Ej6FCY",
         "thumb": "/assets/projects/views/1101-02-fountain-level-seating.jpg",
