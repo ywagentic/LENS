@@ -100,6 +100,7 @@
     @media(min-width:1680px){html[lang="es"] .brand-descriptor,html[lang="pt-BR"] .brand-descriptor{display:inline-block}}
     .brand-descriptor { display: none; border-left: 1px solid var(--border); margin-left: 2px; padding-left: 10px; font-size: 12px; font-weight: 400; letter-spacing: 0; line-height: 20px; color: var(--fg3); }
     @media (min-width: 1400px) { .brand-descriptor { display: inline-block; } }
+    @media (max-width: 600px) { .viewpoint-option { grid-template-columns: 26px minmax(0, 1fr) !important; gap: 12px !important; padding: 14px 12px !important; } .viewpoint-option > :nth-child(3), .viewpoint-option > :nth-child(4) { display: none; } .viewpoint-option > :nth-child(2) { min-width: 0; } }
     .view-info { display: none; position: relative; margin-inline-start: 8px; vertical-align: middle; font-size: 11px; font-weight: 400; color: var(--fg3); }
     @media (hover: hover) and (pointer: fine) and (min-width: 721px) { .view-info { display: inline-flex; } }
     .view-info-icon { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border: 1px solid currentColor; border-radius: 50%; font-style: normal; }
@@ -1257,6 +1258,9 @@ function youtubeDestination(capture, nav = (typeof navigator !== 'undefined' ? n
   };
 }
 const YOUTUBE_SEARCH_TITLES = {
+  'CGGvCd3bLVA': 'Shenzhen OCT Harbour / Main Plaza Splash Fountain | 360° VR | 0402-01',
+  'fs4icvUC67Q': 'Portland Bill Naito Legacy Fountain / Stepped Seating | 360° VR | 1101-01',
+  'ddPO_Ej6FCY': 'Portland Bill Naito Legacy Fountain / Fountain-Level Seating | 360° VR | 1101-02',
   'LyDzEM_xB78': 'Cincinnati University of Cincinnati / Boulder Seating Area | 360° VR | 0502-02',
   'oxPukrAsPUc': 'Cincinnati University of Cincinnati / Terraced Steps | 360° VR | 0502-01',
   'eJ2lxTA2ygE': 'Rome Circo Massimo / Long View | 360° VR | 1001-01',
@@ -1444,6 +1448,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
               return (
                 <button
                   key={i}
+                  className="viewpoint-option"
                   onClick={() => { setActiveIdx(i); const url = new URL(window.location.href); url.searchParams.set('view',c.vrId); window.history.replaceState(null,'',url.pathname+url.search+url.hash); }}
                   style={{
                     display: 'grid',
@@ -2540,7 +2545,7 @@ function About({ projectCount, clipCount, projects }) {
 // ─── APP ─────────────────────────────────────────────────────────────────────
 const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/', journal: '/journal/', releases: '/releases/' };
 function projectPath(project) {
-  const slug = { 32: 'reinvent-waterfall-garden', 31: 'amazon-reinvent-plaza', 29: 'circo-massimo', 30: 'portland-airport-main-terminal', 16: 'freeway-park', 25: 'university-of-cincinnati-campus', 26: 'fountain-square', 27: 'luxelakes-cpi-island', 28: 'luxelakes-love-island', 21: 'shenzhen-talent-park-phase-ii', 24: 'oct-harbour', 23: 'the-broad', 22: 'tongva-park', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
+  const slug = { 33: 'bill-naito-legacy-fountain', 32: 'reinvent-waterfall-garden', 31: 'amazon-reinvent-plaza', 29: 'circo-massimo', 30: 'portland-airport-main-terminal', 16: 'freeway-park', 25: 'university-of-cincinnati-campus', 26: 'fountain-square', 27: 'luxelakes-cpi-island', 28: 'luxelakes-love-island', 21: 'shenzhen-talent-park-phase-ii', 24: 'oct-harbour', 23: 'the-broad', 22: 'tongva-park', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
   return `/projects/${slug}/`;
 }
 function resolveRoute(path, projects) {

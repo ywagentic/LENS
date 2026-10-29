@@ -1,5 +1,32 @@
 [
   {
+    "slug": "two-fountain-plazas",
+    "title": "Two fountain plazas",
+    "date": "2026-10-28",
+    "dateLabel": "October 2026",
+    "paragraphs": [
+      "Three new views are now online: one at OCT Harbour in Shenzhen and two at Bill Naito Legacy Fountain in Portland. At OCT Harbour, the splash fountain draws children and families into the main plaza. In Portland, curved steps provide places to sit around the water; the two recordings show the fountain from different levels."
+    ],
+    "tags": [
+      "Shenzhen",
+      "Portland",
+      "New recordings"
+    ],
+    "links": [
+      {
+        "label": "OCT Harbour",
+        "href": "/projects/oct-harbour/"
+      },
+      {
+        "label": "Bill Naito Legacy Fountain",
+        "href": "/projects/bill-naito-legacy-fountain/"
+      }
+    ],
+    "published": true,
+    "image": "/assets/projects/bill-naito-legacy-fountain.jpg",
+    "imageAlt": "Bill Naito Legacy Fountain"
+  },
+  {
     "slug": "lens-in-more-languages",
     "title": "LENS in more languages",
     "date": "2026-10-25",

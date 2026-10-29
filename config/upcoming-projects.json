@@ -636,5 +636,157 @@
     ],
     "description": "This small waterfall garden is part of Amazon’s re:Invent block in downtown Seattle. Designed by Site Workshop and completed in 2019, it combines a planted stair passage with seating terraces and a water feature cascading over board-formed concrete into a pool containing glacial erratics found during excavation.",
     "publishedAt": "2026-10-25"
+  },
+  {
+    "id": 24,
+    "votes": "0",
+    "title": "OCT Harbour",
+    "subtitle": "A waterfront public realm linking leisure spaces and a wetland preserve",
+    "location": "Shenzhen, China",
+    "year": 2011,
+    "designer": "SWA Group",
+    "type": "Waterfront · Commercial Space · Plaza",
+    "vrType": "360° Video",
+    "vrId": "CGGvCd3bLVA",
+    "description": "OCT Harbour, also known as OCT Bay, is a waterfront leisure district in Shenzhen. SWA provided master planning and landscape architecture for the wider site, combining urban development with a wetland and nature preserve. Palm-lined promenades, stepped lake edges and decks provide public spaces along the water. The approximately 125-hectare area refers to the overall development and nature preserve.",
+    "area": "125 ha (overall development and nature preserve)",
+    "color": "",
+    "thumb": "/assets/projects/oct-harbour.jpg",
+    "featured": false,
+    "dateCollected": "Summer 2025",
+    "contributor": "",
+    "coordinates": "22.526310, 113.982951",
+    "links": [
+      {
+        "label": "SWA Group",
+        "url": "https://www.swagroup.com/projects/oct-bay/"
+      },
+      {
+        "label": "Laguarda.Low project publication",
+        "url": "https://www.laguardalow.com/wp-content/uploads/2019/02/LLA-OCT-Bay-2018.pdf"
+      }
+    ],
+    "tag_Urban": "TRUE",
+    "tag_Water": "TRUE",
+    "tag_Ecological": "TRUE",
+    "tag_Planting": "TRUE",
+    "tag_Hardscape": "TRUE",
+    "tag_Restoration": "FALSE",
+    "tag_Adaptive_Reuse": "FALSE",
+    "tag_Tropical": "FALSE",
+    "tag_Infrastructure": "FALSE",
+    "tag_Prairie": "FALSE",
+    "visible": "1",
+    "captures": [
+      {
+        "code": "0402-01",
+        "label": "Main Plaza — Splash Fountain",
+        "description": "An immersive 360° VR experience in the main plaza at OCT Harbour, Shenzhen. Children and families play among the splash fountain jets, with red shade structures, palm trees and shops around the plaza. Filmed during summer 2025.",
+        "height": "Standing",
+        "spaceTypes": [
+          "Plaza",
+          "Water Feature",
+          "Play",
+          "Canopy"
+        ],
+        "vrId": "CGGvCd3bLVA",
+        "thumb": "/assets/projects/views/0402-01-splash-fountain.jpg",
+        "publishedAt": "2026-10-28"
+      }
+    ],
+    "expectedRelease": "",
+    "tags": [
+      "Urban",
+      "Water",
+      "Ecological",
+      "Planting",
+      "Hardscape"
+    ],
+    "vrTypes": [
+      "360° Video"
+    ],
+    "types": [
+      "Waterfront",
+      "Commercial Space",
+      "Plaza"
+    ],
+    "thumbIllustration": true,
+    "publishedAt": "2026-10-28"
+  },
+  {
+    "id": 33,
+    "title": "Bill Naito Legacy Fountain",
+    "subtitle": "An interactive fountain plaza beside Portland Saturday Market",
+    "location": "Portland, Oregon, USA",
+    "year": 2009,
+    "designer": "Walker Macy",
+    "type": "Plaza|Waterfront",
+    "types": [
+      "Plaza",
+      "Waterfront"
+    ],
+    "vrType": "360° Video",
+    "vrTypes": [
+      "360° Video"
+    ],
+    "vrId": "fs4icvUC67Q",
+    "visible": "1",
+    "area": "",
+    "thumb": "/assets/projects/bill-naito-legacy-fountain.jpg",
+    "thumbIllustration": true,
+    "featured": false,
+    "dateCollected": "Spring 2026",
+    "coordinates": "45.52225,-122.66970",
+    "tags": [
+      "Urban",
+      "Water",
+      "Hardscape"
+    ],
+    "publishedAt": "2026-10-28",
+    "links": [
+      {
+        "label": "Portland Parks",
+        "url": "https://www.portland.gov/parks/recreation/splash"
+      },
+      {
+        "label": "Project completion — Portland Development Commission",
+        "url": "https://prosperportland.us/wp-content/uploads/2016/08/Report-09-99.pdf"
+      }
+    ],
+    "description": "Bill Naito Legacy Fountain is a public water-play plaza in Portland’s Waterfront Park, beside Saturday Market and Burnside Bridge. Designed by Walker Macy and opened in 2009, the fountain combines shallow water jets with curved stepped seating.",
+    "plannedCaptures": [],
+    "captures": [
+      {
+        "code": "1101-01",
+        "label": "Fountain — Stepped Seating",
+        "description": "An immersive 360° VR experience from the curved stepped seating overlooking Bill Naito Legacy Fountain in Portland’s Waterfront Park. Water jets cross the shallow fountain plaza below, with the Saturday Market pavilion and Burnside Bridge nearby. Filmed during spring 2026. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
+        "height": "Seated",
+        "spaceTypes": [
+          "Plaza",
+          "Water Feature",
+          "Seating",
+          "Amphitheater",
+          "Seated view"
+        ],
+        "vrId": "fs4icvUC67Q",
+        "thumb": "/assets/projects/bill-naito-legacy-fountain.jpg",
+        "publishedAt": "2026-10-28"
+      },
+      {
+        "code": "1101-02",
+        "label": "Fountain-Level Seating",
+        "description": "An immersive 360° VR experience at the lower edge of Bill Naito Legacy Fountain in Portland’s Waterfront Park. The view looks across the water jets and curved seating terraces, with the riverfront promenade beyond. Filmed during spring 2026. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
+        "height": "Seated",
+        "spaceTypes": [
+          "Plaza",
+          "Water Feature",
+          "Seating",
+          "Seated view"
+        ],
+        "vrId": "ddPO_Ej6FCY",
+        "thumb": "/assets/projects/views/1101-02-fountain-level-seating.jpg",
+        "publishedAt": "2026-10-28"
+      }
+    ]
   }
 ]
