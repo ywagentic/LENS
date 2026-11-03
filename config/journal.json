@@ -1,5 +1,31 @@
 [
   {
+    "slug": "three-views-from-luxelakes",
+    "title": "Three views from Luxelakes",
+    "date": "2026-11-03",
+    "dateLabel": "November 2026",
+    "paragraphs": [
+      "I’ve added three recordings from Luxelakes in Chengdu, filmed during summer 2026. Two are on Love Island, beside a succulent garden path and a reflecting pool. The third is across the lake, where curved seating terraces form a place to pause along the residential waterfront."
+    ],
+    "tags": [
+      "Chengdu",
+      "New recordings"
+    ],
+    "links": [
+      {
+        "label": "Luxelakes Love Island",
+        "href": "/projects/luxelakes-love-island/"
+      },
+      {
+        "label": "Luxelakes Waterfront",
+        "href": "/projects/luxelakes-waterfront/"
+      }
+    ],
+    "published": true,
+    "image": "/assets/projects/views/luxelakes-love-island-planting-path.jpg",
+    "imageAlt": "Succulent Garden Path"
+  },
+  {
     "slug": "two-fountain-plazas",
     "title": "Two fountain plazas",
     "date": "2026-10-28",

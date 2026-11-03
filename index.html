@@ -308,11 +308,12 @@ function normalizeProjects(data) {
 }
 
 // Convert "lat,lng" string to a Google Maps satellite embed URL and open link
-function coordsToEmbed(coords) {
+function coordsToEmbed(coords, precision) {
   if (!coords) return null;
   const [lat, lng] = coords.split(',').map(s => s.trim());
   if (!lat || !lng) return null;
-  return `https://www.google.com/maps?q=${lat},${lng}&t=k&z=17&output=embed`;
+  const zoom = precision === 'approximate neighborhood' ? 13 : precision === 'approximate site' ? 16 : 17;
+  return `https://www.google.com/maps?q=${lat},${lng}&t=k&z=${zoom}&output=embed`;
 }
 function coordsToLink(coords) {
   if (!coords) return null;
@@ -1258,6 +1259,9 @@ function youtubeDestination(capture, nav = (typeof navigator !== 'undefined' ? n
   };
 }
 const YOUTUBE_SEARCH_TITLES = {
+  'Lp3rcy9jVhA': 'Chengdu Luxelakes Love Island / Succulent Garden Path | 360° VR | 0902-01',
+  'VDsl63L3GGA': 'Chengdu Luxelakes Love Island / Reflecting Pool | 360° VR | 0902-02',
+  'jPHg76wKVUI': 'Chengdu Luxelakes Waterfront / Curved Seating Terraces | 360° VR | 0903-01',
   'CGGvCd3bLVA': 'Shenzhen OCT Harbour / Main Plaza Splash Fountain | 360° VR | 0402-01',
   'fs4icvUC67Q': 'Portland Bill Naito Legacy Fountain / Stepped Seating | 360° VR | 1101-01',
   'ddPO_Ej6FCY': 'Portland Bill Naito Legacy Fountain / Fountain-Level Seating | 360° VR | 1101-02',
@@ -1556,9 +1560,10 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
           {project.coordinates && coordsToEmbed(project.coordinates) && (
             <div style={{ marginBottom: 28, borderTop: '1px solid var(--border)', paddingTop: 24 }}>
               <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 12 }}>Location</div>
+              {project.locationPrecision?.startsWith('approximate') && <p style={{ fontSize: 12, color: 'var(--fg3)', marginBottom: 10 }}>Approximate area</p>}
               <div style={{ overflow: 'hidden', border: '1px solid var(--border)', marginBottom: 10 }}>
                 <iframe
-                  src={coordsToEmbed(project.coordinates)}
+                  src={coordsToEmbed(project.coordinates, project.locationPrecision)}
                   width="100%"
                   height="180"
                   style={{ border: 'none', display: 'block', filter: 'grayscale(0.2)' }}
@@ -2545,7 +2550,7 @@ function About({ projectCount, clipCount, projects }) {
 // ─── APP ─────────────────────────────────────────────────────────────────────
 const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/', journal: '/journal/', releases: '/releases/' };
 function projectPath(project) {
-  const slug = { 33: 'bill-naito-legacy-fountain', 32: 'reinvent-waterfall-garden', 31: 'amazon-reinvent-plaza', 29: 'circo-massimo', 30: 'portland-airport-main-terminal', 16: 'freeway-park', 25: 'university-of-cincinnati-campus', 26: 'fountain-square', 27: 'luxelakes-cpi-island', 28: 'luxelakes-love-island', 21: 'shenzhen-talent-park-phase-ii', 24: 'oct-harbour', 23: 'the-broad', 22: 'tongva-park', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
+  const slug = { 34: 'luxelakes-waterfront', 33: 'bill-naito-legacy-fountain', 32: 'reinvent-waterfall-garden', 31: 'amazon-reinvent-plaza', 29: 'circo-massimo', 30: 'portland-airport-main-terminal', 16: 'freeway-park', 25: 'university-of-cincinnati-campus', 26: 'fountain-square', 27: 'luxelakes-cpi-island', 28: 'luxelakes-love-island', 21: 'shenzhen-talent-park-phase-ii', 24: 'oct-harbour', 23: 'the-broad', 22: 'tongva-park', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
   return `/projects/${slug}/`;
 }
 function resolveRoute(path, projects) {
