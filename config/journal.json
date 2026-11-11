@@ -1,5 +1,20 @@
 [
   {
+    "slug": "preparing-lens-2-00",
+    "title": "Preparing LENS 2.00",
+    "date": "2026-11-11",
+    "dateLabel": "November 2026",
+    "paragraphs": [
+      "I’m preparing LENS 2.00, a major release that will include a tour function linking static 360° views in sequence. You’ll be able to explore and interact with these tours on the website, with support for browser-based VR.",
+      "I’m excited about this update. In the meantime, uploads of new views will be on hold until I finish the release. Please stay tuned."
+    ],
+    "tags": [
+      "Archive updates"
+    ],
+    "links": [],
+    "published": true
+  },
+  {
     "slug": "three-views-from-luxelakes",
     "title": "Three views from Luxelakes",
     "date": "2026-11-03",
