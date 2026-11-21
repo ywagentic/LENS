@@ -1,5 +1,27 @@
 [
   {
+    "slug": "lens-2-00",
+    "title": "LENS 2.00",
+    "date": "2026-11-20",
+    "dateLabel": "November 2026",
+    "paragraphs": [
+      "I’m excited to share LENS 2.00, with a new way to explore the archive through static 360° panoramas. Connected viewpoints form a tour that you can navigate on the website using arrows within the scene, with VR support in compatible headset browsers.",
+      "Project pages now give immersive video and panorama exploration their own entry cards, each with its available viewpoint count and panoramic previews. The two experiences can cover different parts of a project. Videos continue to open on YouTube; panoramas are viewed directly on LENS."
+    ],
+    "tags": [
+      "Archive updates"
+    ],
+    "links": [
+      {
+        "label": "Browse the collection",
+        "href": "/browse/"
+      }
+    ],
+    "image": "/assets/projects/suzhou-park-pavilion.jpg",
+    "imageAlt": "Suzhou Park",
+    "published": true
+  },
+  {
     "slug": "preparing-lens-2-00",
     "title": "Preparing LENS 2.00",
     "date": "2026-11-11",
