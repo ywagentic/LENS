@@ -1,6 +1,6 @@
 {
   "name": "lens",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Library of Experienceable Landscape Spaces \u2014 a VR database for contemporary landscape architecture projects, aimed at educators and students.",
   "directories": {
     "doc": "docs",
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/visibility.cjs && node submissions/check.cjs && node tests/seo.cjs && node tests/upcoming.cjs && node tests/atlas.cjs && node tests/archive-growth.cjs && node tests/i18n.cjs && node tests/language-preference.cjs && node tests/contribution-navigation.cjs"
+    "test": "node tests/visibility.cjs && node submissions/check.cjs && node tests/seo.cjs && node tests/upcoming.cjs && node tests/atlas.cjs && node tests/archive-growth.cjs && node tests/i18n.cjs && node tests/language-preference.cjs && node tests/contribution-navigation.cjs && node tests/experiences.cjs && node tests/tour-build.cjs"
   },
   "repository": {
     "type": "git",

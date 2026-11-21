@@ -111,14 +111,14 @@
     html[dir="rtl"] svg {direction:ltr;}
     html[dir="rtl"] [translate="no"] {unicode-bidi:isolate;}
   </style>
+<link rel="stylesheet" href="/experience.css">
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel" src="scripts/tweaks-production.jsx"></script>
 <script type="text/babel" src="scripts/i18n.jsx"></script>
 <script type="text/babel" src="atlas.jsx"></script>
-<script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
+<script type="text/babel">const { useState, useEffect, useRef, useCallback } = React;
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTstt0D318arNWhKhdUAUrxqAgKBClnFyzuwuCHWzTEQIX_uiPGlAEqdigcOdQsBA3ZTCT408dmWa-H/pub?output=csv&gid=1420398750&single=true";
@@ -224,7 +224,7 @@ function upcomingTiming(project, now = new Date()) {
   const weeks = Math.ceil(days / 7);
   return `Expected within ${weeks} ${weeks === 1 ? 'week' : 'weeks'} · by ${formatted}`;
 }
-function hasRecording(project) { return (project.captures || []).length > 0; }
+function hasRecording(project) { return (project.captures || []).length > 0 || (project.panoramas || []).length > 0; }
 // View-level classifications; explicit capture metadata takes precedence.
 const VIEW_SPACE_TYPES = {
   'TMOCg1CHIME':['Play'], 'bu1FLEJ7aho':['Play'],
@@ -265,6 +265,8 @@ function mergeUpcomingProjects(data) {
 function normalizeProjects(data) {
   return data.filter(isProjectVisible).map(source => {
     const p = { ...source };
+    p.tags = Array.isArray(p.tags) ? p.tags : [];
+    if (Number(p.id) === 23) p.designer = 'Various';
     const verifiedAreas = {
       20: {area:'Approx. 58 ha (current municipal boundary)', label:'Square boundary — Tianhe District', url:'https://www.thnet.gov.cn/zjth/tzth/tzzc/thzc/content/post_10163828.html'},
       24: {area:'125 ha (overall development and nature preserve)', label:'Overall project scope — SWA', url:'https://www.swagroup.com/projects/oct-bay/'},
@@ -301,7 +303,8 @@ function normalizeProjects(data) {
       p.captures = p.captures.map(c => legacy[c.vrId] ? {...c, code:c.code || legacy[c.vrId], publishedAt:c.publishedAt || '2026-09-12'} : c);
     }
     p.captures = p.captures.map(c => ({...c, label:({'kYic2jDx61s':'Swing Canopy','0_J7l3HbcX0':'Palm-lined Promenade','sFw9p5A91HY':'Sunken Plaza — Upper Steps','BP5CdxPtXYo':'Pedestrian Plaza'}[c.vrId] || c.label), description:c.vrId === 'kYic2jDx61s' ? (c.description || '').replace(/pergola/gi, 'canopy') : c.description, spaceTypes:captureSpaceTypes(c)}));
-    if (isUpcoming(p)) { p.captures = []; p.vrId = ''; }
+    p.panoramas = (p.panoramas || []).map(v => ({...v, spaceTypes:captureSpaceTypes(v)}));
+    if (isUpcoming(p)) { p.captures = []; p.panoramas = []; p.vrId = ''; }
     p.captures = p.captures.filter(c => /^[A-Za-z0-9_-]{11}$/.test(c.vrId || ''));
     return p;
   });
@@ -853,7 +856,7 @@ function Hero({ featured, heroLayout }) {
           </div>
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', gridColumn: 1, gridRow: 2, marginTop: useSplit ? 0 : 32 }}>
             <a
-              href={projectPath(featured)}
+              href={fullsiteProjectHref(featured)}
               style={{
                 background: 'var(--fg)', color: 'var(--bg)', border: '1px solid var(--fg)',
                 padding: '14px 24px', borderRadius: 0, cursor: 'pointer',
@@ -871,7 +874,7 @@ function Hero({ featured, heroLayout }) {
         </div>
         {useSplit && (
           <a
-            href={projectPath(featured)}
+            href={fullsiteProjectHref(featured)}
             aria-label={`View ${featured.title} project details`}
             style={{
               position: 'relative', cursor: 'pointer', overflow: 'hidden',
@@ -932,7 +935,7 @@ function RecentAdditions({projects, renderCard}) {
       @media(max-width:600px){.recent-rail{gap:20px}}
       @media(max-width:350px){.recent-item{flex-basis:calc(100vw - 40px)}}
     `}</style>
-    <div ref={rail} className={'recent-rail'+(hasMore?' has-more':'')} tabIndex={0} role="region" aria-label="Recent additions, newest first">
+    <div ref={rail} className={'recent-rail'+(hasMore?' has-more':'')} tabIndex={0} role="region" aria-label="The collection">
       {ordered.map(p=><div className="recent-item" key={p.id}>{renderCard(p)}</div>)}
     </div>
   </div>;
@@ -950,7 +953,7 @@ function UpcomingSection({ projects, cardStyle = 'grid' }) {
             <div style={{overflow:'hidden',opacity:.5,filter:'grayscale(1)'}}><ProjectThumb project={project} size="sm" /></div>
             <div>
               <h3 style={{fontSize:21,fontWeight:400,lineHeight:1.15,letterSpacing:'-.015em',margin:'0 0 6px',color:'var(--fg3)'}}>{project.title}</h3>
-              <div style={{fontSize:13,color:'var(--fg3)'}}>{project.designer?.trim() || 'Multiple'} · {project.location}</div>
+              <div style={{fontSize:13,color:'var(--fg3)'}}>{project.designer?.trim() || '—'} · {project.location}</div>
               <p style={{fontSize:12,lineHeight:1.5,color:'var(--fg3)',marginTop:8}}>Upcoming · {upcomingTiming(project)}</p>
             </div>
             <div style={{textAlign:'right'}}>
@@ -968,7 +971,7 @@ function UpcomingSection({ projects, cardStyle = 'grid' }) {
               <span style={{ position: 'absolute', top: 14, left: 14, background: '#fff', padding: '6px 10px', color: 'var(--fg3)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Upcoming</span>
             </div>
             <h3 style={{ fontSize: 21, fontWeight: 400, lineHeight: 1.25, color: 'var(--fg3)', marginBottom: 8 }}>{project.title}</h3>
-            <p style={{ fontSize: 13, color: 'var(--fg3)', marginBottom: 12 }}>{project.designer?.trim() || 'Multiple'} · {project.location}</p>
+            <p style={{ fontSize: 13, color: 'var(--fg3)', marginBottom: 12 }}>{project.designer?.trim() || '—'} · {project.location}</p>
             <p style={{ fontSize: 12, color: 'var(--fg2)', lineHeight: 1.5 }}>{upcomingTiming(project)}</p>
           </article>
         ))}
@@ -978,10 +981,10 @@ function UpcomingSection({ projects, cardStyle = 'grid' }) {
 }
 
 // ─── PROJECT CARD ─────────────────────────────────────────────────────────────
-function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onToggle }) {
+function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onToggle, returnTo }) {
   const [hovered, setHovered] = useState(false);
   const archiveId = 'LENS-' + String(project.id).padStart(3, '0');
-  const viewCount = <p style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--accent)', marginTop: 8 }}>{recordingViewLabel(project)}{project.matchedSpace && <> · {project.matchedViews} {project.matchedSpace} {project.matchedViews===1?'view':'views'}</>}</p>;
+  const viewCount = <FullsiteAvailability project={project}/>;
   if (cardStyle === 'list') {
     return (
       <div className="project-card-list"
@@ -1002,8 +1005,8 @@ function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onT
           <ProjectThumb project={project} size="sm" />
         </div>
         <div>
-          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, marginBottom: 6, letterSpacing: '-0.015em', lineHeight: 1.15 }}><a href={projectPath(project)+(project.matchedSpace?'?space='+encodeURIComponent(project.matchedSpace):'')} onClick={e => e.stopPropagation()}>{project.title}</a></div>
-          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)' }}>{project.designer?.trim() || 'Multiple'} · {project.location}</div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, marginBottom: 6, letterSpacing: '-0.015em', lineHeight: 1.15 }}><a href={fullsiteProjectHref(project,{space:project.matchedSpace,from:returnTo})} onClick={e => e.stopPropagation()}>{project.title}</a></div>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)' }}>{project.designer?.trim() || '—'} · {project.location}</div>
           {viewCount}
           {showTags && (
             <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
@@ -1047,11 +1050,11 @@ function ProjectCard({ project, onClick, showTags, cardStyle, voted, counts, onT
       </div>
       <div>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, marginBottom: 6 }}>
-          <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, lineHeight: 1.15, letterSpacing: '-0.015em', color: 'var(--fg)', margin: 0 }}><a href={projectPath(project)+(project.matchedSpace?'?space='+encodeURIComponent(project.matchedSpace):'')} onClick={e => e.stopPropagation()}>{project.title}</a></h3>
+          <h3 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 400, fontSize: 21, lineHeight: 1.15, letterSpacing: '-0.015em', color: 'var(--fg)', margin: 0 }}><a href={fullsiteProjectHref(project,{space:project.matchedSpace,from:returnTo})} onClick={e => e.stopPropagation()}>{project.title}</a></h3>
           <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', flexShrink: 0 }}>{project.year || '—'}</span>
         </div>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)', marginBottom: 4, lineHeight: 1.5 }}>
-          {project.designer?.trim() || 'Multiple'}
+          {project.designer?.trim() || '—'}
         </p>
         <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)', marginBottom: 0, lineHeight: 1.5 }}>
           {project.location}
@@ -1105,21 +1108,24 @@ function CompactFilter({label, options, active, onChange, accent}) {
 }
 
 function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, counts, onToggle }) {
-  const [browseMode, setBrowseMode] = useState('projects');
+  const params=typeof window==='undefined'?new URLSearchParams():new URLSearchParams(window.location.search);
+  const [browseMode, setBrowseMode] = useState(params.get('layout')==='views'?'views':'projects');
+  const [experienceFilter,setExperienceFilter]=useState(params.get('experience')||'all');
   const [showViewHint, setShowViewHint] = useState(false);
   useEffect(() => { try { setShowViewHint(!localStorage.getItem('lens-browse-views-hint')); } catch {} }, []);
   const dismissViewHint = () => { setShowViewHint(false); try { localStorage.setItem('lens-browse-views-hint','seen'); } catch {} };
-  const [activeTag, setActiveTag] = useState('All');
-  const [activeSpace, setActiveSpace] = useState('');
-  const spaceOptions = [...new Set(projects.flatMap(p=>(p.captures||[]).flatMap(captureSpaceTypes)))].sort();
-  const [sortBy, setSortBy] = useState('recent');
+  const [activeTag, setActiveTag] = useState(params.get('tag')||'All');
+  const [activeSpace, setActiveSpace] = useState(params.get('space')||'');
+  const spaceOptions = [...new Set(projects.flatMap(p=>fullsiteViews(p,experienceFilter).flatMap(captureSpaceTypes)))].sort();
+  const [sortBy, setSortBy] = useState(params.get('sort')||'recent');
+  useEffect(()=>{const next=new URL(location.href);for(const[k,v]of Object.entries({layout:browseMode,experience:experienceFilter,tag:activeTag,space:activeSpace,sort:sortBy,q:searchQuery})){if(v&&v!=='all'&&v!=='All')next.searchParams.set(k,v);else next.searchParams.delete(k);}history.replaceState(null,'',next.pathname+next.search+next.hash);},[browseMode,experienceFilter,activeTag,activeSpace,sortBy,searchQuery]);
 
   const ALL_TAGS = ['All', ...new Set([...projects.flatMap(projectTypes), ...getTagsFromProjects(projects).filter(t=>t!=='All')])];
 
-  const matches = projects.filter(p => {
+  const fullsiteBrowseURL=fullsiteBrowseHref({layout:browseMode,experience:experienceFilter,tag:activeTag,space:activeSpace,sort:sortBy,q:searchQuery}); const matches = projects.filter(p => {
     const matchTag = activeTag === 'All' || p.tags.includes(activeTag) || projectTypes(p).includes(activeTag);
-    const matchSearch = !searchQuery || lensSearchText([p.title,p.location,p.designer,...projectTypes(p),...(p.tags||[])]).includes(searchQuery.toLocaleLowerCase()) || (browseMode === 'views' && (p.captures||[]).some(c=>lensSearchText([c.label,...captureSpaceTypes(c)]).includes(searchQuery.toLowerCase())));
-    return matchTag && matchSearch && (!activeSpace || (p.captures||[]).some(c=>captureSpaceTypes(c).includes(activeSpace)));
+    const matchSearch = !searchQuery || lensSearchText([p.title,p.location,p.designer,...projectTypes(p),...(p.tags||[])]).includes(searchQuery.toLocaleLowerCase()) || (browseMode === 'views' && fullsiteViews(p,experienceFilter).some(c=>lensSearchText([c.label,...captureSpaceTypes(c)]).includes(searchQuery.toLowerCase())));
+    return (experienceFilter==='all'||(experienceFilter==='recordings'?p.captures:p.panoramas||[]).length) && matchTag && matchSearch && (!activeSpace || fullsiteViews(p,experienceFilter).some(c=>captureSpaceTypes(c).includes(activeSpace)));
   }).sort((a, b) => {
     if (sortBy === 'recent') return comparePublicationDate(a, b);
     if (sortBy === 'year') return b.year - a.year;
@@ -1134,14 +1140,14 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
     return 0;
   });
 
-  const filtered = matches.filter(isPublished).map(p=>({...p, matchedSpace:activeSpace, matchedViews:activeSpace ? p.captures.filter(c=>captureSpaceTypes(c).includes(activeSpace)).length : null}));
+  const filtered = matches.filter(isPublished).map(p=>({...p, matchedSpace:activeSpace, matchedViews:activeSpace ? fullsiteViews(p,experienceFilter).filter(c=>captureSpaceTypes(c).includes(activeSpace)).length : null}));
   const upcoming = matches.filter(isUpcoming);
-  const views = filtered.flatMap(project => project.captures.filter(c => (!activeSpace || captureSpaceTypes(c).includes(activeSpace)) && (!searchQuery || lensSearchText([project.title,project.location,project.designer,c.label,...captureSpaceTypes(c)]).includes(searchQuery.toLowerCase()))).map(capture=>({project,capture})));
+  const views = filtered.flatMap(project => fullsiteViews(project,experienceFilter).filter(c => (!activeSpace || captureSpaceTypes(c).includes(activeSpace)) && (!searchQuery || lensSearchText([project.title,project.location,project.designer,c.label,...captureSpaceTypes(c)]).includes(searchQuery.toLowerCase()))).map(capture=>({project,capture})));
 
   return (
     <div className="browse-content" style={{ padding: '0 clamp(20px, 4vw, 56px) 96px', position: 'relative', zIndex: 1 }}>
       <style>{`.browse-controls.has-view-hint{padding-bottom:64px}`}</style>
-      {/* Filters */}
+      <div className="fullsite-filter"><label htmlFor="fullsite-experience-filter">Available experiences</label><select id="fullsite-experience-filter" value={experienceFilter} onChange={e=>setExperienceFilter(e.target.value)}><option value="all">All experiences</option><option value="recordings">Immersive Video</option><option value="panoramas">360° Views</option></select></div>{/* Filters */}
       <div style={{
         display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
         marginBottom: 36, flexWrap: 'wrap', gap: 24,
@@ -1209,15 +1215,15 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
         marginBottom: 32,
         display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', overflowWrap: 'anywhere',
       }}>
-        <span>{browseMode==='views' ? `${views.length} views · ${filtered.length} projects` : <>{lensLocale==='en'?`${filtered.length} available ${filtered.length === 1 ? 'project' : 'projects'}`:lensFormat(filtered.length===1?'{count} available project':'{count} available projects',{count:filtered.length})}{upcoming.length > 0 ? ` · ${upcoming.length} upcoming` : ''}</>}</span>
+        <span>{browseMode==='views' ? <>{lensText('Immersive Video')} · {views.filter(v=>!v.capture.panoramaPoint).length} / {lensText('360° Views')} · {views.filter(v=>v.capture.panoramaPoint).length} · {lensText('Projects')} · {filtered.length}</> : <>{lensLocale==='en'?`${filtered.length} available ${filtered.length === 1 ? 'project' : 'projects'}`:lensFormat(filtered.length===1?'{count} available project':'{count} available projects',{count:filtered.length})}{upcoming.length > 0 ? ` · ${upcoming.length} upcoming` : ''}</>}</span>
         {searchQuery && <span translate="no" style={{ color: 'var(--fg2)' }}>{'· '+lensFormat('Matching “{query}”',{query:searchQuery})}</span>}
       </div>
       {/* Grid */}
       {browseMode === 'views' ? <div className={'browse-view-results '+tweaks.cardStyle}>
         <style>{`.browse-view-results.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),320px));gap:40px 28px}.browse-view-card{color:inherit;text-decoration:none;min-width:0;display:block}.browse-view-card:hover h3{color:var(--accent)}.browse-view-card h3{font-size:19px;line-height:1.25;font-weight:400;margin:14px 0 6px;letter-spacing:-.015em}.browse-view-results.list .browse-view-card{display:grid;grid-template-columns:120px minmax(0,1fr);gap:24px;padding:20px 0;border-bottom:1px solid var(--border)}.browse-view-results.list h3{margin-top:0}@media(max-width:540px){.browse-view-results.list .browse-view-card{grid-template-columns:90px minmax(0,1fr);gap:16px}}`}</style>
-        {views.map(({project:p,capture:c})=><a className="browse-view-card" key={c.vrId} href={projectPath(p)+'?view='+encodeURIComponent(c.vrId)}>
+        {views.map(({project:p,capture:c})=><a className="browse-view-card" key={c.id||c.vrId} href={fullsiteProjectHref(p,{experience:c.panoramaPoint?'panoramas':'recordings',view:c.id||c.vrId,from:fullsiteBrowseURL})}>
           <div style={{position:'relative',aspectRatio:'16 / 9',alignSelf:'start'}}><ProjectThumb project={{...p,title:c.label,thumb:c.thumb||`https://i.ytimg.com/vi/${c.vrId}/hqdefault.jpg`,thumbIllustration:!!c.thumb,fallbackThumb:p.thumb}} size="lg"/></div>
-          <div><h3>{c.label}</h3><div style={{fontSize:12,color:'var(--fg2)',lineHeight:1.5}}>{p.title} · {p.location}</div>
+          <div><div className="fullsite-availability"><span>{c.panoramaPoint?"360° Views":"Immersive Video"}</span></div><h3>{c.label}</h3><div style={{fontSize:12,color:'var(--fg2)',lineHeight:1.5}}>{p.title} · {p.location}</div>
           {c.mediaType==='Static 360° Panorama' && <div style={{fontSize:11,color:'var(--fg3)',marginTop:7}}>Static 360° Panorama</div>}
           <div style={{fontSize:11,color:'var(--accent)',lineHeight:1.6,marginTop:7}}>{captureSpaceTypes(c).join(' · ')}</div></div>
         </a>)}
@@ -1229,13 +1235,13 @@ function Browse({ projects, onSelect, tweaks, setTweak, searchQuery, voted, coun
           gap: '48px 28px',
         }}>
           {filtered.map(p => (
-            <ProjectCard key={p.id} project={p} onClick={() => onSelect(p)} showTags={tweaks.showTags} cardStyle="grid" voted={voted} counts={counts} onToggle={onToggle} />
+            <ProjectCard key={p.id} project={p} returnTo={fullsiteBrowseURL} onClick={() => onSelect({...p,fullsiteReturn:fullsiteBrowseURL})} showTags={tweaks.showTags} cardStyle="grid" voted={voted} counts={counts} onToggle={onToggle} />
           ))}
         </div>
       ) : (
         <div style={{ borderTop: '1px solid var(--border)' }}>
           {filtered.map(p => (
-            <ProjectCard key={p.id} project={p} onClick={() => onSelect(p)} showTags={tweaks.showTags} cardStyle="list" voted={voted} counts={counts} onToggle={onToggle} />
+            <ProjectCard key={p.id} project={p} returnTo={fullsiteBrowseURL} onClick={() => onSelect({...p,fullsiteReturn:fullsiteBrowseURL})} showTags={tweaks.showTags} cardStyle="list" voted={voted} counts={counts} onToggle={onToggle} />
           ))}
         </div>
       )}
@@ -1292,11 +1298,18 @@ const YOUTUBE_SEARCH_TITLES = {
   'RzDVz5Vgcmw': 'Guangzhou Yongqing Fang / Tree Plaza | 360° VR | 0301-02',
 };
 function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
+  const readExperience=()=>{if(typeof window==='undefined')return null;const p=new URLSearchParams(location.search),chosen=p.get('experience')||(p.has('view')||p.has('space')?'recordings':null);return fullsiteModes(project).includes(chosen)?chosen:null;};
+  const [experience,setExperience]=useState(readExperience); const [experienceVersion,setExperienceVersion]=useState(0);
+  const selectedPano=useRef(typeof window==='undefined'?null:new URLSearchParams(location.search).get('view'));
+  const selectedRecord=useRef(typeof window==='undefined'?null:new URLSearchParams(location.search).get('view'));
+  function savePano(id){selectedPano.current=id;const u=new URL(location.href);u.searchParams.set('view',id);history.replaceState(null,'',u.pathname+u.search+u.hash);}
+  function chooseExperience(mode,explicitView){const u=new URL(location.href);if(experience==='recordings')selectedRecord.current=u.searchParams.get('view');if(mode)u.searchParams.set('experience',mode);else u.searchParams.delete('experience');let view=mode==='panoramas'?selectedPano.current:selectedRecord.current;if(mode==='panoramas'&&project.panoramaCollection==='love'){view=project.panoramas.find(v=>v.code===project.captures.find(c=>c.vrId===selectedRecord.current)?.code)?.id||view;}if(mode==='recordings'&&project.panoramaCollection==='love'){view=project.captures.find(c=>c.code===project.panoramas.find(v=>v.id===selectedPano.current)?.code)?.vrId||view;}if(explicitView){view=explicitView;if(mode==='panoramas')selectedPano.current=view;else if(mode==='recordings')selectedRecord.current=view;}if(view&&mode){if(mode==='panoramas')selectedPano.current=view;else selectedRecord.current=view;}if(view&&mode)u.searchParams.set('view',view);else u.searchParams.delete('view');history.pushState(null,'',u.pathname+u.search+u.hash);setExperience(mode);requestAnimationFrame(()=>window.scrollTo(0,0));}
+  useEffect(()=>{const pop=()=>{const mode=readExperience(),view=new URLSearchParams(location.search).get('view');if(mode==='panoramas')selectedPano.current=view;if(mode==='recordings')selectedRecord.current=view;setExperience(mode);setExperienceVersion(n=>n+1);};window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop);},[project]);
   const [hovered, setHovered] = useState(false);
   const captures = project.captures || [];
   const [activeIdx, setActiveIdx] = useState(0);
   // Reset to first capture when project changes
-  useEffect(() => { const params=new URLSearchParams(window.location.search); const type=params.get('space'); const view=params.get('view'); const idx=view?captures.findIndex(c=>c.vrId===view):type?captures.findIndex(c=>captureSpaceTypes(c).includes(type)):0; setActiveIdx(Math.max(0,idx)); }, [project.id]);
+  useEffect(() => { const params=new URLSearchParams(window.location.search); const type=params.get('space'); const view=params.get('view'); const idx=view?captures.findIndex(c=>c.vrId===view):type?captures.findIndex(c=>captureSpaceTypes(c).includes(type)):0; setActiveIdx(Math.max(0,idx)); }, [project.id,experience,experienceVersion]);
   const activeCapture = captures[activeIdx] || null;
   const [copyStatus, setCopyStatus] = useState('');
   useEffect(() => setCopyStatus(''), [activeCapture?.vrId]);
@@ -1320,14 +1333,15 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
   ].filter(Boolean);
 
   return (
-    <div style={{ padding: '120px clamp(20px, 4vw, 56px) 96px', maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+    <div className={"fullsite-layout-compact fullsite-layout-selection"+(experience?" is-experience":" is-entry")} style={{ padding: experience?'100px clamp(20px, 4vw, 56px) 96px':'120px clamp(20px, 4vw, 56px) 96px', maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
       <button
-        onClick={onBack}
+        className={experience?"fullsite-project-return":"fullsite-project-exit"}
+        onClick={experience?()=>chooseExperience(null):onBack}
         style={{
           background: 'none', border: 'none', cursor: 'pointer',
           display: 'flex', alignItems: 'center', gap: 8,
           fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg3)',
-          marginBottom: 56, padding: 0, transition: 'color 0.15s',
+          marginBottom: experience?24:40, padding: 0, transition: 'color 0.15s',
         }}
         onMouseEnter={e => e.currentTarget.style.color = 'var(--accent)'}
         onMouseLeave={e => e.currentTarget.style.color = 'var(--fg3)'}
@@ -1335,26 +1349,25 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
         <svg width={14} height={14} viewBox="0 0 14 14" fill="none">
           <path d="M9 2L4 7l5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
-        All projects
+        {experience ? (FULLSITE_LAYOUT==='overview'?'Project overview':'Choose experience') : fullsiteReturnContext().label}
       </button>
 
       {/* Title block */}
-      <div style={{ marginBottom: 56, maxWidth: 880 }}>
+      {experience&&<div className="fullsite-project-heading" style={{ marginBottom: 32, maxWidth: 880 }}>
         <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, color: 'var(--fg3)', marginBottom: 20, letterSpacing: '0.04em' }}>
-          {project.type}{vrTypeLabel ? ` · ${vrTypeLabel}` : ''}{project.year ? ` · ${project.year}` : ''}
+          {[project.type,...fullsiteModes(project).map(m=>lensText(fullsiteModeTitle(project,m))),project.year].filter(Boolean).join(' · ')}
         </div>
         <h1 style={{
           fontFamily: 'Inter, sans-serif', fontWeight: 200,
-          fontSize: 'clamp(48px, 6.5vw, 88px)', lineHeight: 0.98,
+          fontSize: experience?'clamp(36px, 5vw, 60px)':'clamp(48px, 6.5vw, 88px)', lineHeight: 0.98,
           letterSpacing: '-0.03em', margin: 0, marginBottom: 20,
         }}>{project.title}</h1>
-        <p style={{
-          fontFamily: 'Inter, sans-serif', fontStyle: 'italic', fontWeight: 300,
-          fontSize: 'clamp(20px, 2vw, 26px)', lineHeight: 1.3,
-          color: 'var(--fg2)', margin: 0, maxWidth: 720,
-        }}>{project.subtitle}</p>
-      </div>
+      </div>}
 
+      {!experience&&<FullsiteCompactEntry project={project} onChoose={chooseExperience}/>}
+      {experience&&<FullsiteExperienceNav project={project} experience={experience} onChoose={chooseExperience}/>}
+      {experience==="panoramas"&&<FullsitePanorama key={project.id+":"+experienceVersion} project={project} initialView={selectedPano.current} onView={savePano}/>}
+      {experience==="recordings"&&<>
       {/* VR preview — large, top of page */}
       <a
         href={destination?.href}
@@ -1525,11 +1538,12 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
         </section>
       )}
 
-      <p style={{ ...SMALL, marginBottom: 32 }}>Part of LENS, a VR digital archive of contemporary urban public spaces for landscape architecture education and research. <a href="/browse/" style={{ color: 'var(--accent)' }}>Explore the archive →</a></p>
+      </>}
 
-      {/* Body — two-column: description + metadata */}
+
+{experience&&<div className="fullsite-experience-project-info" data-columns={project.description||project.tags?.length?"two":"one"}>      {/* Body — two-column: description + metadata */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: 'clamp(32px, 6vw, 96px)', alignItems: 'start' }}>
-        <div>
+        {(project.description||project.tags?.length>0)&&<div>
           <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 24 }}>About this space</div>
           <p style={{
             fontFamily: 'Inter, sans-serif', fontWeight: 300,
@@ -1543,9 +1557,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
               ))}
             </div>
           )}
-        </div>
-
-        {/* Metadata column */}
+        </div>}         {/* Metadata column */}
         <div style={{ position: 'sticky', top: 96 }}>
           <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--fg3)', marginBottom: 24 }}>Details</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 18, marginBottom: 32 }}>
@@ -1619,7 +1631,7 @@ function ProjectDetail({ project, onBack, voted, counts, onToggle }) {
             <UpvoteButton projectId={project.id} voted={voted} counts={counts} onToggle={onToggle} />
           </div>
         </div>
-      </div>
+      </div></div>}
     </div>
   );
 }
@@ -1952,7 +1964,7 @@ function ContributeSubmit({ onBack }) {
       </button>
       <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.05, marginBottom: 20 }}>Submit a Recording</h1>
       <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.55, fontWeight: 400, marginBottom: 24, maxWidth: 580 }}>
-        Completed a capture? Share a link to your file (Google Drive, Dropbox, WeTransfer, or similar). LENS hosts all media on its own YouTube channel to ensure long-term availability — we don't link directly to contributors' personal accounts, since those can change or disappear.
+        Completed a capture? Share a link to your file (Google Drive, Dropbox, WeTransfer, or similar). LENS hosts submitted videos on its own YouTube channel to ensure long-term availability — we don't link directly to contributors' personal accounts, since those can change or disappear.
       </p>
       <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--fg3)', lineHeight: 1.7, marginBottom: 36, maxWidth: 580 }}>
         We'll review your submission, upload it to the LENS channel with full attribution, and follow up via email.
@@ -2150,7 +2162,7 @@ function Equipment({ onBrowse }) {
     {
       n: '02',
       title: 'Choose a project and a view',
-      body: 'Open a project from Browse, then select a view below the preview. Tapping the preview opens the YouTube web page. In the Quest browser, parts of the video may appear blurry; use the native YouTube VR app for a clearer viewing experience.',
+      body: 'Open a project from Browse, choose Immersive Video, then select a view below the preview. Tapping the preview opens the YouTube web page. In the Quest browser, parts of the video may appear blurry; use the native YouTube VR app for a clearer viewing experience.',
     },
     {
       n: '03',
@@ -2220,6 +2232,7 @@ function Equipment({ onBrowse }) {
       {/* Workflow */}
       <div style={{ marginBottom: 56 }}>
         <h2 style={{ ...H2, marginBottom: 16 }}>VR headset workflow</h2>
+        <p style={{ ...SMALL, marginBottom: 16 }}>For 360° tours on LENS, open the panorama experience and select Enter VR in a compatible headset browser. The steps below apply to videos on YouTube.</p>
         <p style={{ ...SMALL, marginBottom: 24 }}>Follow these steps on a headset with YouTube VR support. Menu names and paste controls may vary between devices.</p>
         <div style={{ display: 'flex', flexDirection: 'column', border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
           {steps.map((s, i) => (
@@ -2432,6 +2445,15 @@ const VIEW_RELEASE_DATES = {
   '0502-01':'2026-10-19', '0502-02':'2026-10-19', '1001-01':'2026-10-19',
   '0301-02':'2026-10-24', '0503-01':'2026-10-24', '0803-01':'2026-10-25',
 };
+function projectViews(project) {
+  const views=new Map();
+  for(const view of [...(project.captures||[]),...(project.panoramas||[])]){
+    const key=view.code||view.vrId||view.id;
+    if(!key)throw new Error('Missing viewpoint identity');
+    if(!views.has(key))views.set(key,view);
+  }
+  return [...views.values()];
+}
 function archiveGrowthHistory(projects) {
   const events = new Map();
   const seen = new Set();
@@ -2447,11 +2469,13 @@ function archiveGrowthHistory(projects) {
   projects.filter(isPublished).forEach(project => {
     const published = date(project.publishedAt || PROJECT_RELEASE_DATES[project.id], project.title);
     add(published, 0);
-    project.captures.forEach(capture => {
-      const key = `${project.id}:${capture.code || capture.vrId}`;
-      if (seen.has(key)) throw new Error(`Duplicate recording identity: ${key}`);
+    const videoCodes=new Set();
+    for(const c of project.captures||[]){const key=c.code||c.vrId;if(videoCodes.has(key))throw new Error(`Duplicate recording identity: ${project.id}:${key}`);videoCodes.add(key);}
+    projectViews(project).forEach(capture => {
+      const key = `${project.id}:${capture.code || capture.vrId || capture.id}`;
+      if (seen.has(key)) throw new Error(`Duplicate viewpoint identity: ${key}`);
       seen.add(key);
-      const released = date(capture.publishedAt || VIEW_RELEASE_DATES[capture.code || capture.vrId], capture.code || capture.label);
+      const released = date(capture.publishedAt || VIEW_RELEASE_DATES[capture.code || capture.vrId], capture.code || capture.label || capture.name);
       if (released < published) throw new Error(`Recording predates project publication: ${key}`);
       add(released, 1);
     });
@@ -2492,7 +2516,7 @@ function About({ projectCount, clipCount, projects }) {
         LENS is a VR digital archive of contemporary urban public spaces for landscape architecture education and research. Explore parks, plazas, waterfronts and other built public spaces through immersive 360° recordings.
       </p>
       <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 17, color: 'var(--fg2)', lineHeight: 1.55, fontWeight: 400, marginBottom: 32 }}>
-        Each project combines design information and sources with fixed-point 360° recordings. Turn to look around from the recording position; projects with several viewpoints let you explore different parts of the space. Open recordings in YouTube or the YouTube VR app on a compatible headset.
+        Explore projects through 360° recordings, panorama exploration and design information.
       </p>
 
       <p style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--fg3)' }}>Originally introduced as “Library of Experienceable Landscape Spaces,” the archive now uses LENS as its brand name.</p>
@@ -2508,10 +2532,10 @@ function About({ projectCount, clipCount, projects }) {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 20, marginTop: 48 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap: 20, marginTop: 24 }}>
         {[
           [String(projectCount), 'Projects', 'Growing collection of documented spaces'],
-          [String(clipCount), 'Views', 'Published 360° recording viewpoints'],
+          [String(clipCount), 'Views', 'Published 360° viewpoints'],
           ['360°', 'Immersive', 'Full spherical photo and video capture'],
           ['Open', 'Access', 'Free for education and research'],
         ].map(([val, label, desc]) => (
@@ -2549,7 +2573,7 @@ function About({ projectCount, clipCount, projects }) {
 
 // ─── APP ─────────────────────────────────────────────────────────────────────
 const PAGE_PATHS = { home: '/', browse: '/browse/', atlas: '/atlas/', equipment: '/equipment/', 'for educators': '/for-educators/', contribute: '/contribute/', about: '/about/', journal: '/journal/', releases: '/releases/' };
-function projectPath(project) {
+function projectPath(project) { if(project.slug)return "/projects/"+project.slug+"/";
   const slug = { 34: 'luxelakes-waterfront', 33: 'bill-naito-legacy-fountain', 32: 'reinvent-waterfall-garden', 31: 'amazon-reinvent-plaza', 29: 'circo-massimo', 30: 'portland-airport-main-terminal', 16: 'freeway-park', 25: 'university-of-cincinnati-campus', 26: 'fountain-square', 27: 'luxelakes-cpi-island', 28: 'luxelakes-love-island', 21: 'shenzhen-talent-park-phase-ii', 24: 'oct-harbour', 23: 'the-broad', 22: 'tongva-park', 17: 'smale-riverfront-park', 9: 'yongqing-fang', 20: 'huacheng-square' }[project.id] || `project-${project.id}`;
   return `/projects/${slug}/`;
 }
@@ -2560,9 +2584,10 @@ function resolveRoute(path, projects) {
   return selected ? { view: 'project', selected } : { view: Object.keys(PAGE_PATHS).find(key => PAGE_PATHS[key] === normalized) || 'missing', selected: null };
 }
 
-const WEBSITE_VERSION = '1.4.1';
+const WEBSITE_VERSION = '2.00';
 
 const WEBSITE_RELEASES = [
+  ["2.00", "November 20, 2026", "360° Tours", ["Explore connected static 360° viewpoints in the browser, with VR support.", "Choose from each project’s available immersive videos and 360° panoramas, with separate viewpoint counts and panoramic previews.", "Use in-scene arrows along linked routes, or choose a viewpoint from the picker.", "Removed still-panorama videos from the video collection."]],
   [
     "1.4.1",
     "October 25, 2026",
@@ -2826,11 +2851,12 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
   const { voted, counts, toggle } = useVotes();
   const [view, setView] = useState(route.view);
   const [selected, setSelected] = useState(route.selected);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(typeof window==='undefined'?'':new URLSearchParams(location.search).get('q')||'');
   const [projects, setProjects] = useState(initialProjects || []);
   const [loading, setLoading] = useState(initialProjects === null);
   const [catalogueError, setCatalogueError] = useState('');
-  const scrollRef = useRef(null);
+  const scrollRef = useRef(null); useEffect(fullsiteRestoreScroll,[]);
+  useEffect(()=>{const save=()=>{try{sessionStorage.setItem('lens-fullsite-scroll:'+fullsiteScrollKey(location.href),String(scrollY));}catch{}};window.addEventListener('pagehide',save);return()=>window.removeEventListener('pagehide',save);},[]);
 
   useEffect(() => {
     if (freezeCatalogue) return;
@@ -2849,7 +2875,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
   };
 
   const selectProject = (p) => {
-    window.location.assign(lensLocalePath(projectPath(p))+(p.matchedSpace?'?space='+encodeURIComponent(p.matchedSpace):''));
+    window.location.assign(lensLocalePath(fullsiteProjectHref(p,{space:p.matchedSpace,from:p.fullsiteReturn})));
   };
 
   const published = projects.filter(isPublished);
@@ -2899,7 +2925,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
                 {!published.length && <h1 style={{ fontSize: 40, fontWeight: 300, marginBottom: 32 }}>The collection</h1>}
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 40 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 32 }}>
-                    <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: 32, letterSpacing: '-0.02em', margin: 0 }}>Recent additions</h2>
+                    <h2 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: 32, letterSpacing: '-0.02em', margin: 0 }}>The collection</h2>
                     <button onClick={() => navigate('browse')} style={{
                       background: 'none', border: 'none', cursor: 'pointer',
                       fontFamily: 'Inter, sans-serif', fontSize: 13, color: 'var(--fg2)',
@@ -2918,7 +2944,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
             <div style={{ paddingTop: 96 }}>
               <div style={{ padding: '24px clamp(20px, 4vw, 56px) 28px' }}>
                 <h1 style={{ fontFamily: 'Inter, sans-serif', fontWeight: 200, fontSize: 'clamp(40px, 5vw, 64px)', letterSpacing: '-0.025em', margin: 0, lineHeight: 1.05 }}>Explore the archive</h1>
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'var(--fg3)', marginTop: 12, marginBottom: 0, maxWidth: 540, lineHeight: 1.55 }}>Browse contemporary urban public spaces through 360° recordings and project information for landscape architecture study.</p>
+                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'var(--fg3)', marginTop: 12, marginBottom: 0, maxWidth: 540, lineHeight: 1.55 }}>Explore projects through 360° recordings, panorama exploration and design information.</p>
               </div>
               <Browse projects={projects} onSelect={selectProject} tweaks={tweaks} setTweak={setTweak} searchQuery={searchQuery} voted={voted} counts={counts} onToggle={toggle} />
             </div>
@@ -2927,7 +2953,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
           {!loading && view === 'project' && selected && (
             <ProjectDetail
               project={selected}
-              onBack={() => navigate('browse')}
+              onBack={fullsiteBack}
               voted={voted} counts={counts}
               onToggle={toggle}
             />
@@ -2938,7 +2964,7 @@ function App({ initialProjects = null, initialPath = '/', freezeCatalogue = fals
           {!loading && view === 'for educators' && <ForEducators onBrowse={() => navigate('browse')} />}
           {!loading && view === 'contribute' && <Contribute onNav={navigate} />}
           {!loading && view === 'journal' && <Journal path={lensStripLocale(initialPath)} />}
-          {!loading && view === 'about' && <About projects={published} projectCount={published.length} clipCount={published.reduce((total, project) => total + project.captures.length, 0)} />}
+          {!loading && view === 'about' && <About projects={published} projectCount={published.length} clipCount={published.reduce((total, project) => total + projectViews(project).length, 0)} />}
           {!loading && <footer style={{ margin: '0 clamp(20px, 4vw, 56px)', padding: '24px 0 32px', borderTop: '1px solid var(--border)', fontFamily: 'Inter, sans-serif', fontSize: 12, lineHeight: 1.6, color: 'var(--fg3)' }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 24, rowGap: 6 }}>
               <div>

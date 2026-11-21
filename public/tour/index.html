@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,follow">
+  <title>Panorama tour · LENS</title>
+  <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('embedded');</script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+Arabic:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="tour.css">
+  <script src="vendor/aframe-1.8.0.min.js"></script>
+  <script src="locales.js"></script>
+  <script src="drag-controls.js"></script>
+  <script src="destination-gate.js"></script>
+  <script defer src="tour.js"></script>
+</head>
+<body>
+  <header class="header">
+    <a class="brand" href="./" aria-label="LENS"><span class="brand-mark" aria-hidden="true">L</span>LENS<span class="brand-dot">●</span></a>
+    
+    <div class="language"><label class="sr-only" for="language" data-t="Language"></label><select id="language"></select><span class="language-disclosure" data-t="Translated by Codex. Translations may contain inaccuracies."></span></div>
+  </header>
+  <main>
+    <div class="intro"><div><p class="eyebrow" data-t="Panorama tour"></p><h1 id="park-title"></h1></div><label class="park-switch"><span class="sr-only" data-t="Panorama tour"></span><select id="park"></select></label></div>
+    <section class="viewer" id="viewer" aria-label="Panorama tour">
+      <a-scene id="scene" embedded loading-screen="enabled:false" xr-mode-ui="enabled:false" device-orientation-permission-ui="enabled:false" renderer="antialias:true; colorManagement:true" webxr="referenceSpaceType:local; requiredFeatures:local; optionalFeatures:local-floor, hand-tracking" background="color:#121b17">
+        <a-sky id="panorama" rotation="0 -90 0" radius="100" segments-width="96" segments-height="64" material="shader:flat; color:#ffffff"></a-sky>
+        <a-entity id="nav-world"></a-entity>
+        <a-entity id="rig">
+          <a-camera id="camera" position="0 0 0" fov="78" wasd-controls="enabled:false" look-controls="magicWindowTrackingEnabled:false; pointerLockEnabled:false; mouseEnabled:false; touchEnabled:false">
+            <a-entity id="gaze" cursor="fuse:true; fuseTimeout:1600" raycaster="objects:.nav-hit; far:20; enabled:false" position="0 0 -1" geometry="primitive:ring; radiusInner:.006; radiusOuter:.009" material="shader:flat; color:white; opacity:.9" visible="false"></a-entity>
+          </a-camera>
+          <a-entity laser-controls="hand:left" raycaster="objects:.nav-hit; far:20; lineColor:#1F8A5B"></a-entity>
+          <a-entity laser-controls="hand:right" raycaster="objects:.nav-hit; far:20; lineColor:#1F8A5B"></a-entity>
+        </a-entity>
+      </a-scene>
+      <div id="hotspots" class="hotspots"></div>
+      <div id="shade" class="shade"></div>
+      <div id="loading" class="loading" role="status"><span class="spinner"></span><span data-t="Loading panorama…"></span></div>
+      <div class="viewer-top"><span class="scene-code" id="scene-code" dir="ltr"></span><span class="badge">360°</span></div>
+      <div class="viewer-bottom"><div><span class="viewer-label" data-t="View"></span><h2 id="scene-title"></h2></div><div class="viewer-actions"><button id="reset" class="icon-button" data-title="Reset view" aria-label="Reset view">↺</button><button id="fullscreen" class="icon-button" data-title="Fullscreen" aria-label="Fullscreen">⛶</button><button id="vr" class="vr-button"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 6h16l2 3-1 9h-6l-3-4-3 4H3L2 9z"/><path d="M5 9h4v3H5zm10 0h4v3h-4z"/></svg><span data-t="Enter VR"></span></button></div></div>
+    </section>
+    <div class="below-viewer"><p class="instructions" data-t="Drag to look around. Select an arrow to change viewpoints."></p><div class="view-meta"><span id="date"></span><span id="tags"></span></div></div>
+    <section class="view-section" aria-label="Choose a view">
+      <div class="section-heading"><div class="tabs" role="tablist"><button id="guided" role="tab" aria-selected="true" data-t="Guided route"></button><button id="all" role="tab" aria-selected="false" data-t="All views"></button></div><label class="space-filter"><span class="sr-only" data-t="Views"></span><select id="space-filter"></select></label><span id="view-count" class="view-count"></span></div>
+      <p id="off-route" class="off-route" hidden><span data-t="This view is outside the three-view guided route. Choose a route view to continue."></span> <button id="back-route" data-t="Back to guided route"></button></p>
+      <div id="view-list" class="view-list" role="tabpanel"></div>
+    </section>
+    <footer><span>LENS</span></footer>
+  </main>
+  <dialog id="notice"><button class="dialog-close" data-title="Close" aria-label="Close">×</button><p id="notice-text"></p><button id="retry" data-t="Try again" hidden></button></dialog>
+</body>
+</html>

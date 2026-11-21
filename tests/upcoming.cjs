@@ -15,10 +15,11 @@ for(const path of ['/','/browse/']) {
  assert(!render('0',path).includes(row.title));
  const published=render('1',path);
  assert(!published.includes('data-publication="upcoming"'));
- assert(published.includes(`href="${projectPath(row)}"`));
+ assert(published.includes(`href="${projectPath(row)}`));
 }
 assert(render('upcoming',projectPath(row)).includes('Page not found'));
-assert(render('1',projectPath(row)).includes('watch?v=abcdefghijk'));
+assert(render('1',projectPath(row)).includes('fullsite-mode-cards'));
+assert.equal(normalizeProjects([{...row,visible:'1'}])[0].captures[0].vrId,'abcdefghijk');
 const atlasUpcoming = render('upcoming','/atlas/');
 assert(!atlasUpcoming.includes('aria-label="Projects in map area"'));
 assert(atlasUpcoming.includes('Gray · Upcoming'));

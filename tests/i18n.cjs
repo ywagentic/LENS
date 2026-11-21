@@ -27,7 +27,8 @@ for(const [code,dict] of Object.entries(dictionaries)){
  assert(page.includes(`href="/${code}/browse/"`));
  for(const [other,tag] of Object.entries(locales))assert(page.includes(`hreflang="${tag}" href="https://lens-vr.com/${other==='en'?'':other+'/'}about/"`));
  const rendered=renderToStaticMarkup(React.createElement(App,{initialProjects:projects,initialPath:`/${code}/projects/tongva-park/`,freezeCatalogue:true}));
- assert(rendered.includes('https://www.youtube.com/watch?v=gaEUL4jyxEA'));
+ assert(rendered.includes(dict['Immersive Video']));
+ assert(projects.find(p=>p.id===22).captures.some(c=>c.vrId==='gaEUL4jyxEA')); 
  assert(!rendered.includes('Page not found'));
  const atlas=renderToStaticMarkup(React.createElement(App,{initialProjects:projects,initialPath:`/${code}/atlas/`,freezeCatalogue:true}));
  assert(atlas.includes('value="Urban Park"'));
@@ -68,6 +69,7 @@ function contentTranslationKeys(catalogue, posts) {
   for(const field of ['title','subtitle','description','location','area','dateCollected'])add(project[field]);
   [...(project.types||[]),...(project.tags||[])].forEach(add);
   for(const capture of project.captures||[]){add(capture.label);add(capture.description);(capture.spaceTypes||[]).forEach(add);}
+  for(const pano of project.panoramas||[]){add(pano.name);add(pano.description);(pano.spaceTypes||[]).forEach(add);}
   for(const link of project.links||[])add(link.label);
  }
  for(const post of posts.filter(post=>post.published===true)){

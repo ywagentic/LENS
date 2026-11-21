@@ -261,7 +261,57 @@
     ],
     "description": "Love Island (爱心岛) is a heart-shaped island within Luxelakes in Chengdu, published as Edenland in the landscape designer’s project documentation. Its lakeside gardens, lawns and paths provide settings for ceremonies and recreation. Interesting Landscape completed the 11,388-square-metre island landscape in 2024.",
     "locationPrecision": "approximate neighborhood",
-    "publishedAt": "2026-11-03"
+    "publishedAt": "2026-11-03",
+    "panoramas": [
+      {
+        "id": "li-01",
+        "code": "0902-01",
+        "name": "Succulent Garden Path",
+        "park": "love",
+        "thumb": "/assets/tours/love-01-thumb.jpg",
+        "preview": "/assets/tours/love-01-preview.jpg",
+        "panorama": "/assets/tours/love-01-pano.jpg",
+        "initialU": 0.111111,
+        "spaceTypes": [
+          "Garden",
+          "Planting"
+        ],
+        "links": [
+          {
+            "target": "li-02",
+            "u": 0.111111,
+            "arrivalU": 0.69
+          }
+        ],
+        "publishedAt": "2026-11-03",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "li-02",
+        "code": "0902-02",
+        "name": "Reflecting Pool",
+        "park": "love",
+        "thumb": "/assets/tours/love-02-thumb.jpg",
+        "preview": "/assets/tours/love-02-preview.jpg",
+        "panorama": "/assets/tours/love-02-pano.jpg",
+        "initialU": 0.69,
+        "spaceTypes": [
+          "Water Feature",
+          "Garden",
+          "Topography"
+        ],
+        "links": [
+          {
+            "target": "li-01",
+            "u": 0.73,
+            "arrivalU": 0.111111
+          }
+        ],
+        "publishedAt": "2026-11-03",
+        "mediaPublishedAt": "2026-11-20"
+      }
+    ],
+    "panoramaCollection": "love"
   },
   {
     "id": 29,
@@ -270,9 +320,9 @@
     "year": "Historic",
     "yearLabel": "Period",
     "designer": "—",
-    "type": "Urban Park",
+    "type": "Historic Landscape",
     "types": [
-      "Urban Park"
+      "Historic Landscape"
     ],
     "vrType": "360° Video",
     "vrTypes": [
@@ -388,36 +438,6 @@
         "vrId": "hl5QuFHGu4Y",
         "height": "Seated",
         "mediaType": "360° Video"
-      },
-      {
-        "label": "Canyon Fountain — Lower Edge",
-        "code": "0801-02",
-        "description": "A seated 360° VR view from the lower edge of Canyon Fountain in Seattle’s Freeway Park, looking toward its layered concrete walls, ledges and stepped forms. The fountain was out of operation when this panorama was photographed in spring 2026, following a leak discovered in summer 2024. It returned to operation in May 2026 after repairs. Created from a still 360° panorama. Taken at seated position. For optimum immersion and scale perception, please view this while seated.",
-        "spaceTypes": [
-          "Water Feature",
-          "Wall",
-          "Topography",
-          "Seated view",
-          "Play"
-        ],
-        "thumb": "/assets/projects/views/0801-02-v2.jpg",
-        "vrId": "ReEQnDtwA0U",
-        "height": "Seated",
-        "mediaType": "Static 360° Panorama"
-      },
-      {
-        "label": "Canyon Fountain — Sunken Area",
-        "code": "0801-03",
-        "vrId": "YZU4gVDYe24",
-        "mediaType": "Static 360° Panorama",
-        "description": "A 360° view from the sunken area of Canyon Fountain in Seattle’s Freeway Park. The surrounding concrete walls and stepped landforms create a strongly enclosed space, with the viewpoint set within the sculptural canyon. The fountain was out of operation when this panorama was photographed, following a leak discovered in summer 2024. It returned to operation in May 2026 after repairs. Created from a still 360° panorama photographed during spring 2026.",
-        "spaceTypes": [
-          "Water Feature",
-          "Wall",
-          "Topography",
-          "Play"
-        ],
-        "thumb": "/assets/projects/views/0801-03-v2.jpg"
       }
     ],
     "plannedCaptures": [],
@@ -870,5 +890,391 @@
         "publishedAt": "2026-11-03"
       }
     ]
+  },
+  {
+    "id": 35,
+    "slug": "huqiu-wetland-park",
+    "title": "Huqiu Wetland Park",
+    "location": "Suzhou, China",
+    "designer": "—",
+    "year": "",
+    "types": [
+      "Wetland Park"
+    ],
+    "area": "873 ha (planned whole-park scope)",
+    "description": "",
+    "visible": "1",
+    "captures": [],
+    "vrTypes": [],
+    "thumb": "/assets/projects/huqiu-wetland-park-cover.jpg",
+    "thumbIllustration": true,
+    "dateCollected": "Summer 2026",
+    "publishedAt": "2026-11-20",
+    "panoramaCollection": "default",
+    "panoramas": [
+      {
+        "id": "hq-501",
+        "code": "1201-01",
+        "name": "Woodland boardwalk",
+        "park": "huqiu",
+        "capturedAt": "2026-07-17",
+        "panorama": "/assets/tours/pano-hq-501.jpg",
+        "preview": "/assets/tours/preview-hq-501.jpg",
+        "thumb": "/assets/tours/thumb-hq-501.jpg",
+        "initialU": 0.35,
+        "spaceTypes": [
+          "Grove",
+          "Planting"
+        ],
+        "links": [
+          {
+            "target": "hq-502",
+            "u": 0.35,
+            "pitch": -18,
+            "arrivalU": 0.35
+          }
+        ],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "hq-502",
+        "code": "1201-02",
+        "name": "Woodland platform",
+        "park": "huqiu",
+        "capturedAt": "2026-07-17",
+        "panorama": "/assets/tours/pano-hq-502.jpg",
+        "preview": "/assets/tours/preview-hq-502.jpg",
+        "thumb": "/assets/tours/thumb-hq-502.jpg",
+        "initialU": 0.59,
+        "spaceTypes": [
+          "Grove"
+        ],
+        "links": [
+          {
+            "target": "hq-501",
+            "u": 0.84,
+            "pitch": -18,
+            "arrivalU": 0.84
+          },
+          {
+            "target": "hq-503",
+            "u": 0.35,
+            "pitch": -18,
+            "arrivalU": 0.08
+          }
+        ],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "hq-503",
+        "code": "1201-03",
+        "name": "Aquatic planting",
+        "park": "huqiu",
+        "capturedAt": "2026-07-17",
+        "panorama": "/assets/tours/pano-hq-503.jpg",
+        "preview": "/assets/tours/preview-hq-503.jpg",
+        "thumb": "/assets/tours/thumb-hq-503.jpg",
+        "initialU": 0.17,
+        "spaceTypes": [
+          "Grove",
+          "Planting"
+        ],
+        "links": [
+          {
+            "target": "hq-502",
+            "u": 0.025,
+            "pitch": -18,
+            "arrivalU": 0.84
+          }
+        ],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "hq-495",
+        "code": "1201-04",
+        "name": "Willow-lined bridge",
+        "park": "huqiu",
+        "capturedAt": "2026-07-17",
+        "panorama": "/assets/tours/pano-hq-495.jpg",
+        "preview": "/assets/tours/preview-hq-495.jpg",
+        "thumb": "/assets/tours/thumb-hq-495.jpg",
+        "initialU": 0.55,
+        "spaceTypes": [
+          "Bridge",
+          "Grove"
+        ],
+        "links": [],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "hq-496",
+        "code": "1201-05",
+        "name": "Stone bridge",
+        "park": "huqiu",
+        "capturedAt": "2026-07-17",
+        "panorama": "/assets/tours/pano-hq-496.jpg",
+        "preview": "/assets/tours/preview-hq-496.jpg",
+        "thumb": "/assets/tours/thumb-hq-496.jpg",
+        "initialU": 0.26,
+        "spaceTypes": [
+          "Bridge",
+          "Planting"
+        ],
+        "links": [],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "hq-498",
+        "code": "1201-06",
+        "name": "Hedge-lined path",
+        "park": "huqiu",
+        "capturedAt": "2026-07-17",
+        "panorama": "/assets/tours/pano-hq-498.jpg",
+        "preview": "/assets/tours/preview-hq-498.jpg",
+        "thumb": "/assets/tours/thumb-hq-498.jpg",
+        "initialU": 0.5,
+        "spaceTypes": [
+          "Planting"
+        ],
+        "links": [],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "hq-500",
+        "code": "1201-07",
+        "name": "Boardwalk junction",
+        "park": "huqiu",
+        "capturedAt": "2026-07-17",
+        "panorama": "/assets/tours/pano-hq-500.jpg",
+        "preview": "/assets/tours/preview-hq-500.jpg",
+        "thumb": "/assets/tours/thumb-hq-500.jpg",
+        "initialU": 0.43,
+        "spaceTypes": [
+          "Grove"
+        ],
+        "links": [],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "hq-505",
+        "code": "1201-08",
+        "name": "Forest boardwalk",
+        "park": "huqiu",
+        "capturedAt": "2026-07-17",
+        "panorama": "/assets/tours/pano-hq-505.jpg",
+        "preview": "/assets/tours/preview-hq-505.jpg",
+        "thumb": "/assets/tours/thumb-hq-505.jpg",
+        "initialU": 0.52,
+        "spaceTypes": [
+          "Grove"
+        ],
+        "links": [],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "hq-506",
+        "code": "1201-09",
+        "name": "Waterside boardwalk",
+        "park": "huqiu",
+        "capturedAt": "2026-07-17",
+        "panorama": "/assets/tours/pano-hq-506.jpg",
+        "preview": "/assets/tours/preview-hq-506.jpg",
+        "thumb": "/assets/tours/thumb-hq-506.jpg",
+        "initialU": 0.52,
+        "spaceTypes": [
+          "Grove",
+          "Planting"
+        ],
+        "links": [],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      }
+    ],
+    "links": [
+      {
+        "label": "Suzhou municipal landscape bureau",
+        "url": "https://ylj.suzhou.gov.cn/szsylj/jygy/201912/3ecbf134477343d9b50ac9b6a2209873.shtml"
+      },
+      {
+        "label": "AMap",
+        "url": "https://ditu.amap.com/place/B0200161UM"
+      }
+    ],
+    "type": "Wetland Park",
+    "tags": [
+      "Water",
+      "Planting",
+      "Ecological"
+    ],
+    "coordinates": "31.367194,120.566992",
+    "locationPrecision": "approximate neighborhood"
+  },
+  {
+    "id": 36,
+    "slug": "suzhou-park",
+    "title": "Suzhou Park",
+    "location": "Suzhou, China",
+    "designer": "—",
+    "year": "1927",
+    "types": [
+      "Urban Park",
+      "Historic Landscape"
+    ],
+    "area": "64 mu (approx. 4.27 ha)",
+    "description": "",
+    "visible": "1",
+    "captures": [],
+    "vrTypes": [],
+    "thumb": "/assets/projects/suzhou-park-cover.jpg",
+    "thumbIllustration": true,
+    "dateCollected": "Summer 2026",
+    "publishedAt": "2026-11-20",
+    "panoramaCollection": "default",
+    "panoramas": [
+      {
+        "id": "sz-507",
+        "code": "1202-01",
+        "name": "Pond-side plaza",
+        "park": "suzhou",
+        "capturedAt": "2026-07-18",
+        "panorama": "/assets/tours/pano-sz-507.jpg",
+        "preview": "/assets/tours/preview-sz-507.jpg",
+        "thumb": "/assets/tours/thumb-sz-507.jpg",
+        "initialU": 0.27,
+        "spaceTypes": [
+          "Plaza",
+          "Grove",
+          "Seating",
+          "Bridge",
+          "Planting"
+        ],
+        "links": [],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "sz-510",
+        "code": "1202-02",
+        "name": "Waterside path",
+        "park": "suzhou",
+        "capturedAt": "2026-07-18",
+        "panorama": "/assets/tours/pano-sz-510.jpg",
+        "preview": "/assets/tours/preview-sz-510.jpg",
+        "thumb": "/assets/tours/thumb-sz-510.jpg",
+        "initialU": 0.61,
+        "spaceTypes": [
+          "Grove",
+          "Planting"
+        ],
+        "links": [],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "sz-513",
+        "code": "1202-03",
+        "name": "Rock garden",
+        "park": "suzhou",
+        "capturedAt": "2026-07-18",
+        "panorama": "/assets/tours/pano-sz-513.jpg",
+        "preview": "/assets/tours/preview-sz-513.jpg",
+        "thumb": "/assets/tours/thumb-sz-513.jpg",
+        "initialU": 0.27,
+        "spaceTypes": [
+          "Grove",
+          "Planting",
+          "Bridge",
+          "Topography"
+        ],
+        "links": [],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "sz-514",
+        "code": "1202-04",
+        "name": "Tree-shaded plaza",
+        "park": "suzhou",
+        "capturedAt": "2026-07-18",
+        "panorama": "/assets/tours/pano-sz-514.jpg",
+        "preview": "/assets/tours/preview-sz-514.jpg",
+        "thumb": "/assets/tours/thumb-sz-514.jpg",
+        "initialU": 0.27,
+        "spaceTypes": [
+          "Plaza",
+          "Grove",
+          "Seating",
+          "Planting"
+        ],
+        "links": [],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "sz-516",
+        "code": "1202-05",
+        "name": "Rock steps",
+        "park": "suzhou",
+        "capturedAt": "2026-07-18",
+        "panorama": "/assets/tours/pano-sz-516.jpg",
+        "preview": "/assets/tours/preview-sz-516.jpg",
+        "thumb": "/assets/tours/thumb-sz-516.jpg",
+        "initialU": 0.57,
+        "spaceTypes": [
+          "Topography",
+          "Planting",
+          "Bridge"
+        ],
+        "links": [],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      },
+      {
+        "id": "sz-517",
+        "code": "1202-06",
+        "name": "Pavilion and terrace",
+        "park": "suzhou",
+        "capturedAt": "2026-07-18",
+        "panorama": "/assets/tours/pano-sz-517.jpg",
+        "preview": "/assets/tours/preview-sz-517.jpg",
+        "thumb": "/assets/tours/thumb-sz-517.jpg",
+        "initialU": 0.27,
+        "spaceTypes": [
+          "Plaza",
+          "Planting",
+          "Topography"
+        ],
+        "links": [],
+        "publishedAt": "2026-11-20",
+        "mediaPublishedAt": "2026-11-20"
+      }
+    ],
+    "links": [
+      {
+        "label": "Suzhou municipal landscape bureau",
+        "url": "https://ylj.suzhou.gov.cn/szsylj/zhgy/201912/345ca623542f4a848b1a41145d4ef54e.shtml"
+      },
+      {
+        "label": "AMap",
+        "url": "https://ditu.amap.com/place/B020005F4M"
+      }
+    ],
+    "yearLabel": "Opened",
+    "type": "Urban Park|Historic Landscape",
+    "tags": [
+      "Urban",
+      "Planting",
+      "Hardscape"
+    ],
+    "coordinates": "31.306656,120.623356",
+    "locationPrecision": "approximate site"
   }
 ]

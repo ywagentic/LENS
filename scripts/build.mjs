@@ -1,3 +1,4 @@
+import {experienceSource,writeTourOutput} from './experience-build.mjs';
 import { readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { build } from 'esbuild';
@@ -26,7 +27,7 @@ await rm('.build', {recursive:true, force:true});
 await rm('dist', {recursive:true, force:true});
 await mkdir('.build', {recursive:true});
 await mkdir('dist', {recursive:true});
-const common = `import React from 'react';\n${await readFile('scripts/tweaks-production.jsx','utf8')}\n${i18n}\n${await readFile('scripts/contribution-navigation.js','utf8')}\n${await readFile('atlas.jsx','utf8')}\n${app}\nexport {App, parseCSV, normalizeProjects, projectPath, PAGE_PATHS, SHEET_CSV_URL, isPublished, lensText, lensSetLocale, lensLocalePath, lensStripLocale, lensSearchText, lensCreateElement, LENS_LANGUAGES, ContributeProtocol, ContributeWishlist, ContributeSubmit};`;
+const common = `import React from 'react';\n${await readFile('scripts/tweaks-production.jsx','utf8')}\n${i18n}\n${await readFile('scripts/contribution-navigation.js','utf8')}\n${await readFile('atlas.jsx','utf8')}\n${await experienceSource()}\n${app}\nexport {App, parseCSV, normalizeProjects, projectPath, PAGE_PATHS, SHEET_CSV_URL, isPublished, lensText, lensSetLocale, lensLocalePath, lensStripLocale, lensSearchText, lensCreateElement, LENS_LANGUAGES, ContributeProtocol, ContributeWishlist, ContributeSubmit, projectViews, fullsiteModeCount, archiveGrowthHistory};`;
 await writeFile('.build/app.jsx', common);
 await build({entryPoints:['.build/app.jsx'], outfile:'.build/server.cjs',bundle:true,jsxFactory:'lensCreateElement',platform:'node',format:'cjs',packages:'external',define:{'process.env.NODE_ENV':'"production"'}});
 const {App,parseCSV,normalizeProjects,projectPath,PAGE_PATHS,SHEET_CSV_URL,isPublished,lensText,lensSetLocale,lensLocalePath,LENS_LANGUAGES} = require('../.build/server.cjs');
@@ -36,10 +37,12 @@ const csv = response ? await response.text() : await readFile(process.env.LENS_C
 if (!csv.split(/\r?\n/)[0].split(',').includes('visible')) throw new Error('Catalogue missing publication switch');
 const projects = normalizeProjects([...parseCSV(csv).filter(p => !upcomingProjects.some(a => a.id === p.id)), ...upcomingProjects]);
 if (new Set(projects.map(p=>p.id)).size !== projects.length) throw new Error('Duplicate project IDs');
+for(const p of projects){if(p.slug&&!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(p.slug))throw Error('Invalid project slug');}
+
 await writeFile('.build/client.jsx',`import React from 'react';import {createRoot} from 'react-dom/client';import {App, lensCreateElement} from './app.jsx';createRoot(document.getElementById('root')).render(<App initialProjects={JSON.parse(document.getElementById('catalogue-data').textContent)} initialPath={window.location.pathname}/>);`);
 const built = await build({entryPoints:['.build/client.jsx'],outdir:'dist/assets',entryNames:'app-[hash]',bundle:true,jsxFactory:'lensCreateElement',minify:true,metafile:true,define:{'process.env.NODE_ENV':'"production"'}});
 const js = '/'+Object.keys(built.metafile.outputs).find(p=>p.endsWith('.js')).replace(/^dist\//,'');
-await cp('assets/projects','dist/assets/projects',{recursive:true, filter: source => source === 'assets/projects' || source === 'assets/projects/views' || /\.(?:jpg|jpeg|png|webp|avif|svg|gif|ico)$/i.test(source)});
+await cp('assets/projects','dist/assets/projects',{recursive:true, filter: source => source === 'assets/projects' || source === 'assets/projects/views' || source === 'assets/projects/previews' || /\.(?:jpg|jpeg|png|webp|avif|svg|gif|ico)$/i.test(source)});
 const publicBrandAssets = new Set(['apple-touch-icon.png', 'favicon.svg', 'lens-mark.svg', 'lens-youtube-avatar.png']);
 await cp('assets/brand','dist/assets/brand',{recursive:true, filter: source => source === 'assets/brand' || publicBrandAssets.has(source.split('/').pop())});
 await cp('CNAME','dist/CNAME');
@@ -47,6 +50,7 @@ try { await cp('public','dist',{recursive:true, filter: source => {
  const parts = source.split('/').slice(1);
  return !parts.some(part => part.startsWith('.') || /^Icon(?:\r|\?)?$/.test(part) || ['quest-test', 'internal', 'drafts', 'previews'].includes(part));
 }}); } catch(error) { if(error.code !== 'ENOENT') throw error; }
+await writeTourOutput(projects,translations);
 const escape = s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
 const json = value=>JSON.stringify(value).replaceAll('<','\\u003c');
 const pages = {
@@ -61,7 +65,7 @@ const pages = {
  about:['About LENS — A VR Archive of Urban Public Spaces','LENS is a VR digital archive of contemporary urban public spaces for landscape architecture education and research. Learn about its authorship and licensing.']
 };
 const routes = Object.entries(PAGE_PATHS).map(([view,path])=>({view,path,title:pages[view][0],description:pages[view][1]}));
-for(const p of projects.filter(isPublished)) routes.push({path:projectPath(p),project:p,title:`${p.title}, ${p.location} — 360° VR | LENS`,description:`Explore ${p.title} in ${p.location} through ${(p.captures || []).length} 360° VR recording${(p.captures || []).length === 1 ? '' : 's'}. View project information and sources in the LENS public space archive.`});
+for(const p of projects.filter(isPublished)) routes.push({path:projectPath(p),project:p,title:`${p.title}, ${p.location} — 360° VR | LENS`,description:`Explore ${p.title} in ${p.location} through ${new Set([...(p.captures||[]),...(p.panoramas||[])].map(v=>v.code||v.vrId||v.id)).size} immersive 360° viewpoints. View project information and sources in the LENS public space archive.`});
 try { await cp('assets/journal','dist/assets/journal',{recursive:true,filter:source=>source==='assets/journal'||/\.(jpg|jpeg|png|webp|avif)$/i.test(source)}); } catch(error) { if(error.code !== 'ENOENT') throw error; }
 const localizedRoutes = routes.flatMap(route => Object.keys(LENS_LANGUAGES).map(locale => ({...route, basePath:route.path, path:lensLocalePath(route.path,locale),locale})));
 const languagePreference = await readFile('scripts/language-preference.js','utf8');

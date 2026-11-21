@@ -2,13 +2,13 @@
 
 **Contemporary Urban Public Spaces in VR**
 
-LENS is a VR digital archive for landscape architecture education and research. Its collection brings together on-site 360° recordings of parks, plazas, waterfronts and the public spaces of cultural and civic buildings.
+LENS is a VR digital archive for landscape architecture education and research. Its collection brings together on-site 360° videos and static panoramas of parks, plazas, waterfronts and the public spaces of cultural and civic buildings.
 
 [Visit LENS](https://lens-vr.com/)
 
 ## Explore the archive
 
-Browse projects by location and spatial characteristics, discover spaces through the Atlas, and open individual project pages for information and available viewpoints. Recordings document fixed viewpoints that can be explored in 360°.
+Browse projects by location and spatial characteristics, discover spaces through the Atlas, and open project pages for information and available experiences. Open immersive videos on YouTube or explore static panoramas on LENS; connected viewpoints can be followed as a tour.
 
 - [Browse projects](https://lens-vr.com/browse/)
 - [For educators](https://lens-vr.com/for-educators/)

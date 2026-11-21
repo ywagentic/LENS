@@ -473,16 +473,12 @@ function AtlasMap({projects,onSelect,setView,filter,setFilter}) {
   </main>;
 }
 
-function recordingViewLabel(project) {
-  if (isUpcoming(project)) return 'Upcoming';
-  const count = (project.captures || []).length;
-  return `${count} ${count === 1 ? 'View' : 'Views'}`;
-}
+function recordingViewLabel(project){if(isUpcoming(project))return lensText('Upcoming');return fullsiteModes(project).map(m=>lensText(fullsiteModeTitle(project,m))+': '+fullsiteModeCount(project,m)).join(' · ');}
 
 function AtlasCollectionStats({ projects }) {
   const published = projects.filter(isPublished);
   const upcoming = projects.filter(isUpcoming).length;
-  const clips = published.reduce((total, project) => total + (project.captures || []).length, 0);
+  const clips = published.reduce((total, project) => total + projectViews(project).length, 0);
   if(lensLocale==='ar')return <p aria-label="Archive statistics" style={{fontSize:13,color:'var(--fg3)',lineHeight:1.5,marginTop:12}}>{`${lensText('Projects')}: ${published.length} · ${lensText('Views')}: ${clips}${upcoming>0?' · '+lensText('Upcoming')+': '+upcoming:''}`}</p>;
   return <p aria-label="Archive statistics" style={{fontSize:13,color:'var(--fg3)',lineHeight:1.5,marginTop:12}}>
     <span style={{color:'var(--fg)'}}>{published.length}</span> Projects
@@ -633,7 +629,7 @@ function AtlasTypeNetwork({groups, selected, onSelect}) {
     {frame.links.map(l=><line key={l.source.id+l.target.id} x1={l.source.x} y1={l.source.y} x2={l.target.x} y2={l.target.y} stroke={highlight&&(l.source.id===highlight||l.target.id===highlight)?'var(--accent)':'var(--fg3)'} strokeWidth={highlight&&(l.source.id===highlight||l.target.id===highlight)?1.4:0.7} opacity={highlight?neighbors.has(l.source.id)&&neighbors.has(l.target.id)?0.8:0.12:0.35} style={{transition:'opacity 180ms,stroke 180ms'}}/>)}
     {frame.nodes.map(n=><g key={n.id} role="button" tabIndex="0" aria-label={n.kind==='type'?n.label:n.p.title} onMouseEnter={()=>{clearTimeout(hoverExit.current);hoverExit.current=null;setHover(n.id);if(n.kind==='type')setActiveType(current=>current||n.id);}} onMouseLeave={()=>{clearTimeout(hoverExit.current);hoverExit.current=setTimeout(()=>{setHover(null);setActiveType(null);hoverExit.current=null;},180);}} onFocus={()=>{setHover(n.id);if(n.kind==='type')setActiveType(current=>current||n.id);}} onBlur={()=>{clearTimeout(hoverExit.current);hoverExit.current=setTimeout(()=>{setHover(null);setActiveType(null);hoverExit.current=null;},180);}} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();if(n.kind==='type')setActiveType(n.id);else onSelect(n.p);}}} onClick={()=>{if(n.kind==='type')setActiveType(n.id);else onSelect(n.p);}} style={{cursor:'pointer',opacity:highlight&&!neighbors.has(n.id)?0.3:1,transition:'opacity 180ms'}}>
       <circle cx={n.x} cy={n.y} r={n.kind==='type'?28:20} fill="transparent" stroke="none"/>
-      <circle pointerEvents="none" cx={n.x} cy={n.y} r={n.kind==='type'?13:5+2*Math.sqrt((n.p.captures||[]).length)+(hover===n.id||selected?.id===n.p?.id?2:0)} fill={n.kind==='type'?'var(--card-bg)':atlasMarkerBackground([n.p])} stroke={n.kind==='type'?'var(--fg2)':'var(--card-bg)'} strokeWidth={n.kind==='type'?1.2:2} style={{transition:'r 180ms'}}/>
+      <circle pointerEvents="none" cx={n.x} cy={n.y} r={n.kind==='type'?13:5+2*Math.sqrt(projectViews(n.p).length)+(hover===n.id||selected?.id===n.p?.id?2:0)} fill={n.kind==='type'?'var(--card-bg)':atlasMarkerBackground([n.p])} stroke={n.kind==='type'?'var(--fg2)':'var(--card-bg)'} strokeWidth={n.kind==='type'?1.2:2} style={{transition:'r 180ms'}}/>
       {n.kind==='type'&&<text pointerEvents="none" x={n.x} y={n.y+29} textAnchor="middle" fontSize="13" fill="var(--fg2)" stroke="var(--card-bg)" strokeWidth="5" paintOrder="stroke">{n.label}</text>}
       {n.p&&hover===n.id&&<text pointerEvents="none" x={Math.max(150,Math.min(850,n.x))} y={n.y-23} textAnchor="middle" fontSize="13" fill="var(--fg)" stroke="var(--card-bg)" strokeWidth="5" paintOrder="stroke">{n.p.title}</text>}
     </g>)}
@@ -702,7 +698,7 @@ function Atlas({ projects, onSelect }) {
         {hovered&&<div className="atlas-field-tooltip" style={{left:`${Math.max(16,Math.min(84,hovered.x/10))}%`,top:`${hovered.y/5-5}%`}}>{hovered.p.title}<br/><span style={{color:'var(--fg3)',fontSize:11}}>{hovered.p.year} · {recordingViewLabel(hovered.p)}</span></div>}
         {!layout.nodes.length&&<p style={{padding:24,fontSize:13,color:'var(--fg3)'}}>No projects match this view.</p>}
       </div></div>}
-      {selected&&<aside className="atlas-group-detail" aria-label="Selected project"><button style={button} onClick={()=>setSelected(null)}>Clear selection</button><h2 style={{fontSize:21,fontWeight:400,lineHeight:1.3,marginTop:20}}>{selected.title}</h2><p style={{fontSize:13,color:'var(--fg3)',lineHeight:1.6}}>{selected.location}<br/>{selected.year || '—'} · {recordingViewLabel(selected)}</p>{!isUpcoming(selected)&&<button style={{...button,marginTop:12}} onClick={()=>onSelect(selected)}>Open project →</button>}</aside>}
+      {selected&&<aside className="atlas-group-detail" aria-label="Selected project"><button style={button} onClick={()=>setSelected(null)}>Clear selection</button><h2 style={{fontSize:21,fontWeight:400,lineHeight:1.3,marginTop:20}}>{selected.title}</h2><p style={{fontSize:13,color:'var(--fg3)',lineHeight:1.6}}>{selected.location}<br/>{selected.year || '—'} · {recordingViewLabel(selected)}</p>{!isUpcoming(selected)&&<button style={{...button,marginTop:12}} onClick={()=>onSelect(selected)}>{lensText('Open project')} →</button>}</aside>}
     </div>
   </main>;
 }

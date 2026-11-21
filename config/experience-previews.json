@@ -1,0 +1,340 @@
+{
+  "28": [
+    {
+      "code": "0902-01",
+      "src": "/assets/projects/previews/0902-01.jpg"
+    },
+    {
+      "code": "0902-02",
+      "src": "/assets/projects/previews/0902-02.jpg"
+    }
+  ],
+  "26": [
+    {
+      "code": "0503-01",
+      "src": "/assets/projects/previews/0503-01.jpg"
+    }
+  ],
+  "9": [
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        68,
+        788,
+        385
+      ],
+      "code": "0301-01",
+      "src": "/assets/projects/previews/0301-01.png"
+    },
+    {
+      "code": "0301-02",
+      "src": "/assets/projects/previews/0301-02.jpg"
+    }
+  ],
+  "32": [
+    {
+      "code": "0803-01",
+      "src": "/assets/projects/previews/0803-01.jpg"
+    }
+  ],
+  "24": [
+    {
+      "code": "0402-01",
+      "src": "/assets/projects/previews/0402-01.jpg"
+    }
+  ],
+  "33": [
+    {
+      "code": "1101-01",
+      "src": "/assets/projects/previews/1101-01.jpg"
+    },
+    {
+      "code": "1101-02",
+      "src": "/assets/projects/previews/1101-02.jpg"
+    }
+  ],
+  "34": [
+    {
+      "code": "0903-01",
+      "src": "/assets/projects/previews/0903-01.jpg"
+    }
+  ],
+  "17": [
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        68,
+        788,
+        410
+      ],
+      "code": "0501-01",
+      "src": "/assets/projects/previews/0501-01.png"
+    },
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        68,
+        788,
+        478
+      ],
+      "code": "0501-02",
+      "src": "/assets/projects/previews/0501-02.png"
+    },
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        56,
+        788,
+        230
+      ],
+      "code": "0501-04",
+      "src": "/assets/projects/previews/0501-04.png"
+    }
+  ],
+  "20": [
+    {
+      "size": [
+        862,
+        485
+      ],
+      "crop": [
+        90,
+        68,
+        770,
+        385
+      ],
+      "code": "0302-01",
+      "src": "/assets/projects/previews/0302-01.png"
+    },
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        56,
+        788,
+        230
+      ],
+      "code": "0302-02",
+      "src": "/assets/projects/previews/0302-02.png"
+    }
+  ],
+  "21": [
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        56,
+        788,
+        230
+      ],
+      "code": "0401-01",
+      "src": "/assets/projects/previews/0401-01.png"
+    },
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        56,
+        788,
+        230
+      ],
+      "code": "0401-02",
+      "src": "/assets/projects/previews/0401-02.png"
+    }
+  ],
+  "23": [
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        56,
+        788,
+        230
+      ],
+      "code": "0701-01",
+      "src": "/assets/projects/previews/0701-01.png"
+    },
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        56,
+        788,
+        230
+      ],
+      "code": "0701-03",
+      "src": "/assets/projects/previews/0701-03.png"
+    },
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        56,
+        788,
+        230
+      ],
+      "code": "0701-04",
+      "src": "/assets/projects/previews/0701-04.png"
+    }
+  ],
+  "22": [
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        68,
+        788,
+        478
+      ],
+      "code": "0601-01",
+      "src": "/assets/projects/previews/0601-01.png"
+    },
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        68,
+        788,
+        478
+      ],
+      "code": "0601-02",
+      "src": "/assets/projects/previews/0601-02.png"
+    },
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        68,
+        788,
+        478
+      ],
+      "code": "0601-05",
+      "src": "/assets/projects/previews/0601-05.png"
+    }
+  ],
+  "25": [
+    {
+      "size": [
+        840,
+        480
+      ],
+      "crop": [
+        70,
+        56,
+        770,
+        424
+      ],
+      "code": "0502-01",
+      "src": "/assets/projects/previews/0502-01.png"
+    },
+    {
+      "size": [
+        1265,
+        712
+      ],
+      "crop": [
+        90,
+        68,
+        788,
+        478
+      ],
+      "code": "0502-02",
+      "src": "/assets/projects/previews/0502-02.png"
+    }
+  ],
+  "16": [
+    {
+      "code": "0801-01",
+      "src": "/assets/projects/previews/0801-01.jpg"
+    }
+  ],
+  "31": [
+    {
+      "code": "0802-01",
+      "src": "/assets/projects/previews/0802-01.jpg"
+    }
+  ],
+  "29": [
+    {
+      "code": "1001-01",
+      "src": "/assets/projects/previews/1001-01.jpg"
+    }
+  ],
+  "35": [
+    {
+      "alt": "A boardwalk leads between trees toward a timber platform.",
+      "code": "1201-01",
+      "src": "/assets/projects/previews/1201-01.jpg"
+    },
+    {
+      "alt": "A pedestrian bridge with railings beside willow trees and water.",
+      "code": "1201-04",
+      "src": "/assets/projects/previews/1201-04.jpg"
+    },
+    {
+      "alt": "A boardwalk borders a pond filled with aquatic plants.",
+      "code": "1201-03",
+      "src": "/assets/projects/previews/1201-03.jpg"
+    }
+  ],
+  "36": [
+    {
+      "alt": "Trees and benches edge a paved plaza beside a pond.",
+      "code": "1202-01",
+      "src": "/assets/projects/previews/1202-01.jpg"
+    },
+    {
+      "alt": "A path and stone steps run between bamboo and planted edges.",
+      "code": "1202-03",
+      "src": "/assets/projects/previews/1202-03.jpg"
+    },
+    {
+      "alt": "A tiled-roof pavilion faces a paved terrace among trees.",
+      "code": "1202-06",
+      "src": "/assets/projects/previews/1202-06.jpg"
+    }
+  ]
+}
