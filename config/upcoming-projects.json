@@ -1051,9 +1051,9 @@
         "name": "Boardwalk junction",
         "park": "huqiu",
         "capturedAt": "2026-07-17",
-        "panorama": "/assets/tours/pano-hq-500.jpg",
-        "preview": "/assets/tours/preview-hq-500.jpg",
-        "thumb": "/assets/tours/thumb-hq-500.jpg",
+        "panorama": "/assets/tours/pano-hq-500-lifted.jpg",
+        "preview": "/assets/tours/preview-hq-500-lifted.jpg",
+        "thumb": "/assets/tours/thumb-hq-500-lifted.jpg",
         "initialU": 0.43,
         "spaceTypes": [
           "Grove"
